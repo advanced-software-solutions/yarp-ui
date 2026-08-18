@@ -7,6 +7,9 @@ namespace YARPUI.Api;
 public sealed record ConfigResponse(
     IReadOnlyList<RouteConfig> Routes,
     IReadOnlyList<ClusterConfig> Clusters,
+    IReadOnlyList<string> ManagedRouteIds,
+    IReadOnlyList<string> ManagedClusterIds,
+    bool AttachMode,
     bool ManagedByUi);
 
 public sealed class ConfigUpdateRequest
@@ -22,12 +25,11 @@ public static class YarpApi
 
     public static IEndpointRouteBuilder MapYarpApi(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/yarp").RequireAuthorization();
+        var group = app.MapGroup("/api/yarp").RequireAuthorization(YarpUiDefaults.Policy);
 
         group.MapGet("/config", (ProxyConfigService configService) =>
         {
-            var current = configService.GetCurrent();
-            return Results.Json(new ConfigResponse(current.Routes, current.Clusters, configService.IsManagedByUi), ConfigJsonOptions);
+            return Results.Json(ToResponse(configService), ConfigJsonOptions);
         });
 
         group.MapPut("/config", async (HttpContext http, ProxyConfigService configService) =>
@@ -56,20 +58,18 @@ public static class YarpApi
                 return Results.BadRequest(new { errors = result.Errors });
             }
 
-            var current = configService.GetCurrent();
-            return Results.Json(new ConfigResponse(current.Routes, current.Clusters, configService.IsManagedByUi), ConfigJsonOptions);
+            return Results.Json(ToResponse(configService), ConfigJsonOptions);
         });
 
         group.MapPost("/config/reset", async (ProxyConfigService configService) =>
         {
-            var result = await configService.ResetToSeedAsync();
+            var result = await configService.ResetAsync();
             if (!result.Success)
             {
                 return Results.BadRequest(new { errors = result.Errors });
             }
 
-            var current = configService.GetCurrent();
-            return Results.Json(new ConfigResponse(current.Routes, current.Clusters, configService.IsManagedByUi), ConfigJsonOptions);
+            return Results.Json(ToResponse(configService), ConfigJsonOptions);
         });
 
         group.MapGet("/logs", (RequestLogStore store, long? after) =>
@@ -84,5 +84,17 @@ public static class YarpApi
         });
 
         return app;
+    }
+
+    private static ConfigResponse ToResponse(ProxyConfigService configService)
+    {
+        var live = configService.GetLiveConfig();
+        return new ConfigResponse(
+            live.Routes,
+            live.Clusters,
+            live.ManagedRouteIds.ToList(),
+            live.ManagedClusterIds.ToList(),
+            configService.IsAttachMode,
+            configService.IsManagedByUi);
     }
 }

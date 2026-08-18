@@ -1,0 +1,129 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Yarp.ReverseProxy;
+using Yarp.ReverseProxy.Configuration;
+using YARPUI;
+using YARPUI.Api;
+using YARPUI.Services;
+
+namespace Microsoft.Extensions.DependencyInjection;
+
+/// <summary>
+/// Hosting entry points for embedding YARP UI in any ASP.NET Core application.
+/// The standalone host (YARPUI.Host) and embedded consumers use the same calls.
+/// </summary>
+public static class YarpUiServiceCollectionExtensions
+{
+    /// <summary>
+    /// Standalone/embedded mode: the app gives YARP UI full ownership of the proxy
+    /// configuration. Registers the proxy (loaded from yarp-ui.routes.json when present,
+    /// otherwise the appsettings.json seed), the config/log services, cookie authentication
+    /// (credentials from YarpUi:Auth) and the Razor Pages UI.
+    /// Use this when the app does not configure YARP itself.
+    /// </summary>
+    public static IServiceCollection AddYarpUi(this WebApplicationBuilder builder)
+    {
+        var dataDirectory = ResolveAndWireDataDirectory(builder);
+        var initialConfig = ProxyConfigService.LoadInitial(
+            dataDirectory,
+            builder.Environment.ContentRootPath,
+            builder.Environment.EnvironmentName);
+
+        var services = builder.Services;
+        services.AddReverseProxy()
+            .LoadFromMemory(initialConfig.Routes, initialConfig.Clusters);
+
+        return AddYarpUiCore(services, builder.Configuration, attachMode: false);
+    }
+
+    /// <summary>
+    /// Attach mode for apps that already configure YARP themselves (their own
+    /// LoadFromConfig/custom providers, transforms and filters stay fully in charge).
+    /// The UI shows the host's entire live configuration read-only and manages a separate
+    /// overlay (yarp-ui.routes.json) that merges alongside it — nothing from the app's own
+    /// configuration is ever read, seeded, rewritten or replaced.
+    /// </summary>
+    public static IServiceCollection AttachYarpUi(this WebApplicationBuilder builder)
+    {
+        var dataDirectory = ResolveAndWireDataDirectory(builder);
+        var overlay = ProxyConfigService.LoadOverlay(dataDirectory);
+
+        // The overlay is just another config source from YARP's point of view; the host's
+        // own sources are untouched and both are merged into the live proxy state.
+        var overlayProvider = new InMemoryConfigProvider(overlay.Routes, overlay.Clusters);
+        builder.Services.AddSingleton(overlayProvider);
+        builder.Services.AddSingleton<IProxyConfigProvider>(sp => sp.GetRequiredService<InMemoryConfigProvider>());
+
+        return AddYarpUiCore(builder.Services, builder.Configuration, attachMode: true);
+    }
+
+    private static string ResolveAndWireDataDirectory(WebApplicationBuilder builder)
+    {
+        var dataDirectory = ProxyConfigService.ResolveDataDirectory(
+            builder.Configuration,
+            builder.Environment.ContentRootPath);
+
+        // A data-directory (e.g. Docker volume) appsettings.json overrides the shipped one —
+        // this must happen before configuration is read anywhere else.
+        if (!string.Equals(dataDirectory, builder.Environment.ContentRootPath, StringComparison.OrdinalIgnoreCase))
+        {
+            Directory.CreateDirectory(dataDirectory);
+            builder.Configuration.AddJsonFile(Path.Combine(dataDirectory, "appsettings.json"), optional: true, reloadOnChange: false);
+        }
+
+        return dataDirectory;
+    }
+
+    private static IServiceCollection AddYarpUiCore(IServiceCollection services, IConfiguration configuration, bool attachMode)
+    {
+        services.AddRazorPages();
+
+        services.AddSingleton(sp => new ProxyConfigService(
+            configuration,
+            sp.GetRequiredService<IHostEnvironment>(),
+            sp.GetRequiredService<InMemoryConfigProvider>(),
+            sp.GetRequiredService<IConfigValidator>(),
+            sp.GetService<IProxyStateLookup>(),
+            attachMode,
+            sp.GetRequiredService<ILogger<ProxyConfigService>>()));
+
+        services.AddSingleton<RequestLogStore>();
+
+        // UI sign-in with credentials from configuration (YarpUi:Auth). The UI registers its own
+        // named cookie scheme and policy — it never changes the host's default authentication
+        // scheme, so it is safe to add next to an app's existing JWT/cookie setup.
+        services.AddAuthentication()
+            .AddCookie(YarpUiDefaults.Scheme, options =>
+            {
+                options.LoginPath = "/login";
+                options.AccessDeniedPath = "/login";
+                options.ExpireTimeSpan = TimeSpan.FromHours(8);
+                options.SlidingExpiration = true;
+                options.Cookie.Name = "yarpui.auth";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    // API calls get a plain 401 so client-side code can redirect to login itself.
+                    if (context.Request.Path.StartsWithSegments("/api"))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        return Task.CompletedTask;
+                    }
+
+                    context.Response.Redirect(context.RedirectUri);
+                    return Task.CompletedTask;
+                };
+            });
+
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy(YarpUiDefaults.Policy, policy =>
+            {
+                policy.AddAuthenticationSchemes(YarpUiDefaults.Scheme);
+                policy.RequireAuthenticatedUser();
+            });
+        });
+
+        return services;
+    }
+}

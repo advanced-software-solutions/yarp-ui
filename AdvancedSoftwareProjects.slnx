@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="YARPUI/YARPUI.csproj" />
+  <Project Path="YARPUI.Host/YARPUI.Host.csproj" />
 </Solution>

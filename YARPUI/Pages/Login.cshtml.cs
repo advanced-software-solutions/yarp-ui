@@ -58,11 +58,11 @@ public class LoginModel : PageModel
             return Page();
         }
 
-        var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
+        var identity = new ClaimsIdentity(YarpUiDefaults.Scheme);
         identity.AddClaim(new Claim(ClaimTypes.Name, Username!));
 
         await HttpContext.SignInAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme,
+            YarpUiDefaults.Scheme,
             new ClaimsPrincipal(identity));
 
         _logger.LogInformation("User '{Username}' signed in.", Username);

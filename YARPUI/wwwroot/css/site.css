@@ -638,6 +638,9 @@ select {
 .ncard.hover { transform: translateY(-2px); box-shadow: 0 12px 34px rgba(2, 6, 23, 0.6); }
 .ncard.dimmed { opacity: 0.14; filter: saturate(0.3); }
 .ncard.match { box-shadow: 0 0 0 2px var(--accent-2), var(--shadow-1); }
+.ncard-external { border-style: dashed; border-color: rgba(148, 163, 184, 0.4); }
+.ncard-external .ncard-sub { color: #b9a7ec; }
+.ncard-external .ncard-title::after { content: '· app config'; margin-left: 6px; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .ncard.selected {
     border-color: var(--tc);
     transform: translateY(-2px) scale(1.04);
@@ -1003,6 +1006,31 @@ pre.json {
 }
 
 .item-chip-warn { color: var(--danger); border-color: rgba(248, 113, 113, 0.45); }
+
+.item-external .item-title { color: var(--muted); }
+.item-external .item-icon { opacity: 0.65; }
+.item-lock {
+    flex: 0 0 auto;
+    display: inline-flex;
+    color: var(--muted);
+    padding: 4px;
+}
+.item-lock svg { width: 13px; height: 13px; display: block; }
+
+.ro-banner {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 6px;
+    padding: 10px 13px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    background: rgba(139, 92, 246, 0.1);
+    color: #d9c9ff;
+    font-size: 12.5px;
+}
+.ro-banner svg { width: 15px; height: 15px; flex: 0 0 auto; }
 
 .item-del {
     flex: 0 0 auto;

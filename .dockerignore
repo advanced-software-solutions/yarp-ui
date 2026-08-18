@@ -1,0 +1,13 @@
+# Keep the build context small and the image layer-cached.
+**/bin/
+**/obj/
+**/.vs/
+**/.git/
+**/.idea/
+samples/
+docker-data/
+docker-compose*.yml
+Dockerfile
+.dockerignore
+*.md
+*.slnx

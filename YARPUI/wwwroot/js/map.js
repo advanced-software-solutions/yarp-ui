@@ -30,18 +30,21 @@
         var routes = cfg.Routes || [];
         var clusters = cfg.Clusters || [];
         var clusterIds = {};
+        var managedRoutes = cfg.ManagedRouteIds || null;
+        var managedClusters = cfg.ManagedClusterIds || null;
+        var isExternalCluster = function (id) { return managedClusters !== null && managedClusters.indexOf(id) === -1; };
 
         clusters.forEach(function (c) {
             clusterIds[c.ClusterId] = true;
             elements.push({
                 group: 'nodes',
-                data: { id: nodeId('cluster', c.ClusterId), type: 'cluster', label: c.ClusterId, sub: c.LoadBalancingPolicy || 'PowerOfTwoChoices (default)' }
+                data: { id: nodeId('cluster', c.ClusterId), type: 'cluster', label: c.ClusterId, sub: c.LoadBalancingPolicy || 'PowerOfTwoChoices (default)', external: isExternalCluster(c.ClusterId) }
             });
             Object.keys(c.Destinations || {}).forEach(function (name) {
                 var address = (c.Destinations[name] && c.Destinations[name].Address) || '';
                 elements.push({
                     group: 'nodes',
-                    data: { id: nodeId('dest', c.ClusterId + '|' + name), type: 'dest', label: name, sub: address }
+                    data: { id: nodeId('dest', c.ClusterId + '|' + name), type: 'dest', label: name, sub: address, external: isExternalCluster(c.ClusterId) }
                 });
                 elements.push({
                     group: 'edges',
@@ -51,12 +54,14 @@
         });
 
         routes.forEach(function (r) {
+            var external = managedRoutes !== null && managedRoutes.indexOf(r.RouteId) === -1;
             elements.push({
                 group: 'nodes',
                 data: {
                     id: nodeId('route', r.RouteId), type: 'route', label: r.RouteId, sub: routeSub(r),
                     methods: (r.Match && r.Match.Methods) || null,
-                    brokenCluster: !r.ClusterId || !clusterIds[r.ClusterId]
+                    brokenCluster: !r.ClusterId || !clusterIds[r.ClusterId],
+                    external: external
                 }
             });
             if (r.ClusterId && clusterIds[r.ClusterId]) {
@@ -81,7 +86,8 @@
             ? '<span class="ncard-warn" title="Cluster not found">' + icon('warn') + '</span>'
             : '';
         return '' +
-            '<div class="ncard ncard-' + meta.cls + '" data-nodeid="' + esc(d.id) + '" data-type="' + d.type + '">' +
+            '<div class="ncard ncard-' + meta.cls + (d.external ? ' ncard-external' : '') + '" data-nodeid="' + esc(d.id) + '" data-type="' + d.type + '"' +
+                (d.external ? ' title="Managed by the app\u2019s own configuration"' : '') + '>' +
                 '<span class="ncard-icon">' + icon(d.type === 'dest' ? 'dest' : d.type) + '</span>' +
                 '<span class="ncard-text">' +
                     '<span class="ncard-title">' + esc(d.label) + '</span>' +

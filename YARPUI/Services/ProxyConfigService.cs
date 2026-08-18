@@ -1,12 +1,13 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Yarp.ReverseProxy;
 using Yarp.ReverseProxy.Configuration;
 
 namespace YARPUI.Services;
 
 /// <summary>
-/// A set of routes and clusters ready to be applied to the running proxy.
+/// A validated snapshot of routes + clusters ready to be applied to the running proxy.
 /// The on-disk shape mirrors the appsettings.json "ReverseProxy" section
 /// (routes and clusters keyed by id), while this in-memory shape uses lists.
 /// </summary>
@@ -16,12 +17,25 @@ public sealed class ProxyConfigDocument
     public IReadOnlyList<ClusterConfig> Clusters { get; init; } = Array.Empty<ClusterConfig>();
 }
 
+/// <summary>
+/// The full view the UI presents: every live route/cluster (whatever config source it
+/// came from) plus which of them are managed by the YARP UI overlay.
+/// </summary>
+public sealed record LiveProxyConfig(
+    IReadOnlyList<RouteConfig> Routes,
+    IReadOnlyList<ClusterConfig> Clusters,
+    IReadOnlySet<string> ManagedRouteIds,
+    IReadOnlySet<string> ManagedClusterIds);
+
 public sealed record ConfigApplyResult(bool Success, IReadOnlyList<string> Errors);
 
 /// <summary>
 /// Owns the proxy configuration lifecycle:
-///  - decides the initial source (yarp-ui.routes.json when present, otherwise the appsettings.json seed),
-///  - validates and applies UI edits live via InMemoryConfigProvider (no restart),
+///  - standalone/embedded mode (owns the proxy): decides the initial source
+///    (yarp-ui.routes.json when present, otherwise the appsettings.json seed);
+///  - attach mode (host owns the proxy): shows the host's entire live configuration
+///    read-only and manages a separate overlay that merges alongside it;
+///  - validates and applies UI edits live via InMemoryConfigProvider (no restart);
 ///  - persists applied edits to yarp-ui.routes.json so they survive restarts.
 /// </summary>
 public sealed class ProxyConfigService
@@ -42,67 +56,121 @@ public sealed class ProxyConfigService
         AllowTrailingCommas = true,
     };
 
+    private readonly string _dataDirectory;
     private readonly string _contentRoot;
     private readonly string _environmentName;
     private readonly InMemoryConfigProvider _provider;
     private readonly IConfigValidator _validator;
+    private readonly IProxyStateLookup? _stateLookup;
+    private readonly bool _isAttachMode;
     private readonly ILogger<ProxyConfigService> _logger;
     private readonly object _sync = new();
 
     public ProxyConfigService(
+        IConfiguration configuration,
         IHostEnvironment environment,
         InMemoryConfigProvider provider,
         IConfigValidator validator,
+        IProxyStateLookup? stateLookup,
+        bool isAttachMode,
         ILogger<ProxyConfigService> logger)
     {
+        _dataDirectory = ResolveDataDirectory(configuration, environment.ContentRootPath);
         _contentRoot = environment.ContentRootPath;
         _environmentName = environment.EnvironmentName;
         _provider = provider;
         _validator = validator;
+        _stateLookup = stateLookup;
+        _isAttachMode = isAttachMode;
         _logger = logger;
     }
 
-    public string UiConfigPath => Path.Combine(_contentRoot, UiConfigFileName);
+    public string UiConfigPath => Path.Combine(_dataDirectory, UiConfigFileName);
 
     /// <summary>True when the UI-managed file exists and therefore overrides appsettings.json.</summary>
     public bool IsManagedByUi => File.Exists(UiConfigPath);
 
-    public IProxyConfig GetCurrent() => _provider.GetConfig();
+    public bool IsAttachMode => _isAttachMode;
 
     /// <summary>
-    /// The configuration used at startup, before DI is available.
-    /// A corrupt UI file falls back to the appsettings.json seed rather than taking the proxy down.
+    /// The directory that holds mutable configuration (the UI-managed file and, optionally, an
+    /// overriding appsettings.json). Defaults to the content root; set YarpUi:DataDirectory
+    /// (e.g. YarpUi__DataDirectory=/app/data in Docker) to point it at a volume.
     /// </summary>
-    public static ProxyConfigDocument LoadInitial(string contentRoot, string environmentName)
+    public static string ResolveDataDirectory(IConfiguration configuration, string contentRoot)
     {
-        var uiPath = Path.Combine(contentRoot, UiConfigFileName);
-        if (File.Exists(uiPath))
+        var configured = configuration["YarpUi:DataDirectory"];
+        if (string.IsNullOrWhiteSpace(configured))
         {
-            try
-            {
-                var node = JsonNode.Parse(File.ReadAllText(uiPath), documentOptions: LenientDocumentOptions) as JsonObject;
-                if (node is not null)
-                {
-                    return ParseDocument(node);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Failed to read {UiConfigFileName} ({ex.Message}). Falling back to appsettings.json.");
-            }
+            return contentRoot;
         }
 
-        return LoadSeed(contentRoot, environmentName);
+        return Path.GetFullPath(
+            Path.IsPathRooted(configured) ? configured : Path.Combine(contentRoot, configured));
     }
 
-    /// <summary>Reads the seed configuration from appsettings.json (+ optional environment file), merging the "ReverseProxy" sections.</summary>
-    public static ProxyConfigDocument LoadSeed(string contentRoot, string environmentName)
+    /// <summary>
+    /// Standalone/embedded mode: the configuration used at startup, before DI is available.
+    /// A corrupt UI file falls back to the appsettings.json seed rather than taking the proxy down.
+    /// </summary>
+    public static ProxyConfigDocument LoadInitial(string dataDirectory, string contentRoot, string environmentName)
+    {
+        var overlay = LoadOverlay(dataDirectory);
+        if (overlay.Routes.Count > 0 || overlay.Clusters.Count > 0)
+        {
+            return overlay;
+        }
+
+        return LoadSeed(dataDirectory, contentRoot, environmentName);
+    }
+
+    /// <summary>
+    /// Attach mode: only the UI overlay file is loaded — the host's own proxy configuration
+    /// (appsettings, custom providers, …) is never read, seeded, or replaced.
+    /// </summary>
+    public static ProxyConfigDocument LoadOverlay(string dataDirectory)
+    {
+        var uiPath = Path.Combine(dataDirectory, UiConfigFileName);
+        if (!File.Exists(uiPath))
+        {
+            return new ProxyConfigDocument();
+        }
+
+        try
+        {
+            var node = JsonNode.Parse(File.ReadAllText(uiPath), documentOptions: LenientDocumentOptions) as JsonObject;
+            if (node is not null)
+            {
+                return ParseDocument(node);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Failed to read {UiConfigFileName} ({ex.Message}). Starting with an empty overlay.");
+        }
+
+        return new ProxyConfigDocument();
+    }
+
+    /// <summary>
+    /// Reads the seed configuration from appsettings.json (+ optional environment file).
+    /// Files in the data directory take precedence over the ones baked into the content root,
+    /// so a volume-mounted appsettings.json can override the shipped defaults.
+    /// </summary>
+    public static ProxyConfigDocument LoadSeed(string dataDirectory, string contentRoot, string environmentName)
     {
         var section = new JsonObject();
 
-        foreach (var fileName in new[] { "appsettings.json", $"appsettings.{environmentName}.json" })
+        var seedFiles = new List<string>
         {
-            var path = Path.Combine(contentRoot, fileName);
+            Path.Combine(contentRoot, "appsettings.json"),
+            Path.Combine(contentRoot, $"appsettings.{environmentName}.json"),
+            Path.Combine(dataDirectory, "appsettings.json"),
+            Path.Combine(dataDirectory, $"appsettings.{environmentName}.json"),
+        };
+
+        foreach (var path in seedFiles.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
             if (!File.Exists(path))
             {
                 continue;
@@ -118,14 +186,38 @@ public sealed class ProxyConfigService
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Failed to read {fileName} ({ex.Message}).");
+                Console.Error.WriteLine($"Failed to read {path} ({ex.Message}).");
             }
         }
 
         return ParseDocument(section);
     }
 
-    /// <summary>Validates, applies live (no restart) and persists the given configuration.</summary>
+    /// <summary>
+    /// Everything currently live in the proxy: in attach mode this is the combined view of all
+    /// config sources (host's own + overlay); otherwise the UI-owned configuration.
+    /// </summary>
+    public LiveProxyConfig GetLiveConfig()
+    {
+        var overlay = _provider.GetConfig();
+        var managedRoutes = overlay.Routes.Select(r => r.RouteId).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var managedClusters = overlay.Clusters.Select(c => c.ClusterId).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (!_isAttachMode)
+        {
+            return new LiveProxyConfig(overlay.Routes, overlay.Clusters, managedRoutes, managedClusters);
+        }
+
+        var routes = _stateLookup?.GetRoutes().Select(r => r.Config).ToList() ?? new List<RouteConfig>();
+        var clusters = _stateLookup?.GetClusters().Select(c => c.Model.Config).ToList() ?? new List<ClusterConfig>();
+        return new LiveProxyConfig(routes, clusters, managedRoutes, managedClusters);
+    }
+
+    /// <summary>
+    /// Validates, applies live (no restart) and persists the given overlay configuration.
+    /// In attach mode the argument is only the UI-managed subset — the host's own routes and
+    /// clusters are validated against but never modified.
+    /// </summary>
     public async Task<ConfigApplyResult> ApplyAsync(IReadOnlyList<RouteConfig> routes, IReadOnlyList<ClusterConfig> clusters)
     {
         var errors = await ValidateAsync(routes, clusters);
@@ -141,16 +233,31 @@ public sealed class ProxyConfigService
         }
 
         _logger.LogInformation(
-            "Proxy configuration updated from the UI: {RouteCount} routes, {ClusterCount} clusters",
+            "Proxy configuration updated from the UI: {RouteCount} overlay routes, {ClusterCount} overlay clusters",
             routes.Count, clusters.Count);
 
         return new ConfigApplyResult(true, Array.Empty<string>());
     }
 
-    /// <summary>Discards UI changes and returns to the appsettings.json seed configuration.</summary>
-    public async Task<ConfigApplyResult> ResetToSeedAsync()
+    /// <summary>
+    /// Standalone/embedded mode: discards UI changes and returns to the appsettings.json seed.
+    /// Attach mode: clears the overlay entirely (the host's configuration is untouched).
+    /// </summary>
+    public async Task<ConfigApplyResult> ResetAsync()
     {
-        var seed = LoadSeed(_contentRoot, _environmentName);
+        if (_isAttachMode)
+        {
+            lock (_sync)
+            {
+                _provider.Update(Array.Empty<RouteConfig>(), Array.Empty<ClusterConfig>());
+                TryDeleteUiConfigFile();
+            }
+
+            _logger.LogInformation("UI overlay cleared.");
+            return new ConfigApplyResult(true, Array.Empty<string>());
+        }
+
+        var seed = LoadSeed(_dataDirectory, _contentRoot, _environmentName);
 
         var errors = await ValidateAsync(seed.Routes, seed.Clusters);
         if (errors.Count > 0)
@@ -161,17 +268,7 @@ public sealed class ProxyConfigService
         lock (_sync)
         {
             _provider.Update(seed.Routes, seed.Clusters);
-            try
-            {
-                if (File.Exists(UiConfigPath))
-                {
-                    File.Delete(UiConfigPath);
-                }
-            }
-            catch (IOException ex)
-            {
-                _logger.LogWarning(ex, "Could not delete {Path}; the seed config is still applied live.", UiConfigPath);
-            }
+            TryDeleteUiConfigFile();
         }
 
         _logger.LogInformation("Proxy configuration reset to the appsettings.json seed.");
@@ -192,14 +289,64 @@ public sealed class ProxyConfigService
             errors.Add($"Duplicate cluster id '{duplicateCluster.Key}'.");
         }
 
-        var clusterIds = clusters.Select(c => c.ClusterId).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        // In attach mode the host owns routes/clusters of its own; the overlay must not shadow them
+        // (YARP treats the same id in two config sources as a conflict).
+        var overlayRouteIds = routes.Select(r => r.RouteId).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var overlayClusterIds = clusters.Select(c => c.ClusterId).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        List<RouteConfig> foreignRoutes = new();
+        var foreignClusterIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        if (_isAttachMode && _stateLookup is not null)
+        {
+            var previousOverlayRouteIds = _provider.GetConfig().Routes.Select(r => r.RouteId).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var previousOverlayClusterIds = _provider.GetConfig().Clusters.Select(c => c.ClusterId).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            foreignRoutes = _stateLookup.GetRoutes()
+                .Select(r => r.Config)
+                .Where(r => !previousOverlayRouteIds.Contains(r.RouteId ?? string.Empty))
+                .ToList();
+
+            foreach (var foreignCluster in _stateLookup.GetClusters().Select(c => c.Model.Config)
+                         .Where(c => !previousOverlayClusterIds.Contains(c.ClusterId ?? string.Empty)))
+            {
+                foreignClusterIds.Add(foreignCluster.ClusterId ?? string.Empty);
+            }
+
+            foreach (var route in routes.Where(r => !string.IsNullOrEmpty(r.RouteId)))
+            {
+                if (foreignRoutes.Any(f => string.Equals(f.RouteId, route.RouteId, StringComparison.OrdinalIgnoreCase)))
+                {
+                    errors.Add($"Route '{route.RouteId}' already exists in the app's own configuration — choose a different id.");
+                }
+            }
+
+            foreach (var cluster in clusters.Where(c => !string.IsNullOrEmpty(c.ClusterId)))
+            {
+                if (foreignClusterIds.Contains(cluster.ClusterId))
+                {
+                    errors.Add($"Cluster '{cluster.ClusterId}' already exists in the app's own configuration — choose a different id.");
+                }
+            }
+
+            // Deleting an overlay cluster that a host-managed route still points at would break that route.
+            foreach (var foreignRoute in foreignRoutes.Where(f => previousOverlayClusterIds.Contains(f.ClusterId ?? string.Empty)))
+            {
+                if (!overlayClusterIds.Contains(foreignRoute.ClusterId ?? string.Empty))
+                {
+                    errors.Add($"Cluster '{foreignRoute.ClusterId}' is still used by route '{foreignRoute.RouteId}' from the app's own configuration and cannot be removed.");
+                }
+            }
+        }
+
+        // Routes may target overlay clusters or (in attach mode) clusters owned by the host.
+        var allClusterIds = overlayClusterIds.Union(foreignClusterIds, StringComparer.OrdinalIgnoreCase).ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (var route in routes)
         {
             if (string.IsNullOrWhiteSpace(route.ClusterId))
             {
                 errors.Add($"Route '{route.RouteId}' has no cluster assigned.");
             }
-            else if (!clusterIds.Contains(route.ClusterId))
+            else if (!allClusterIds.Contains(route.ClusterId))
             {
                 errors.Add($"Route '{route.RouteId}' references unknown cluster '{route.ClusterId}'.");
             }
@@ -230,6 +377,21 @@ public sealed class ProxyConfigService
         }
 
         return errors;
+    }
+
+    private void TryDeleteUiConfigFile()
+    {
+        try
+        {
+            if (File.Exists(UiConfigPath))
+            {
+                File.Delete(UiConfigPath);
+            }
+        }
+        catch (IOException ex)
+        {
+            _logger.LogWarning(ex, "Could not delete {Path}.", UiConfigPath);
+        }
     }
 
     private void Persist(IReadOnlyList<RouteConfig> routes, IReadOnlyList<ClusterConfig> clusters)
