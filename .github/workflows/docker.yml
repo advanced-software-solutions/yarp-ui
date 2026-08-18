@@ -25,9 +25,9 @@ jobs:
       # NuGet package always release in lockstep.
       - name: Determine version tag
         run: |
-          VERSION=$(sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p' YARPUI/YARPUI.csproj)
+          VERSION=$(sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p' YARPUI/YARPASUI.csproj)
           if [ -z "$VERSION" ]; then
-            echo "Could not read <Version> from YARPUI/YARPUI.csproj" >&2
+            echo "Could not read <Version> from YARPUI/YARPASUI.csproj" >&2
             exit 1
           fi
           echo "IMAGE_TAG=${VERSION}" >> "$GITHUB_ENV"

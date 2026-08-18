@@ -8,8 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Consuming YARP UI purely as a NuGet package (restored from the local feed in nuget.config). -->
-    <PackageReference Include="YARPUI" Version="0.2.2" />
+    <PackageReference Include="YA-RP-UI" Version="0.1.2" />
   </ItemGroup>
 
 </Project>

@@ -8,7 +8,7 @@ WORKDIR /src
 
 # Restore first so this layer is cached unless the project files change.
 # The host pulls in the YARPUI library via a project reference.
-COPY YARPUI/YARPUI.csproj YARPUI/
+COPY YARPUI/YARPASUI.csproj YARPUI/
 COPY YARPUI.Host/YARPUI.Host.csproj YARPUI.Host/
 RUN dotnet restore YARPUI.Host/YARPUI.Host.csproj
 

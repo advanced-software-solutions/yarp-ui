@@ -10,7 +10,7 @@ A management UI for [YARP](https://microsoft.github.io/reverse-proxy/) (Yet Anot
 
 ## Hosting modes
 
-The UI ships as a Razor Class Library (**YARPUI** NuGet package) and can be hosted two ways:
+The UI ships as a Razor Class Library (**YA-RP-UI** NuGet package) and can be hosted two ways:
 
 **1. Standalone executable** — `YARPUI.Host` is a thin host that runs the proxy and the management UI in a single app:
 
@@ -21,7 +21,7 @@ cd YARPUI.Host && dotnet run      # → http://localhost:5080
 **2. Embedded in your own app** — add the package and wire it up (see `samples/EmbeddedHost`):
 
 ```xml
-<PackageReference Include="YARPUI" Version="0.2.2" />
+<PackageReference Include="YA-RP-UI" Version="0.1.2" />
 ```
 
 ```csharp
