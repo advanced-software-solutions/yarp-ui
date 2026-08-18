@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\YARPUI\YARPUI.csproj" />
+    <ProjectReference Include="..\YARPUI\YARPASUI.csproj" />
   </ItemGroup>
 
 </Project>

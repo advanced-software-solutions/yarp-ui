@@ -11,9 +11,9 @@
   <PropertyGroup>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IsPackable>true</IsPackable>
-    <PackageId>YARPUI</PackageId>
+    <PackageId>YARP-UI</PackageId>
     <Title>YARP UI</Title>
-    <Authors>YARP UI</Authors>
+    <Authors>Amr Swalha, Advanced Software Solutions</Authors>
     <Description>A management UI for YARP (Yet Another Reverse Proxy): visualize routes as an interactive map, edit routes, clusters and destinations live without restarts, watch proxied request logs, and protect it all with built-in authentication. Hosts standalone or embedded in any ASP.NET Core app.</Description>
     <PackageTags>yarp;reverse-proxy;proxy;management;dashboard;routes</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
