@@ -35,7 +35,7 @@ jobs:
         run: dotnet build AdvancedSoftwareProjects.slnx --configuration Release --no-restore
 
       - name: Pack
-        run: dotnet pack YARPUI/YARPUI.csproj --configuration Release --no-build --output artifacts
+        run: dotnet pack YARPUI/YARPASUI.csproj --configuration Release --no-build --output artifacts
 
       # Keep the package even if the push below fails, so it can be inspected.
       - name: Upload package artifact
