@@ -1,0 +1,57 @@
+name: docker
+
+# Manual dispatch only, restricted to master in the branch picker.
+on:
+  workflow_dispatch:
+    branches:
+      - master
+
+jobs:
+  docker:
+    name: Build and publish YARPUI.Host image to Docker Hub
+    # Hard guard: the branches filter above only limits the picker; this stops
+    # an older copy of this workflow on another branch from publishing.
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Tag the image with the YARPUI library version so the image and the
+      # NuGet package always release in lockstep.
+      - name: Determine version tag
+        run: |
+          VERSION=$(sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p' YARPUI/YARPUI.csproj)
+          if [ -z "$VERSION" ]; then
+            echo "Could not read <Version> from YARPUI/YARPUI.csproj" >&2
+            exit 1
+          fi
+          echo "IMAGE_TAG=${VERSION}" >> "$GITHUB_ENV"
+          echo "Image tags: ${VERSION}, latest"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Credentials live in repo secrets (DOCKER_USERNAME / DOCKER_TOKEN),
+      # never in the repository.
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            amrfswalha/yarp-ui:${{ env.IMAGE_TAG }}
+            amrfswalha/yarp-ui:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
