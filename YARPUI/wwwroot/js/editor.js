@@ -12,8 +12,8 @@
     var baseline = '';
     var selected = null; // { type: 'route'|'cluster', id: string }
     var loading = false;
-    var managedRoutes = new Set(); // ids owned by the UI overlay (attach mode: subset of routes)
-    var managedClusters = new Set();
+    var editableRoutes = new Set(); // ids the editor can change (attach mode: everything defined in appsettings files)
+    var editableClusters = new Set();
     var attachMode = false;
 
     // ---------- model helpers ----------
@@ -66,8 +66,8 @@
     function applyConfig(cfg) {
         routes = (cfg.Routes || []).map(normalizeRoute);
         clusters = (cfg.Clusters || []).map(normalizeCluster);
-        managedRoutes = new Set(cfg.ManagedRouteIds || routes.map(function (r) { return r.RouteId; }));
-        managedClusters = new Set(cfg.ManagedClusterIds || clusters.map(function (c) { return c.ClusterId; }));
+        editableRoutes = new Set(cfg.EditableRouteIds || routes.map(function (r) { return r.RouteId; }));
+        editableClusters = new Set(cfg.EditableClusterIds || clusters.map(function (c) { return c.ClusterId; }));
         attachMode = !!cfg.AttachMode;
         if (selected) {
             if (selected.type === 'route' && !routeById(selected.id)) { selected = null; }
@@ -78,19 +78,18 @@
         baseline = JSON.stringify(buildDoc());
     }
 
-    function isManagedRoute(id) { return managedRoutes.has(id); }
-    function isManagedCluster(id) { return managedClusters.has(id); }
+    function isEditableRoute(id) { return editableRoutes.has(id); }
+    function isEditableCluster(id) { return editableClusters.has(id); }
 
     function updateSourcePill(cfg) {
         var pill = document.getElementById('source-pill');
         if (!pill) { return; }
         if (cfg && cfg.AttachMode) {
-            var owned = managedRoutes.size;
-            var foreign = routes.length - owned;
-            pill.textContent = 'Overlay: ' + owned + ' UI-managed · ' + foreign + ' app config';
-            pill.className = 'pill';
-            pill.title = 'Items from the app\u2019s own configuration are shown read-only. ' +
-                'Saving only writes the UI-managed overlay to yarp-ui.routes.json \u2014 appsettings.json is never touched.';
+            pill.textContent = 'Edits write to appsettings.json';
+            pill.className = 'pill pill-accent';
+            pill.title = 'Saving writes each change back into the appsettings.json file the route or cluster came from \u2014 ' +
+                'YARP hot-reloads the file, so edits go live without a restart. Items from non-file sources (locked) stay read-only. ' +
+                'The first modification of a file keeps a .yarpui.bak backup for Restore.';
         } else if (cfg && cfg.ManagedByUi) {
             pill.textContent = 'UI-managed config';
             pill.className = 'pill pill-accent';
@@ -105,9 +104,9 @@
     function updateResetButton() {
         var btn = document.getElementById('btn-reset');
         if (btn) {
-            btn.textContent = attachMode ? 'Clear UI overlay' : 'Reset to appsettings.json';
+            btn.textContent = attachMode ? 'Restore appsettings backup' : 'Reset to appsettings.json';
             btn.title = attachMode
-                ? 'Remove all UI-managed routes/clusters and delete yarp-ui.routes.json. The app\u2019s own configuration is untouched.'
+                ? 'Restore every modified appsettings file from its .yarpui.bak backup (taken before the UI first changed it).'
                 : 'Delete yarp-ui.routes.json and return to the configuration in appsettings.json';
         }
     }
@@ -144,8 +143,8 @@
     }
 
     function buildDoc() {
-        // In attach mode only the UI-managed overlay is sent; foreign items stay read-only.
-        var docRoutes = routes.filter(function (r) { return isManagedRoute(r.RouteId); }).map(function (r) {
+        // In attach mode the payload carries every editable item; edits are written back to appsettings.
+        var docRoutes = routes.filter(function (r) { return isEditableRoute(r.RouteId); }).map(function (r) {
             var transforms = parseTransforms(r);
             return {
                 RouteId: r.RouteId,
@@ -162,7 +161,7 @@
             };
         });
 
-        var docClusters = clusters.filter(function (c) { return isManagedCluster(c.ClusterId); }).map(function (c) {
+        var docClusters = clusters.filter(function (c) { return isEditableCluster(c.ClusterId); }).map(function (c) {
             var destinations = {};
             c._destRows.forEach(function (row) {
                 if (row.name.trim()) {
@@ -199,27 +198,27 @@
         routeList.innerHTML = routes.map(function (r) {
             var active = selected && selected.type === 'route' && selected.id === r.RouteId;
             var broken = !r.ClusterId || !clusterById(r.ClusterId);
-            var managed = isManagedRoute(r.RouteId);
+            var managed = isEditableRoute(r.RouteId);
             var sub = r.Match.Path || (r.Match.Hosts.length ? r.Match.Hosts.join(', ') : 'any host / path');
-            return '<li class="item' + (active ? ' active' : '') + (managed ? '' : ' item-external') + '" data-type="route" data-id="' + esc(r.RouteId) + '" title="' + (managed ? esc(r.RouteId) : esc(r.RouteId) + ' — managed by the app\u2019s own configuration (read-only)') + '">' +
+            return '<li class="item' + (active ? ' active' : '') + (managed ? '' : ' item-external') + '" data-type="route" data-id="' + esc(r.RouteId) + '" title="' + (managed ? esc(r.RouteId) : esc(r.RouteId) + ' — from a non-file configuration source (read-only)') + '">' +
                 '<span class="item-icon item-icon-route">' + icon('route') + '</span>' +
                 '<span class="item-text"><span class="item-title">' + esc(r.RouteId) + '</span><span class="item-sub">' + esc(sub) + '</span></span>' +
                 '<span class="item-chip' + (broken ? ' item-chip-warn' : '') + '" title="Cluster">' + esc(r.ClusterId || 'no cluster') + '</span>' +
                 (managed
                     ? '<button type="button" class="item-del" title="Delete route">' + icon('trash') + '</button>'
-                    : '<span class="item-lock" title="Managed by the app\u2019s own configuration (read-only)">' + icon('lock') + '</span>') +
+                    : '<span class="item-lock" title="From a non-file configuration source (read-only)">' + icon('lock') + '</span>') +
                 '</li>';
         }).join('') || '<li class="item-empty">No routes</li>';
 
         clusterList.innerHTML = clusters.map(function (c) {
             var active = selected && selected.type === 'cluster' && selected.id === c.ClusterId;
-            var managed = isManagedCluster(c.ClusterId);
-            return '<li class="item' + (active ? ' active' : '') + (managed ? '' : ' item-external') + '" data-type="cluster" data-id="' + esc(c.ClusterId) + '" title="' + (managed ? esc(c.ClusterId) : esc(c.ClusterId) + ' — managed by the app\u2019s own configuration (read-only)') + '">' +
+            var managed = isEditableCluster(c.ClusterId);
+            return '<li class="item' + (active ? ' active' : '') + (managed ? '' : ' item-external') + '" data-type="cluster" data-id="' + esc(c.ClusterId) + '" title="' + (managed ? esc(c.ClusterId) : esc(c.ClusterId) + ' — from a non-file configuration source (read-only)') + '">' +
                 '<span class="item-icon item-icon-cluster">' + icon('cluster') + '</span>' +
                 '<span class="item-text"><span class="item-title">' + esc(c.ClusterId) + '</span><span class="item-sub">' + c._destRows.length + ' destination' + (c._destRows.length === 1 ? '' : 's') + ' · ' + esc(c.LoadBalancingPolicy || 'PowerOfTwoChoices') + '</span></span>' +
                 (managed
                     ? '<button type="button" class="item-del" title="Delete cluster">' + icon('trash') + '</button>'
-                    : '<span class="item-lock" title="Managed by the app\u2019s own configuration (read-only)">' + icon('lock') + '</span>') +
+                    : '<span class="item-lock" title="From a non-file configuration source (read-only)">' + icon('lock') + '</span>') +
                 '</li>';
         }).join('') || '<li class="item-empty">No clusters</li>';
     }
@@ -309,10 +308,10 @@
                 '</div>';
             return;
         }
-        var managed = selected.type === 'route' ? isManagedRoute(selected.id) : isManagedCluster(selected.id);
+        var managed = selected.type === 'route' ? isEditableRoute(selected.id) : isEditableCluster(selected.id);
         var banner = managed ? '' :
             '<div class="ro-banner">' + icon('lock') +
-            ' This ' + selected.type + ' comes from the app\u2019s own configuration and is read-only here. ' +
+            ' This ' + selected.type + ' comes from a non-file configuration source (e.g. code or a database provider) and cannot be edited here. ' +
             'Edit it in its source (e.g. appsettings.json) — the UI never modifies it.</div>';
         var html;
         if (selected.type === 'route') {
@@ -370,12 +369,12 @@
         }
         if (type === 'route') {
             routeById(oldId).RouteId = newId;
-            managedRoutes.delete(oldId);
-            managedRoutes.add(newId);
+            editableRoutes.delete(oldId);
+            editableRoutes.add(newId);
         } else {
             clusterById(oldId).ClusterId = newId;
-            managedClusters.delete(oldId);
-            managedClusters.add(newId);
+            editableClusters.delete(oldId);
+            editableClusters.add(newId);
             routes.forEach(function (r) {
                 if (r.ClusterId === oldId) { r.ClusterId = newId; }
             });
@@ -386,22 +385,22 @@
     }
 
     function deleteRoute(id) {
-        if (!isManagedRoute(id)) { return; }
+        if (!isEditableRoute(id)) { return; }
         if (!window.confirm("Delete route '" + id + "'? The change applies after saving.")) { return; }
         routes = routes.filter(function (r) { return r.RouteId !== id; });
-        managedRoutes.delete(id);
+        editableRoutes.delete(id);
         if (selected && selected.type === 'route' && selected.id === id) { selected = null; }
         refreshSelection();
     }
 
     function deleteCluster(id) {
-        if (!isManagedCluster(id)) { return; }
+        if (!isEditableCluster(id)) { return; }
         var refs = routes.filter(function (r) { return r.ClusterId === id; }).length;
         var msg = "Delete cluster '" + id + "'?";
         if (refs) { msg += '\n' + refs + " route(s) reference it and will fail validation until reassigned."; }
         if (!window.confirm(msg)) { return; }
         clusters = clusters.filter(function (c) { return c.ClusterId !== id; });
-        managedClusters.delete(id);
+        editableClusters.delete(id);
         if (selected && selected.type === 'cluster' && selected.id === id) { selected = null; }
         refreshSelection();
     }
@@ -416,8 +415,8 @@
             if (!selected || loading) { return; }
 
             // Foreign items are read-only; their inputs are disabled but stay defensive here.
-            if (selected.type === 'route' && !isManagedRoute(selected.id)) { return; }
-            if (selected.type === 'cluster' && !isManagedCluster(selected.id)) { return; }
+            if (selected.type === 'route' && !isEditableRoute(selected.id)) { return; }
+            if (selected.type === 'cluster' && !isEditableCluster(selected.id)) { return; }
 
             if (t.dataset.dest !== undefined && selected.type === 'cluster') {
                 var row = clusterById(selected.id)._destRows[+t.dataset.index];
@@ -471,8 +470,8 @@
             var t = e.target;
             if (!selected || loading) { return; }
 
-            if (selected.type === 'route' && !isManagedRoute(selected.id)) { return; }
-            if (selected.type === 'cluster' && !isManagedCluster(selected.id)) { return; }
+            if (selected.type === 'route' && !isEditableRoute(selected.id)) { return; }
+            if (selected.type === 'cluster' && !isEditableCluster(selected.id)) { return; }
 
             if (t.dataset.field === 'RouteId' && selected.type === 'route') {
                 var r = routeById(selected.id);
@@ -562,6 +561,11 @@
                 hideErrors();
                 refreshSelection();
                 window.YarpUi.toast('Configuration applied — the proxy is live.', 'success');
+                // If the host's config reload lands after the save response, quietly re-fetch
+                // so the page settles on the latest settings (unless the user is editing again).
+                setTimeout(function () {
+                    if (!loading && !isDirty()) { reload(true); }
+                }, 1200);
             } else {
                 var err = {};
                 try { err = await res.json(); } catch (e) { /* ignore */ }
@@ -593,7 +597,7 @@
 
     async function resetToSeed() {
         var msg = attachMode
-            ? 'Clear the UI overlay?\n\nAll UI-managed routes and clusters are removed and yarp-ui.routes.json is deleted. The app\u2019s own configuration is not affected.'
+            ? 'Restore every modified appsettings file from its .yarpui.bak backup?\n\nChanges made from the UI are rolled back; the files return to the state they had before the UI first modified them.'
             : 'Discard all UI changes and return to the appsettings.json configuration?\n\nThis deletes yarp-ui.routes.json and applies the seed config live.';
         if (!window.confirm(msg)) { return; }
         try {
@@ -602,7 +606,7 @@
                 var cfg = await res.json();
                 applyConfig(cfg);
                 refreshSelection();
-                window.YarpUi.toast(attachMode ? 'UI overlay cleared.' : 'Reset to the appsettings.json configuration.', 'success');
+                window.YarpUi.toast(attachMode ? 'appsettings restored from backup.' : 'Reset to the appsettings.json configuration.', 'success');
             } else {
                 var err = {};
                 try { err = await res.json(); } catch (e) { /* ignore */ }
@@ -639,7 +643,7 @@
                 Match: { Path: '/new-path/{**catch-all}' }
             });
             routes.push(route);
-            managedRoutes.add(route.RouteId);
+            editableRoutes.add(route.RouteId);
             select('route', route.RouteId);
             updateDirtyState();
         });
@@ -647,7 +651,7 @@
         document.getElementById('add-cluster').addEventListener('click', function () {
             var id = uniqueName('new-cluster');
             clusters.push(normalizeCluster({ ClusterId: id, Destinations: {} }));
-            managedClusters.add(id);
+            editableClusters.add(id);
             select('cluster', id);
             updateDirtyState();
         });

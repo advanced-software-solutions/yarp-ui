@@ -21,7 +21,7 @@ cd YARPUI.Host && dotnet run      # → http://localhost:5080
 **2. Embedded in your own app** — add the package and wire it up (see `samples/EmbeddedHost`):
 
 ```xml
-<PackageReference Include="YARPUI" Version="0.1.1" />
+<PackageReference Include="YARPUI" Version="0.2.2" />
 ```
 
 ```csharp
@@ -39,7 +39,7 @@ app.MapReverseProxy();             // the proxy itself (public)
 app.Run();
 ```
 
-**3. Attached to an app that already configures YARP** — for gateways with their own `LoadFromConfig`/custom providers, transforms and filters. The UI shows the app's entire live configuration **read-only** (marked "app config" on the map and locked in the editor) and manages a separate overlay (`yarp-ui.routes.json`) that merges alongside it. Nothing from the app's own configuration is ever read into the overlay, seeded, rewritten or replaced:
+**3. Attached to an app that already configures YARP** — for gateways with their own `LoadFromConfig`/custom providers, transforms and filters. The UI shows the app's entire live configuration **and can edit it**: saving writes each change back into the `appsettings.json` file the route or cluster came from, and YARP hot-reloads the file — edits go live without a restart while the app's code (transforms, middleware, custom pipeline) stays untouched:
 
 ```csharp
 builder.Services.AddReverseProxy()
@@ -56,7 +56,13 @@ app.MapReverseProxy();
 app.MapYarpUi();
 ```
 
-Overlay rules in attach mode: new routes/clusters must not reuse ids from the app's own configuration; overlay routes may target the app's clusters; removing an overlay cluster still used by an app-managed route is rejected; "Clear UI overlay" empties the overlay and deletes `yarp-ui.routes.json` without touching appsettings.
+How write-back editing behaves:
+
+- **Edits are merged into the existing JSON nodes** — fields the editor doesn't model (e.g. `RateLimiterPolicy` or custom keys) keep their values; unrelated content in the file is preserved.
+- **New routes/clusters** are added to `appsettings.json`; **deleted** ones are removed from every appsettings file that defines them (including environment overrides).
+- **Backups**: the first time the UI modifies a file, a `.yarpui.bak` copy is kept next to it; *Restore appsettings backup* rolls every modified file back.
+- Items that come from a **non-file source** (a custom `IProxyConfigProvider` backed by a database, code, etc.) are shown locked and read-only — there is no file to write back to.
+- Pre-existing config quirks (e.g. a route referencing a missing cluster) don't block saves; only problems the edit itself introduces are rejected.
 
 All modes read the same configuration (`YarpUi:Auth` credentials) and support `YarpUi:DataDirectory` for volume-backed persistence. The UI authenticates with its own cookie scheme (`YarpUi.Auth`) and never changes the host's default authentication scheme, so it is safe next to an app's existing JWT/cookie setup.
 

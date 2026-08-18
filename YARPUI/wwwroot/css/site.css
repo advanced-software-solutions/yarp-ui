@@ -640,7 +640,7 @@ select {
 .ncard.match { box-shadow: 0 0 0 2px var(--accent-2), var(--shadow-1); }
 .ncard-external { border-style: dashed; border-color: rgba(148, 163, 184, 0.4); }
 .ncard-external .ncard-sub { color: #b9a7ec; }
-.ncard-external .ncard-title::after { content: '· app config'; margin-left: 6px; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.ncard-external .ncard-title::after { content: 'external'; margin-left: 6px; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .ncard.selected {
     border-color: var(--tc);
     transform: translateY(-2px) scale(1.04);

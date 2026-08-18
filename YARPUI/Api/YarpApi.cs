@@ -7,8 +7,8 @@ namespace YARPUI.Api;
 public sealed record ConfigResponse(
     IReadOnlyList<RouteConfig> Routes,
     IReadOnlyList<ClusterConfig> Clusters,
-    IReadOnlyList<string> ManagedRouteIds,
-    IReadOnlyList<string> ManagedClusterIds,
+    IReadOnlyList<string> EditableRouteIds,
+    IReadOnlyList<string> EditableClusterIds,
     bool AttachMode,
     bool ManagedByUi);
 
@@ -92,8 +92,8 @@ public static class YarpApi
         return new ConfigResponse(
             live.Routes,
             live.Clusters,
-            live.ManagedRouteIds.ToList(),
-            live.ManagedClusterIds.ToList(),
+            live.EditableRouteIds.ToList(),
+            live.EditableClusterIds.ToList(),
             configService.IsAttachMode,
             configService.IsManagedByUi);
     }

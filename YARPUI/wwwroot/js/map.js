@@ -30,9 +30,9 @@
         var routes = cfg.Routes || [];
         var clusters = cfg.Clusters || [];
         var clusterIds = {};
-        var managedRoutes = cfg.ManagedRouteIds || null;
-        var managedClusters = cfg.ManagedClusterIds || null;
-        var isExternalCluster = function (id) { return managedClusters !== null && managedClusters.indexOf(id) === -1; };
+        var editableRoutes = cfg.EditableRouteIds || null;
+        var editableClusters = cfg.EditableClusterIds || null;
+        var isExternalCluster = function (id) { return editableClusters !== null && editableClusters.indexOf(id) === -1; };
 
         clusters.forEach(function (c) {
             clusterIds[c.ClusterId] = true;
@@ -54,7 +54,7 @@
         });
 
         routes.forEach(function (r) {
-            var external = managedRoutes !== null && managedRoutes.indexOf(r.RouteId) === -1;
+            var external = editableRoutes !== null && editableRoutes.indexOf(r.RouteId) === -1;
             elements.push({
                 group: 'nodes',
                 data: {
@@ -87,7 +87,7 @@
             : '';
         return '' +
             '<div class="ncard ncard-' + meta.cls + (d.external ? ' ncard-external' : '') + '" data-nodeid="' + esc(d.id) + '" data-type="' + d.type + '"' +
-                (d.external ? ' title="Managed by the app\u2019s own configuration"' : '') + '>' +
+                (d.external ? ' title="From a non-file configuration source"' : '') + '>' +
                 '<span class="ncard-icon">' + icon(d.type === 'dest' ? 'dest' : d.type) + '</span>' +
                 '<span class="ncard-text">' +
                     '<span class="ncard-title">' + esc(d.label) + '</span>' +

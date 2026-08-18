@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
-    <Version>0.1.1</Version>
+    <Version>0.1.0</Version>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -18,7 +18,7 @@
     <PackageTags>yarp;reverse-proxy;proxy;management;dashboard;routes</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>0.1.1: attach mode for apps that already configure YARP (read-only view of the host's live configuration + UI-managed overlay), dedicated auth scheme. 0.1.0: route map, live configuration editor, request logs, cookie authentication, standalone + embedded hosting.</PackageReleaseNotes>
+    <PackageReleaseNotes>0.2.0: attach mode now edits the app's own configuration — changes are written back into the appsettings.json files the routes/clusters came from (hot-reloaded by YARP, with .yarpui.bak backups and restore); items only stay read-only when they come from non-file sources. 0.1.1: attach mode (overlay). 0.1.0: route map, editor, request logs, auth, standalone + embedded hosting.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
