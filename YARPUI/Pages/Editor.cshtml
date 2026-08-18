@@ -1,0 +1,74 @@
+@page
+@model YARPUI.Pages.EditorModel
+@{
+    ViewData["Title"] = "Editor — YARP UI";
+    ViewData["BodyId"] = "editor";
+}
+<div class="editor-page">
+    <div class="editor-toolbar">
+        <h1 class="toolbar-title">Configuration editor</h1>
+        <span id="source-pill" class="pill" title=""></span>
+        <span class="toolbar-spacer"></span>
+        <span id="dirty-indicator" class="dirty hidden"><span class="dirty-dot"></span>Unsaved changes</span>
+        <button type="button" id="btn-reload" class="btn btn-ghost" title="Discard changes and reload the live configuration">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12a9 9 0 1 1-2.64-6.36" /><path d="M21 3v6h-6" />
+            </svg>
+            Reload
+        </button>
+        <button type="button" id="btn-save" class="btn btn-primary" disabled title="Validate, apply live and persist">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 4h11l3 3v13H5z" /><path d="M8 4v5h7V4" /><path d="M8 20v-6h8v6" />
+            </svg>
+            Save &amp; apply
+        </button>
+    </div>
+    <div id="server-errors" class="error-panel hidden" role="alert"></div>
+    <div class="editor-body">
+        <aside class="editor-list">
+            <div class="list-section">
+                <div class="list-head">
+                    <span class="list-title">Routes</span>
+                    <span class="chip chip-route" id="count-routes">0</span>
+                    <span class="toolbar-spacer"></span>
+                    <button type="button" id="add-route" class="btn btn-ghost btn-icon" title="Add route">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                    </button>
+                </div>
+                <ul id="route-list" class="item-list"></ul>
+            </div>
+            <div class="list-section">
+                <div class="list-head">
+                    <span class="list-title">Clusters</span>
+                    <span class="chip chip-cluster" id="count-clusters">0</span>
+                    <span class="toolbar-spacer"></span>
+                    <button type="button" id="add-cluster" class="btn btn-ghost btn-icon" title="Add cluster">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                    </button>
+                </div>
+                <ul id="cluster-list" class="item-list"></ul>
+            </div>
+            <div class="list-foot">
+                <button type="button" id="btn-reset" class="btn btn-danger-ghost btn-sm"
+                        title="Delete yarp-ui.routes.json and return to the configuration in appsettings.json">
+                    Reset to appsettings.json
+                </button>
+            </div>
+        </aside>
+        <section class="editor-main" id="editor-main">
+            <div class="editor-placeholder">
+                <div class="empty-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 20h4L19 9a2.5 2.5 0 0 0-3.5-3.5L4.5 16.5z" />
+                    </svg>
+                </div>
+                <h2>Nothing selected</h2>
+                <p class="muted">Pick a route or cluster on the left, or add a new one.</p>
+            </div>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/editor.js" asp-append-version="true"></script>
+}

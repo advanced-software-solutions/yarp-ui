@@ -1,0 +1,61 @@
+@page
+@model YARPUI.Pages.LogsModel
+@{
+    ViewData["Title"] = "Request Logs — YARP UI";
+    ViewData["BodyId"] = "logs";
+}
+<div class="logs-page">
+    <div class="logs-toolbar">
+        <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" />
+            </svg>
+            <input id="log-search" type="search" placeholder="Filter by path, route, cluster, destination…" autocomplete="off" spellcheck="false" />
+        </div>
+        <select id="log-status" class="select" title="Filter by status class">
+            <option value="">All statuses</option>
+            <option value="2">2xx — success</option>
+            <option value="3">3xx — redirect</option>
+            <option value="4">4xx — client error</option>
+            <option value="5">5xx — server error</option>
+        </select>
+        <label class="toggle" title="Refresh every 2 seconds">
+            <input type="checkbox" id="log-auto" checked />
+            <span class="toggle-track"><span class="toggle-dot"></span></span>
+            <span class="toggle-label">Live <span class="live-dot" id="live-dot"></span></span>
+        </label>
+        <span class="toolbar-spacer"></span>
+        <span id="log-count" class="muted small"></span>
+        <button type="button" id="log-clear" class="btn btn-ghost" title="Clear the in-memory log buffer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 7h16" /><path d="M10 11v6M14 11v6" /><path d="M6 7l1 13h10l1-13" /><path d="M9 7V4h6v3" />
+            </svg>
+            Clear
+        </button>
+    </div>
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="col-time">Time</th>
+                    <th class="col-method">Method</th>
+                    <th>Path</th>
+                    <th class="col-status">Status</th>
+                    <th class="col-duration">Duration</th>
+                    <th>Route</th>
+                    <th>Cluster</th>
+                    <th>Destination</th>
+                </tr>
+            </thead>
+            <tbody id="log-rows"></tbody>
+        </table>
+        <div id="log-empty" class="empty-inline hidden">
+            No proxied requests captured yet — send traffic through the proxy and it will appear here.
+            <span class="muted small">Only proxied requests are recorded; UI requests are excluded. The buffer keeps the last 1000 entries in memory.</span>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/logs.js" asp-append-version="true"></script>
+}

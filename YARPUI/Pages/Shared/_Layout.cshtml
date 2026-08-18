@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(ViewData["Title"] ?? "YARP UI")</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%238b5cf6'/%3E%3Ccircle cx='9' cy='16' r='3.2' fill='white'/%3E%3Ccircle cx='23' cy='8.5' r='3.2' fill='white'/%3E%3Ccircle cx='23' cy='23.5' r='3.2' fill='white'/%3E%3Cpath d='M12 15.2h4.5a5 5 0 0 0 5-5M12 16.8h4.5a5 5 0 0 1 5 5' stroke='white' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
+</head>
+<body class="app-body" data-page="@ViewData["BodyId"]">
+    <header class="topbar">
+        <div class="topbar-inner">
+            <a class="brand" asp-page="/Index" title="Route map">
+                <span class="brand-mark">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <circle cx="5" cy="12" r="2.2" />
+                        <circle cx="18.7" cy="5.4" r="2.2" />
+                        <circle cx="18.7" cy="18.6" r="2.2" />
+                        <path d="M7.2 11.2h3.4a5.2 5.2 0 0 0 5.2-5.2M7.2 12.8h3.4a5.2 5.2 0 0 1 5.2 5.2" />
+                    </svg>
+                </span>
+                <span class="brand-name">YARP<b>UI</b></span>
+            </a>
+            <nav class="nav-links" id="main-nav">
+                <a asp-page="/Index" data-nav="map">Map</a>
+                <a asp-page="/Editor" data-nav="editor">Editor</a>
+                <a asp-page="/Logs" data-nav="logs">Logs</a>
+            </nav>
+            <div class="topbar-right">
+                <span class="user-chip" title="Signed in">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <circle cx="12" cy="8" r="3.6" />
+                        <path d="M4.5 20c1.4-3.3 4.2-4.8 7.5-4.8s6.1 1.5 7.5 4.8" />
+                    </svg>
+                    @User.Identity?.Name
+                </span>
+                <form method="post" action="/logout" class="logout-form">
+                    <button type="submit" class="btn btn-ghost btn-sm">Sign out</button>
+                </form>
+            </div>
+        </div>
+    </header>
+    <main class="page">
+        @RenderBody()
+    </main>
+    <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+    <script src="~/js/common.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

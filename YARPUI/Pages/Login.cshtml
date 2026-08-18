@@ -1,0 +1,59 @@
+@page
+@model YARPUI.Pages.LoginModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Sign in — YARP UI";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign in — YARP UI</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%238b5cf6'/%3E%3Ccircle cx='9' cy='16' r='3.2' fill='white'/%3E%3Ccircle cx='23' cy='8.5' r='3.2' fill='white'/%3E%3Ccircle cx='23' cy='23.5' r='3.2' fill='white'/%3E%3Cpath d='M12 15.2h4.5a5 5 0 0 0 5-5M12 16.8h4.5a5 5 0 0 1 5 5' stroke='white' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
+</head>
+<body class="auth-body">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <span class="brand-mark brand-mark-lg">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <circle cx="5" cy="12" r="2.2" />
+                    <circle cx="18.7" cy="5.4" r="2.2" />
+                    <circle cx="18.7" cy="18.6" r="2.2" />
+                    <path d="M7.2 11.2h3.4a5.2 5.2 0 0 0 5.2-5.2M7.2 12.8h3.4a5.2 5.2 0 0 1 5.2 5.2" />
+                </svg>
+            </span>
+            <div class="auth-title">YARP <b>UI</b></div>
+            <div class="auth-sub">Reverse proxy control room</div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="auth-error" role="alert">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3 22 21H2Z" /><path d="M12 10v5" /><path d="M12 18.2h.01" />
+                </svg>
+                @Model.ErrorMessage
+            </div>
+        }
+
+        <form method="post">
+            <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+            <div class="field">
+                <label asp-for="Username">Username</label>
+                <input asp-for="Username" autofocus autocomplete="username" placeholder="admin" />
+            </div>
+            <div class="field">
+                <label asp-for="Password">Password</label>
+                <input asp-for="Password" type="password" autocomplete="current-password" placeholder="••••••••" />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+        </form>
+
+        <div class="auth-foot">
+            Credentials are configured in <code>appsettings.json</code> under <code>YarpUi:Auth</code>.
+        </div>
+    </div>
+</body>
+</html>
