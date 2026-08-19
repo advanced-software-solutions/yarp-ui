@@ -5,6 +5,12 @@ on:
   workflow_dispatch:
     branches:
       - master
+    inputs:
+      version:
+        description: "Image tag to publish (e.g. 0.1.3). Leave empty to use <Version> from YARPUI/YARPASUI.csproj."
+        required: false
+        default: ""
+        type: string
 
 jobs:
   docker:
@@ -21,13 +27,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Tag the image with the YARPUI library version so the image and the
-      # NuGet package always release in lockstep.
+      # Version priority: workflow input > <Version> in YARPUI/YARPASUI.csproj.
+      # The image and the NuGet package release in lockstep when no input is given.
       - name: Determine version tag
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          VERSION=$(sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p' YARPUI/YARPASUI.csproj)
-          if [ -z "$VERSION" ]; then
-            echo "Could not read <Version> from YARPUI/YARPASUI.csproj" >&2
+          if [ -n "$INPUT_VERSION" ]; then
+            VERSION="$INPUT_VERSION"
+            echo "Using version from workflow input: ${VERSION}"
+          else
+            VERSION=$(sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p' YARPUI/YARPASUI.csproj)
+            echo "Using <Version> from YARPUI/YARPASUI.csproj: ${VERSION}"
+          fi
+          if ! echo "$VERSION" | grep -Eq '^[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}$'; then
+            echo "Invalid image tag '$VERSION'" >&2
             exit 1
           fi
           echo "IMAGE_TAG=${VERSION}" >> "$GITHUB_ENV"

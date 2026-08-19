@@ -24,7 +24,11 @@ COPY --from=build /app .
 # /app/data — mount a volume there to persist it across container recreation.
 ENV YarpUi__DataDirectory=/app/data
 
+# Create the data dir as app-owned so fresh named volumes inherit that ownership
+# (root-owned otherwise, which breaks writes at runtime for the non-root user).
+RUN mkdir -p /app/data && chown app:app /app/data
+
 # aspnet:10.0 listens on 8080 by default (ASPNETCORE_HTTP_PORTS).
 EXPOSE 8080
 USER app
-ENTRYPOINT ["dotnet", "YARPUI.dll"]
+ENTRYPOINT ["dotnet", "YARPUI.Host.dll"]
