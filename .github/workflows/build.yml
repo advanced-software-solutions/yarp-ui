@@ -29,10 +29,10 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restore
-        run: dotnet restore AdvancedSoftwareProjects.slnx
+        run: dotnet restore YARPUI/YARPASUI.csproj
 
       - name: Build
-        run: dotnet build AdvancedSoftwareProjects.slnx --configuration Release --no-restore
+        run: dotnet build YARPUI/YARPASUI.csproj --configuration Release --no-restore
 
       - name: Pack
         run: dotnet pack YARPUI/YARPASUI.csproj --configuration Release --no-build --output artifacts
