@@ -74,8 +74,14 @@ internal sealed class ProxyConfigSteps(ProxyConfigTestContext ctx)
     public void GivenDataDirectorySetting(string setting)
     {
         ctx.EnsureDirectories();
-        ctx.DataDirectorySetting = setting;
+        // No absolute path spelling is valid on every OS ("C:/x" is relative on Linux,
+        // "/x" is relative on Windows), so the feature file uses a token.
+        ctx.DataDirectorySetting = setting == AbsolutePathToken
+            ? (OperatingSystem.IsWindows() ? "C:/yarp-ui-volume" : "/tmp/yarp-ui-volume")
+            : setting;
     }
+
+    private const string AbsolutePathToken = "__ABS_PATH__";
 
     // ---- when ----
 

@@ -299,6 +299,6 @@ Feature: Proxy configuration in standalone mode
     Then the resolved data directory is "proxy-data" under the content root
 
   Scenario: An absolute data directory is used as-is
-    Given the configuration setting YarpUi:DataDirectory is "C:/yarp-ui-volume"
+    Given the configuration setting YarpUi:DataDirectory is "__ABS_PATH__"
     When the data directory is resolved
     Then the resolved data directory is the configured absolute path
