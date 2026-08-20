@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
-    <Version>0.1.2</Version>
+    <Version>0.2.0</Version>
     <!-- Pages reference assets at ~/_content/YARPUI/... and the default base path
          is _content/{PackageId}, which no longer matches the PackageId (YA-RP-UI).
          Pin it so project- and package-based consumers serve the same URLs. -->
@@ -22,11 +22,12 @@
     <PackageTags>yarp;reverse-proxy;proxy;management;dashboard;routes</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>0.1.2: fix CSS/JS 404s when consuming the package from NuGet — static assets are now pinned to _content/YARPUI instead of following the package id. 0.2.0: attach mode now edits the app's own configuration — changes are written back into the appsettings.json files the routes/clusters came from (hot-reloaded by YARP, with .yarpui.bak backups and restore); items only stay read-only when they come from non-file sources. 0.1.1: attach mode (overlay). 0.1.0: route map, editor, request logs, auth, standalone + embedded hosting.</PackageReleaseNotes>
+    <PackageReleaseNotes>0.2.0: request logs are persisted to SQLite (yarp-ui-logs.db) instead of an in-memory buffer, with a UI-managed retention policy enforced by an automated hourly purge task (config seed: YarpUi:Logs:RetentionDays); the Logs page gains a performance panel — per-request durations charted over time and colored by status class, avg/P95/P99/max/error-rate stat cards, and per-route aggregates; attach mode now edits the app's own configuration — changes are written back into the appsettings.json files the routes/clusters came from (hot-reloaded by YARP, with .yarpui.bak backups and restore), items only stay read-only when they come from non-file sources. 0.1.2: fix CSS/JS 404s when consuming the package from NuGet — static assets are now pinned to _content/YARPUI instead of following the package id. 0.1.1: attach mode (overlay). 0.1.0: route map, editor, request logs, auth, standalone + embedded hosting.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.11" />
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
 

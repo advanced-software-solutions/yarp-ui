@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Consume the published package; switch back to a ProjectReference
-         (..\YARPUI\YARPASUI.csproj) to test local library changes. -->
-    <PackageReference Include="YA-RP-UI" Version="0.1.2" />
+    <!-- Consume the local library while developing; switch back to the published package
+         (<PackageReference Include="YA-RP-UI" Version="0.2.0" />) for release builds. -->
+    <ProjectReference Include="..\YARPUI\YARPASUI.csproj" />
   </ItemGroup>
 
 </Project>

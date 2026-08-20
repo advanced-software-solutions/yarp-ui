@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="YA-RP-UI" Version="0.1.2" />
+    <ProjectReference Include="..\..\YARPUI\YARPASUI.csproj" />
   </ItemGroup>
 
 </Project>

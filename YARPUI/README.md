@@ -4,7 +4,7 @@ A management UI for [YARP](https://microsoft.github.io/reverse-proxy/) (Yet Anot
 
 - **Route Map** (`/`) — every route → cluster → destination rendered as an interactive graph. Click a node to trace its full chain and inspect its configuration; search to highlight matches.
 - **Editor** (`/editor`) — create, edit and delete routes, clusters and destinations. Saving validates the configuration, applies it to the running proxy **without a restart**, and persists it to disk.
-- **Logs** (`/logs`) — a live view of proxied requests (method, path, status, duration, chosen destination), kept in memory.
+- **Logs** (`/logs`) — a live view of proxied requests (method, path, status, duration, chosen destination) plus a performance panel: per-request durations charted over time and colored by status class, avg/P95/max/error-rate stat cards, and per-route aggregates.
 
 > **Editions** — this repository is the **community edition**, free under Apache-2.0. A separate premium edition adds commercial features on top and is distributed under a commercial license. The premium code never lives in this repository.
 
@@ -21,7 +21,7 @@ cd YARPUI.Host && dotnet run      # → http://localhost:5080
 **2. Embedded in your own app** — add the package and wire it up (see `samples/EmbeddedHost`):
 
 ```xml
-<PackageReference Include="YA-RP-UI" Version="0.1.2" />
+<PackageReference Include="YA-RP-UI" Version="0.2.0" />
 ```
 
 ```csharp
@@ -95,8 +95,9 @@ The UI is then served on **http://localhost:8090**. All mutable configuration is
 | --- | --- |
 | `docker-data/appsettings.json` | Credentials (`YarpUi:Auth`) and the seed `ReverseProxy` config — edit on the host, applies on next start |
 | `docker-data/yarp-ui.routes.json` | Written automatically on every save from the UI editor |
+| `docker-data/yarp-ui-logs.db` | Request log database (SQLite) — survives restarts, purged by the retention policy |
 
-Under the hood the container sets `YarpUi__DataDirectory=/app/data` and mounts the volume there; an `appsettings.json` in that directory overrides the one baked into the image (this also works without Docker — point `YarpUi:DataDirectory` anywhere you like). To build the image manually: `docker build -t yarp-ui:0.1.0 .` from the solution root.
+Under the hood the container sets `YarpUi__DataDirectory=/app/data` and mounts the volume there; an `appsettings.json` in that directory overrides the one baked into the image (this also works without Docker — point `YarpUi:DataDirectory` anywhere you like). To build the image manually: `docker build -t yarp-ui:0.2.0 .` from the solution root.
 
 ## How configuration works
 
@@ -117,11 +118,13 @@ appsettings.json ("ReverseProxy" section)   ← hand-written seed
 
 ## Request logs
 
-Only **proxied** requests are recorded (UI/API requests are excluded). Entries live in an in-memory ring buffer of the last 1000 requests and are lost on restart.
+Only **proxied** requests are recorded (UI/API requests are excluded). Entries are stored in a SQLite database (`yarp-ui-logs.db` in the data directory, next to `yarp-ui.routes.json`) and survive restarts.
+
+A **retention policy** deletes logs automatically once they pass a certain age: a background task runs at startup and then every hour. The policy is managed from the Logs page toolbar (*Keep logs: forever / 1 / 7 / 30 / 90 / 365 days*) and changing it applies immediately; the initial default comes from `YarpUi:Logs:RetentionDays` in configuration (30 days if unset). The policy you set in the UI is stored in the database itself and wins over the configuration value.
 
 ## Offline / no network
 
-All JavaScript libraries (Cytoscape.js, dagre, cytoscape-dagre) are vendored under `wwwroot/lib/`. No CDN is used at runtime; the UI works fully offline.
+All JavaScript libraries (Cytoscape.js, dagre, cytoscape-dagre, Chart.js) are vendored under `wwwroot/lib/`. No CDN is used at runtime; the UI works fully offline.
 
 ## Security notes
 
@@ -137,4 +140,4 @@ Licensed under the [Apache License, Version 2.0](LICENSE). This is the community
 
 "YARP UI" and the YARP UI logo are project trademarks; this license does not grant rights to use them to market derivative products.
 
-Bundled third-party libraries (YARP, Cytoscape.js, dagre, cytoscape-dagre) are MIT-licensed — see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+Bundled third-party libraries (YARP, Microsoft.Data.Sqlite, Cytoscape.js, dagre, cytoscape-dagre, Chart.js) are MIT-licensed — see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

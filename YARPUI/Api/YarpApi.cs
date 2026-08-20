@@ -18,6 +18,8 @@ public sealed class ConfigUpdateRequest
     public IReadOnlyList<ClusterConfig>? Clusters { get; init; }
 }
 
+public sealed record LogSettingsUpdateRequest(int? RetentionDays);
+
 public static class YarpApi
 {
     // Config payloads keep the PascalCase shape used by appsettings.json and yarp-ui.routes.json.
@@ -72,15 +74,55 @@ public static class YarpApi
             return Results.Json(ToResponse(configService), ConfigJsonOptions);
         });
 
-        group.MapGet("/logs", (RequestLogStore store, long? after) =>
+        group.MapGet("/logs", (SqliteRequestLogStore store, long? after) =>
         {
             return Results.Json(new { entries = store.GetAfter(after ?? 0) });
         });
 
-        group.MapDelete("/logs", (RequestLogStore store) =>
+        group.MapDelete("/logs", (SqliteRequestLogStore store) =>
         {
             store.Clear();
             return Results.NoContent();
+        });
+
+        // Aggregates for the Logs performance panel. minutes=0 (or null) covers all time.
+        group.MapGet("/logs/stats", (SqliteRequestLogStore store, int? minutes) =>
+        {
+            TimeSpan? window = minutes is > 0 ? TimeSpan.FromMinutes(minutes.Value) : null;
+            return Results.Json(store.GetStats(window));
+        });
+
+        group.MapGet("/logs/settings", (SqliteRequestLogStore store) =>
+        {
+            return Results.Json(new { retentionDays = store.GetRetentionDays() });
+        });
+
+        group.MapPut("/logs/settings", async (HttpContext http, SqliteRequestLogStore store) =>
+        {
+            LogSettingsUpdateRequest? request;
+            try
+            {
+                request = await http.Request.ReadFromJsonAsync<LogSettingsUpdateRequest>();
+            }
+            catch (JsonException)
+            {
+                return Results.BadRequest(new { errors = new[] { "The request body is not valid JSON." } });
+            }
+
+            if (request?.RetentionDays is null or < 0 or > SqliteRequestLogStore.MaxRetentionDays)
+            {
+                return Results.BadRequest(new
+                {
+                    errors = new[]
+                    {
+                        $"retentionDays must be 0 (keep forever) or between 1 and {SqliteRequestLogStore.MaxRetentionDays}.",
+                    },
+                });
+            }
+
+            store.SetRetentionDays(request.RetentionDays.Value);
+            store.ApplyRetention(); // apply the new policy immediately instead of waiting for the hourly pass
+            return Results.Json(new { retentionDays = request.RetentionDays.Value });
         });
 
         return app;

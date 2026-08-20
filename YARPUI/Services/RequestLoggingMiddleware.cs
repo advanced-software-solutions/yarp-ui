@@ -5,7 +5,7 @@ namespace YARPUI.Services;
 
 /// <summary>
 /// Records requests that were handled by the YARP proxy (route, cluster and selected
-/// destination, status code and duration) into the <see cref="RequestLogStore"/>.
+/// destination, status code and duration) into the <see cref="SqliteRequestLogStore"/>.
 /// Non-proxied requests (UI pages, APIs, static files) are not captured.
 /// </summary>
 public sealed class RequestLoggingMiddleware
@@ -19,7 +19,7 @@ public sealed class RequestLoggingMiddleware
         _logger = logger;
     }
 
-    public async Task InvokeAsync(HttpContext context, RequestLogStore store)
+    public async Task InvokeAsync(HttpContext context, SqliteRequestLogStore store)
     {
         var stopwatch = Stopwatch.StartNew();
         Exception? error = null;

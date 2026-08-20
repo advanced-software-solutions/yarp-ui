@@ -8,6 +8,7 @@ YARP UI (community edition) bundles and depends on the following open-source pro
 | --- | --- | --- |
 | [YARP](https://microsoft.github.io/reverse-proxy/) (Yarp.ReverseProxy 2.3.0) | MIT | Reverse proxy engine |
 | [ASP.NET Core](https://learn.microsoft.com/aspnet/core/) | MIT | Hosted via the `Microsoft.AspNetCore.App` framework reference |
+| [Microsoft.Data.Sqlite](https://learn.microsoft.com/dotnet/standard/data/sqlite/) 10.0.11 | MIT | Request log storage (SQLite) |
 
 ## Vendored files ( redistributed in `wwwroot/lib/` )
 
@@ -16,5 +17,6 @@ YARP UI (community edition) bundles and depends on the following open-source pro
 | [Cytoscape.js](https://js.cytoscape.org/) 3.30.4 | MIT | `wwwroot/lib/cytoscape.min.js` |
 | [dagre](https://github.com/dagrejs/dagre) 0.8.5 | MIT | `wwwroot/lib/dagre.min.js` |
 | [cytoscape-dagre](https://github.com/cytoscape/cytoscape-dagre) 2.5.0 | MIT | `wwwroot/lib/cytoscape-dagre.min.js` |
+| [Chart.js](https://www.chartjs.org/) 4.4.9 | MIT | `wwwroot/lib/chart.umd.min.js` |
 
 These projects are not affiliated with YARP UI. Their licenses and copyright notices are included in their respective source distributions.

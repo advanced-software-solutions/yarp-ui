@@ -32,7 +32,7 @@ public static class YarpUiServiceCollectionExtensions
         services.AddReverseProxy()
             .LoadFromMemory(initialConfig.Routes, initialConfig.Clusters);
 
-        return AddYarpUiCore(services, builder.Configuration, attachMode: false);
+        return AddYarpUiCore(services, builder.Configuration, dataDirectory, attachMode: false);
     }
 
     /// <summary>
@@ -53,7 +53,7 @@ public static class YarpUiServiceCollectionExtensions
         builder.Services.AddSingleton(overlayProvider);
         builder.Services.AddSingleton<IProxyConfigProvider>(sp => sp.GetRequiredService<InMemoryConfigProvider>());
 
-        return AddYarpUiCore(builder.Services, builder.Configuration, attachMode: true);
+        return AddYarpUiCore(builder.Services, builder.Configuration, dataDirectory, attachMode: true);
     }
 
     private static string ResolveAndWireDataDirectory(WebApplicationBuilder builder)
@@ -73,7 +73,21 @@ public static class YarpUiServiceCollectionExtensions
         return dataDirectory;
     }
 
-    private static IServiceCollection AddYarpUiCore(IServiceCollection services, IConfiguration configuration, bool attachMode)
+    /// <summary>
+    /// The initial retention policy (days to keep request logs, 0 = forever) from
+    /// YarpUi:Logs:RetentionDays. It seeds the database setting; the value saved from the
+    /// Logs page (also in that database) takes precedence from then on. Defaults to 30.
+    /// </summary>
+    private static int ResolveRetentionSeed(IConfiguration configuration)
+    {
+        var raw = configuration["YarpUi:Logs:RetentionDays"];
+        return int.TryParse(raw, out var days) && days >= 0
+            ? Math.Min(days, SqliteRequestLogStore.MaxRetentionDays)
+            : 30;
+    }
+
+    private static IServiceCollection AddYarpUiCore(
+        IServiceCollection services, IConfiguration configuration, string dataDirectory, bool attachMode)
     {
         services.AddRazorPages();
 
@@ -86,7 +100,14 @@ public static class YarpUiServiceCollectionExtensions
             attachMode,
             sp.GetRequiredService<ILogger<ProxyConfigService>>()));
 
-        services.AddSingleton<RequestLogStore>();
+        // Request logs: SQLite-backed (survives restarts) in the data directory, fed by a
+        // background writer; a retention service purges entries older than the policy allows.
+        services.AddSingleton(sp => new SqliteRequestLogStore(
+            Path.Combine(dataDirectory, SqliteRequestLogStore.DatabaseFileName),
+            ResolveRetentionSeed(configuration),
+            sp.GetRequiredService<ILogger<SqliteRequestLogStore>>()));
+        services.AddHostedService<RequestLogWriter>();
+        services.AddHostedService<LogRetentionService>();
 
         // UI sign-in with credentials from configuration (YarpUi:Auth). The UI registers its own
         // named cookie scheme and policy — it never changes the host's default authentication

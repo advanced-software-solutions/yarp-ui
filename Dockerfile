@@ -1,6 +1,6 @@
 # YARP UI (community edition) — multi-stage build.
 # Build context: the folder containing this file (the solution root), e.g.
-#   docker build -t yarp-ui:0.1.0 .
+#   docker build -t yarp-ui:0.2.0 .
 # or simply use docker-compose.yml.
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
