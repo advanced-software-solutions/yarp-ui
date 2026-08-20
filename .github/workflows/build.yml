@@ -1,8 +1,7 @@
 name: build
 
 # Tests run on every push and pull request so regressions are noticed immediately.
-# Publishing stays manual-dispatch only, restricted to master in the branch picker,
-# and additionally waits for the tests to pass (needs: test).
+# Publishing runs whenever the tests pass on master (needs: test below).
 on:
   push:
   pull_request:
@@ -14,6 +13,9 @@ jobs:
   test:
     name: Run YARPASUI.Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write # lets the test reporter publish the detailed results check
 
     steps:
       - name: Checkout
@@ -32,10 +34,22 @@ jobs:
 
       # Scenarios tagged @windows (NTFS ACL simulation) skip themselves on Linux.
       - name: Test
+        id: tests
         run: >-
           dotnet test YARPASUI.Tests/YARPASUI.Tests.csproj
           --configuration Release --no-build
           --logger trx --results-directory test-results
+
+      # Renders the per-test results (pass/fail/skip, failure messages) in the run
+      # Summary and as a check run, instead of just the console summary line.
+      - name: Test Report
+        uses: dorny/test-reporter@v2
+        if: always() && steps.tests.outcome != 'skipped'
+        with:
+          name: YARPASUI.Tests results
+          path: 'test-results/*.trx'
+          reporter: dotnet-trx
+          list-tests: all
 
       - name: Upload test results
         if: always()
@@ -47,10 +61,10 @@ jobs:
   build-and-publish:
     name: Build and publish YARPUI to nuget.org
     needs: test
-    # Hard guard: publishing only happens on an explicit dispatch of master (the branches
-    # filter above only limits the picker), never from a push/PR run, and only after
-    # the test job is green.
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
+    # Hard guard: the branches filter above only limits the picker; this stops
+    # an older copy of this workflow on another branch from publishing. Runs
+    # on master as soon as the test job is green.
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     # Must match the environment name in the nuget.org trusted publishing policy.
     environment: production
