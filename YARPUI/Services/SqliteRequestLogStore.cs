@@ -434,6 +434,22 @@ public sealed class SqliteRequestLogStore
 
     private void InitializeDatabase()
     {
+        try
+        {
+            OpenAndInitialize();
+        }
+        catch (SqliteException ex)
+        {
+            throw new InvalidOperationException(
+                $"Cannot open the YARP UI request-log database at '{_databasePath}' ({ex.Message}). "
+                + "The data directory must be writable by the process identity. Under IIS with the default "
+                + "application pool identity, grant the pool 'Modify' on the data directory or point "
+                + "YarpUi:DataDirectory at a writable folder.", ex);
+        }
+    }
+
+    private void OpenAndInitialize()
+    {
         using var connection = new SqliteConnection($"Data Source={_databasePath}");
         connection.Open();
         Execute(connection, "PRAGMA journal_mode = WAL");

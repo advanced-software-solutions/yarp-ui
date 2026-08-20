@@ -58,9 +58,30 @@ public static class YarpUiServiceCollectionExtensions
 
     private static string ResolveAndWireDataDirectory(WebApplicationBuilder builder)
     {
+        var explicitlyConfigured = !string.IsNullOrWhiteSpace(builder.Configuration["YarpUi:DataDirectory"]);
         var dataDirectory = ProxyConfigService.ResolveDataDirectory(
             builder.Configuration,
             builder.Environment.ContentRootPath);
+
+        // IIS (and any other host with a read-only deployment folder): the default application
+        // pool identity cannot write to the content root, which would crash startup with
+        // SQLite error 14 when the request log database is opened. When nothing was configured
+        // explicitly, fall back to a writable per-app folder instead of taking the proxy down.
+        if (!explicitlyConfigured && !IsDirectoryWritable(dataDirectory))
+        {
+            var fallback = ResolveFallbackDataDirectory(builder);
+            if (fallback is not null && IsDirectoryWritable(fallback))
+            {
+                // Write it back so every consumer (the overlay config source below,
+                // ProxyConfigService, the log store) resolves the same folder.
+                builder.Configuration["YarpUi:DataDirectory"] = fallback;
+                builder.Services.AddHostedService(sp => new DataDirectoryFallbackWarningService(
+                    sp.GetRequiredService<ILogger<DataDirectoryFallbackWarningService>>(),
+                    dataDirectory,
+                    fallback));
+                dataDirectory = fallback;
+            }
+        }
 
         // A data-directory (e.g. Docker volume) appsettings.json overrides the shipped one —
         // this must happen before configuration is read anywhere else.
@@ -71,6 +92,53 @@ public static class YarpUiServiceCollectionExtensions
         }
 
         return dataDirectory;
+    }
+
+    /// <summary>
+    /// Where mutable state goes when the content root is not writable: YarpUi:FallbackDataDirectory
+    /// if set, otherwise %ProgramData%\YarpUi\&lt;application name&gt;.
+    /// </summary>
+    private static string? ResolveFallbackDataDirectory(WebApplicationBuilder builder)
+    {
+        var configured = builder.Configuration["YarpUi:FallbackDataDirectory"];
+        if (!string.IsNullOrWhiteSpace(configured))
+        {
+            return Path.GetFullPath(
+                Path.IsPathRooted(configured) ? configured : Path.Combine(builder.Environment.ContentRootPath, configured));
+        }
+
+        var programData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+        if (string.IsNullOrEmpty(programData))
+        {
+            return null;
+        }
+
+        return Path.Combine(programData, "YarpUi", SanitizeApplicationName(builder.Environment.ApplicationName));
+    }
+
+    private static string SanitizeApplicationName(string applicationName)
+    {
+        var name = new string(applicationName.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray()).TrimEnd('.');
+        return name.Length > 0 ? name : "app";
+    }
+
+    private static bool IsDirectoryWritable(string directory)
+    {
+        try
+        {
+            Directory.CreateDirectory(directory);
+            var probe = Path.Combine(directory, ".yarpui-write-test-" + Guid.NewGuid().ToString("N"));
+            using (File.Open(probe, FileMode.CreateNew))
+            {
+            }
+
+            File.Delete(probe);
+            return true;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or NotSupportedException)
+        {
+            return false;
+        }
     }
 
     /// <summary>

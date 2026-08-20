@@ -99,6 +99,18 @@ The UI is then served on **http://localhost:8090**. All mutable configuration is
 
 Under the hood the container sets `YarpUi__DataDirectory=/app/data` and mounts the volume there; an `appsettings.json` in that directory overrides the one baked into the image (this also works without Docker — point `YarpUi:DataDirectory` anywhere you like). To build the image manually: `docker build -t yarp-ui:0.2.0 .` from the solution root.
 
+## IIS
+
+Hosting under IIS works with the default application pool identity (`ApplicationPoolIdentity`), which has **read-only** access to the site folder. On startup YARP UI detects that the content root is not writable and stores all mutable state — `yarp-ui-logs.db`, `yarp-ui.routes.json`, the optional data-directory `appsettings.json` — under `%ProgramData%\YarpUi\<application name>` instead, logging a warning so the relocation is visible. Nothing needs to be configured; the proxy starts normally and the editor/logs pages work against the fallback folder.
+
+To keep state in a location of your choosing instead, either point `YarpUi:DataDirectory` at a writable folder, or grant the pool identity write access to the site folder:
+
+```powershell
+icacls "<site folder>" /grant "IIS AppPool\<YourAppPool>:(OI)(CI)(M)"
+```
+
+An explicitly configured `YarpUi:DataDirectory` is never overridden by the fallback. The fallback location itself can be redirected with `YarpUi:FallbackDataDirectory`.
+
 ## How configuration works
 
 ```

@@ -1,17 +1,56 @@
 name: build
 
-# Manual dispatch only, restricted to master in the branch picker.
+# Tests run on every push and pull request so regressions are noticed immediately.
+# Publishing stays manual-dispatch only, restricted to master in the branch picker,
+# and additionally waits for the tests to pass (needs: test).
 on:
+  push:
+  pull_request:
   workflow_dispatch:
     branches:
       - master
 
 jobs:
+  test:
+    name: Run YARPASUI.Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore YARPASUI.Tests/YARPASUI.Tests.csproj
+
+      - name: Build
+        run: dotnet build YARPASUI.Tests/YARPASUI.Tests.csproj --configuration Release --no-restore
+
+      # Scenarios tagged @windows (NTFS ACL simulation) skip themselves on Linux.
+      - name: Test
+        run: >-
+          dotnet test YARPASUI.Tests/YARPASUI.Tests.csproj
+          --configuration Release --no-build
+          --logger trx --results-directory test-results
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/*.trx
+
   build-and-publish:
     name: Build and publish YARPUI to nuget.org
-    # Hard guard: the branches filter above only limits the picker; this stops
-    # an older copy of this workflow on another branch from publishing.
-    if: github.ref == 'refs/heads/master'
+    needs: test
+    # Hard guard: publishing only happens on an explicit dispatch of master (the branches
+    # filter above only limits the picker), never from a push/PR run, and only after
+    # the test job is green.
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     # Must match the environment name in the nuget.org trusted publishing policy.
     environment: production

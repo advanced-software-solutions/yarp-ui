@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
-    <Version>0.2.0</Version>
+    <Version>0.2.1</Version>
     <!-- Pages reference assets at ~/_content/YARPUI/... and the default base path
          is _content/{PackageId}, which no longer matches the PackageId (YA-RP-UI).
          Pin it so project- and package-based consumers serve the same URLs. -->
@@ -16,6 +16,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IsPackable>true</IsPackable>
     <PackageId>YA-RP-UI</PackageId>
+    <RepositoryUrl></RepositoryUrl>
     <Title>YARP UI</Title>
     <Authors>Amr Swalha, Advanced Software Solutions</Authors>
     <Description>A management UI for YARP (Yet Another Reverse Proxy): visualize routes as an interactive map, edit routes, clusters and destinations live without restarts, watch proxied request logs, and protect it all with built-in authentication. Hosts standalone or embedded in any ASP.NET Core app.</Description>

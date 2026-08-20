@@ -439,9 +439,11 @@ public sealed class ProxyConfigService
         }
 
         // Legacy overlay items are editable too; saves migrate them into appsettings.json.
+        // The overlay file keeps Routes/Clusters at the top level (see Persist), unlike
+        // appsettings.json files where they live under the ReverseProxy section.
         if (File.Exists(UiConfigPath))
         {
-            var overlay = ReadReverseProxySection(UiConfigPath);
+            var overlay = LoadJsonObject(UiConfigPath);
             if (overlay?["Routes"] is JsonObject routes)
             {
                 foreach (var id in routes.Select(e => e.Key))
@@ -478,10 +480,13 @@ public sealed class ProxyConfigService
         void RemoveIdFromFile(string path, string kind, string id)
         {
             var root = LoadJsonObject(path);
-            if (root?["ReverseProxy"]?[kind] is JsonObject map && map.ContainsKey(id))
+            // appsettings files keep items under the "ReverseProxy" section; the overlay
+            // file keeps Routes/Clusters at the top level (see Persist).
+            var map = (root?["ReverseProxy"]?[kind] as JsonObject) ?? (root?[kind] as JsonObject);
+            if (map is not null && map.ContainsKey(id))
             {
                 map.Remove(id);
-                SaveJsonObject(path, root, touched);
+                SaveJsonObject(path, root!, touched);
             }
         }
 
