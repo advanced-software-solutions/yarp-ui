@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Reqnroll generated code-behind (regenerated on build)
+*.feature.cs
+/YARPUI.Host/yarp-ui-logs.db-shm
+/YARPUI.Host/yarp-ui-logs.db-wal
