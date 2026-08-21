@@ -4,6 +4,7 @@
 [![downloads](https://img.shields.io/nuget/dt/YA-RP-UI.svg)](https://www.nuget.org/packages/YA-RP-UI)
 [![docker](https://img.shields.io/docker/v/amrfswalha/yarp-ui.svg?label=docker)](https://hub.docker.com/r/amrfswalha/yarp-ui)
 [![docker pulls](https://img.shields.io/docker/pulls/amrfswalha/yarp-ui.svg?label=docker%20pulls)](https://hub.docker.com/r/amrfswalha/yarp-ui)
+[![tests](https://img.shields.io/badge/tests-92%20passed%20%202%20skipped-success)](https://github.com/advanced-software-solutions/yarp-ui/actions/workflows/build.yml)
 
 > 🌐 Idiomas: [English](README.md) | [العربية](README.ar.md) | **Español** | [简体中文](README.zh-CN.md)
 

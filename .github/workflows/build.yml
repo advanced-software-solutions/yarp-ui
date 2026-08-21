@@ -1,7 +1,8 @@
 name: build
 
 # Tests run on every push and pull request so regressions are noticed immediately.
-# Publishing runs whenever the tests pass on master (needs: test below).
+# Publishing is not part of this workflow — release.yml (manual dispatch on
+# master) runs the tests again and then pushes the NuGet package.
 on:
   push:
   pull_request:
@@ -57,57 +58,3 @@ jobs:
         with:
           name: test-results
           path: test-results/*.trx
-
-  build-and-publish:
-    name: Build and publish YARPUI to nuget.org
-    needs: test
-    # Hard guard: the branches filter above only limits the picker; this stops
-    # an older copy of this workflow on another branch from publishing. Runs
-    # on master as soon as the test job is green.
-    if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    # Must match the environment name in the nuget.org trusted publishing policy.
-    environment: production
-    permissions:
-      id-token: write # required for OIDC token issuance (trusted publishing)
-      contents: read
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
-
-      - name: Restore
-        run: dotnet restore YARPUI/YARPASUI.csproj
-
-      - name: Build
-        run: dotnet build YARPUI/YARPASUI.csproj --configuration Release --no-restore
-
-      - name: Pack
-        run: dotnet pack YARPUI/YARPASUI.csproj --configuration Release --no-build --output artifacts
-
-      # Keep the package even if the push below fails, so it can be inspected.
-      - name: Upload package artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: nupkg
-          path: artifacts/*.nupkg
-
-      # Exchanges the GitHub OIDC token for a temp API key valid for 1 hour,
-      # so this step must run right before the push.
-      - name: NuGet login (OIDC to temp API key)
-        uses: NuGet/login@v1
-        id: login
-        with:
-          user: amr.swalha # nuget.org profile name, not an email address
-
-      - name: Push to nuget.org
-        run: >-
-          dotnet nuget push artifacts/*.nupkg
-          --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
-          --source https://api.nuget.org/v3/index.json
-          --skip-duplicate
