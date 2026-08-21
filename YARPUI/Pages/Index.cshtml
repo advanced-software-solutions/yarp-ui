@@ -1,7 +1,7 @@
 @page
 @model YARPUI.Pages.IndexModel
 @{
-    ViewData["Title"] = "Route Map — YARP UI";
+    ViewData["Title"] = L["index.title"];
     ViewData["BodyId"] = "map";
 }
 <div class="map-page">
@@ -10,26 +10,26 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                 <circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" />
             </svg>
-            <input id="map-search" type="search" placeholder="Search routes, clusters, destinations…" autocomplete="off" spellcheck="false" />
+            <input id="map-search" type="search" placeholder="@L["index.searchPlaceholder"]" autocomplete="off" spellcheck="false" />
             <span id="search-count" class="search-count hidden"></span>
         </div>
         <div class="legend" id="map-legend"></div>
         <span class="toolbar-spacer"></span>
         <div class="map-actions">
             <span id="source-pill" class="pill" title=""></span>
-            <button type="button" class="btn btn-ghost btn-icon" id="btn-zoom-out" title="Zoom out">
+            <button type="button" class="btn btn-ghost btn-icon" id="btn-zoom-out" title="@L["index.zoomOut"]">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14" /></svg>
             </button>
-            <button type="button" class="btn btn-ghost btn-icon" id="btn-zoom-in" title="Zoom in">
+            <button type="button" class="btn btn-ghost btn-icon" id="btn-zoom-in" title="@L["index.zoomIn"]">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
             </button>
-            <button type="button" class="btn btn-ghost btn-icon" id="btn-fit" title="Fit to screen">
+            <button type="button" class="btn btn-ghost btn-icon" id="btn-fit" title="@L["index.fit"]">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M4 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3" />
                 </svg>
             </button>
-            <button type="button" class="btn btn-ghost btn-icon" id="btn-refresh" title="Reload configuration">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <button type="button" class="btn btn-ghost btn-icon" id="btn-refresh" title="@L["index.reload"]">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                     <path d="M21 12a9 9 0 1 1-2.64-6.36" /><path d="M21 3v6h-6" />
                 </svg>
             </button>
@@ -37,8 +37,8 @@
     </div>
     <div class="map-canvas-wrap">
         <div id="cy"></div>
-        <div id="map-hint" class="map-hint">Click a node to trace its chain · drag to pan · scroll to zoom</div>
-        <div id="map-status" class="map-status hidden"><div class="spinner"></div><span>Loading configuration…</span></div>
+        <div id="map-hint" class="map-hint">@L["index.hint"]</div>
+        <div id="map-status" class="map-status hidden"><div class="spinner"></div><span>@L["index.loading"]</span></div>
         <div id="map-empty" class="map-empty hidden">
             <div class="empty-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
@@ -46,20 +46,20 @@
                     <path d="M7.2 11.2h3.4a5.2 5.2 0 0 0 5.2-5.2M7.2 12.8h3.4a5.2 5.2 0 0 1 5.2 5.2" />
                 </svg>
             </div>
-            <h2>No routes configured</h2>
-            <p class="muted">The proxy is running with an empty configuration.<br />Head to the editor to add your first route and destinations.</p>
-            <a class="btn btn-primary" asp-page="/Editor">Open the editor</a>
+            <h2>@L["index.emptyTitle"]</h2>
+            <p class="muted">@L["index.emptyBody1"]<br />@L["index.emptyBody2"]</p>
+            <a class="btn btn-primary" asp-page="/Editor">@L["index.openEditor"]</a>
         </div>
         <aside id="drawer" class="drawer" aria-hidden="true">
             <header class="drawer-head">
                 <div id="drawer-title" class="drawer-title"></div>
-                <button type="button" class="btn btn-ghost btn-icon" id="drawer-close" title="Close">
+                <button type="button" class="btn btn-ghost btn-icon" id="drawer-close" title="@L["index.close"]">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
                 </button>
             </header>
             <div id="drawer-body" class="drawer-body"></div>
             <footer class="drawer-foot">
-                <a id="drawer-edit" class="btn btn-primary btn-block" href="/editor">Edit in Editor</a>
+                <a id="drawer-edit" class="btn btn-primary btn-block" href="/editor">@L["index.editInEditor"]</a>
             </footer>
         </aside>
     </div>

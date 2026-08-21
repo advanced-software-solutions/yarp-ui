@@ -1,9 +1,12 @@
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting.Internal;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 using Yarp.ReverseProxy.Configuration;
 using YARPUI.Api;
+using YARPUI.Resources;
 using YARPUI.Services;
 
 namespace YARPASUI.Tests.Support;
@@ -27,6 +30,15 @@ internal sealed class ProxyConfigTestContext : IDisposable
     public string? ResolvedDataDirectory { get; set; }
     public string? DataDirectorySetting { get; set; }
     public string? OriginalAppSettings { get; set; }
+
+    // Real localizer (neutral English resources) for validation-message assertions.
+    private ServiceProvider? _serviceProvider;
+
+    private IStringLocalizer<UIStrings> CreateLocalizer()
+    {
+        _serviceProvider ??= new ServiceCollection().AddLogging().AddLocalization().BuildServiceProvider();
+        return _serviceProvider.GetRequiredService<IStringLocalizer<UIStrings>>();
+    }
 
     public IReadOnlyList<RouteConfig> CurrentRoutes => Live?.Routes ?? Loaded?.Routes ?? [];
     public IReadOnlyList<ClusterConfig> CurrentClusters => Live?.Clusters ?? Loaded?.Clusters ?? [];
@@ -79,14 +91,19 @@ internal sealed class ProxyConfigTestContext : IDisposable
             Validator,
             StateLookup,
             attachMode,
-            NullLogger<ProxyConfigService>.Instance);
+            NullLogger<ProxyConfigService>.Instance,
+            CreateLocalizer());
         return Service;
     }
 
     public ProxyConfigDocument LoadSeedFiles() =>
         ProxyConfigService.LoadSeed(DataDirectory, ContentRoot, EnvironmentName);
 
-    public void Dispose() => Root?.Dispose();
+    public void Dispose()
+    {
+        _serviceProvider?.Dispose();
+        Root?.Dispose();
+    }
 }
 
 /// <summary>Per-scenario state for SqliteRequestLogStore tests.</summary>

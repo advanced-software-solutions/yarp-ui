@@ -1,13 +1,13 @@
 @page
 @model YARPUI.Pages.ErrorModel
 @{
-    ViewData["Title"] = "Error — YARP UI";
+    ViewData["Title"] = L["error.title"];
 }
 <div class="panel center-panel">
-    <h1 class="panel-title">Something went wrong</h1>
-    <p class="muted">An error occurred while processing your request.</p>
+    <h1 class="panel-title">@L["error.heading"]</h1>
+    <p class="muted">@L["error.body"]</p>
     @if (Model.ShowRequestId)
     {
-        <p class="mono small"><strong>Request ID:</strong> <code>@Model.RequestId</code></p>
+        <p class="mono small"><strong>@L["error.requestId"]</strong> <code>@Model.RequestId</code></p>
     }
 </div>

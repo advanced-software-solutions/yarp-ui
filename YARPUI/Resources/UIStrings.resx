@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    English (neutral) resources for YARP UI. These values are the source the other
+    languages translate; the default UI culture falls back to this set.
+  -->
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <!-- shared layout -->
+  <data name="layout.fallbackTitle" xml:space="preserve"><value>YARP UI</value></data>
+  <data name="layout.brandTitle" xml:space="preserve"><value>Route map</value></data>
+  <data name="nav.map" xml:space="preserve"><value>Map</value></data>
+  <data name="nav.editor" xml:space="preserve"><value>Editor</value></data>
+  <data name="nav.logs" xml:space="preserve"><value>Logs</value></data>
+  <data name="layout.signedIn" xml:space="preserve"><value>Signed in</value></data>
+  <data name="layout.signOut" xml:space="preserve"><value>Sign out</value></data>
+  <data name="layout.languageTitle" xml:space="preserve"><value>Language</value></data>
+
+  <!-- login -->
+  <data name="login.title" xml:space="preserve"><value>Sign in — YARP UI</value></data>
+  <data name="login.subtitle" xml:space="preserve"><value>Reverse proxy control room</value></data>
+  <data name="login.username" xml:space="preserve"><value>Username</value></data>
+  <data name="login.password" xml:space="preserve"><value>Password</value></data>
+  <data name="login.signIn" xml:space="preserve"><value>Sign in</value></data>
+  <data name="login.footer" xml:space="preserve"><value>Credentials are configured in &lt;code&gt;appsettings.json&lt;/code&gt; under &lt;code&gt;YarpUi:Auth&lt;/code&gt;.</value></data>
+  <data name="login.notConfigured" xml:space="preserve"><value>Sign-in is not configured on the server. Set YarpUi:Auth in appsettings.json.</value></data>
+  <data name="login.invalidCredentials" xml:space="preserve"><value>Invalid username or password.</value></data>
+
+  <!-- route map page -->
+  <data name="index.title" xml:space="preserve"><value>Route Map — YARP UI</value></data>
+  <data name="index.searchPlaceholder" xml:space="preserve"><value>Search routes, clusters, destinations…</value></data>
+  <data name="index.zoomOut" xml:space="preserve"><value>Zoom out</value></data>
+  <data name="index.zoomIn" xml:space="preserve"><value>Zoom in</value></data>
+  <data name="index.fit" xml:space="preserve"><value>Fit to screen</value></data>
+  <data name="index.reload" xml:space="preserve"><value>Reload configuration</value></data>
+  <data name="index.hint" xml:space="preserve"><value>Click a node to trace its chain · drag to pan · scroll to zoom</value></data>
+  <data name="index.loading" xml:space="preserve"><value>Loading configuration…</value></data>
+  <data name="index.emptyTitle" xml:space="preserve"><value>No routes configured</value></data>
+  <data name="index.emptyBody1" xml:space="preserve"><value>The proxy is running with an empty configuration.</value></data>
+  <data name="index.emptyBody2" xml:space="preserve"><value>Head to the editor to add your first route and destinations.</value></data>
+  <data name="index.openEditor" xml:space="preserve"><value>Open the editor</value></data>
+  <data name="index.close" xml:space="preserve"><value>Close</value></data>
+  <data name="index.editInEditor" xml:space="preserve"><value>Edit in Editor</value></data>
+
+  <!-- editor page -->
+  <data name="editor.title" xml:space="preserve"><value>Editor — YARP UI</value></data>
+  <data name="editor.heading" xml:space="preserve"><value>Configuration editor</value></data>
+  <data name="editor.unsavedChanges" xml:space="preserve"><value>Unsaved changes</value></data>
+  <data name="editor.reload" xml:space="preserve"><value>Reload</value></data>
+  <data name="editor.reloadTitle" xml:space="preserve"><value>Discard changes and reload the live configuration</value></data>
+  <data name="editor.save" xml:space="preserve"><value>Save &amp; apply</value></data>
+  <data name="editor.saveTitle" xml:space="preserve"><value>Validate, apply live and persist</value></data>
+  <data name="editor.routes" xml:space="preserve"><value>Routes</value></data>
+  <data name="editor.clusters" xml:space="preserve"><value>Clusters</value></data>
+  <data name="editor.addRoute" xml:space="preserve"><value>Add route</value></data>
+  <data name="editor.addCluster" xml:space="preserve"><value>Add cluster</value></data>
+  <data name="editor.resetToAppsettings" xml:space="preserve"><value>Reset to appsettings.json</value></data>
+  <data name="editor.resetTitle" xml:space="preserve"><value>Delete yarp-ui.routes.json and return to the configuration in appsettings.json</value></data>
+  <data name="editor.restoreBackup" xml:space="preserve"><value>Restore appsettings backup</value></data>
+  <data name="editor.restoreTitle" xml:space="preserve"><value>Restore every modified appsettings file from its .yarpui.bak backup (taken before the UI first changed it).</value></data>
+  <data name="editor.nothingSelected" xml:space="preserve"><value>Nothing selected</value></data>
+  <data name="editor.pickItem" xml:space="preserve"><value>Pick a route or cluster on the left, or add a new one.</value></data>
+
+  <!-- editor page: list items -->
+  <data name="editor.noCluster" xml:space="preserve"><value>no cluster</value></data>
+  <data name="editor.noRoutes" xml:space="preserve"><value>No routes</value></data>
+  <data name="editor.noClusters" xml:space="preserve"><value>No clusters</value></data>
+  <data name="editor.destCount.one" xml:space="preserve"><value>{0} destination</value></data>
+  <data name="editor.destCount.other" xml:space="preserve"><value>{0} destinations</value></data>
+  <data name="editor.deleteRouteTitle" xml:space="preserve"><value>Delete route</value></data>
+  <data name="editor.deleteClusterTitle" xml:space="preserve"><value>Delete cluster</value></data>
+  <data name="editor.itemExternalTitle" xml:space="preserve"><value>{0} — from a non-file configuration source (read-only)</value></data>
+  <data name="editor.lockTitle" xml:space="preserve"><value>From a non-file configuration source (read-only)</value></data>
+
+  <!-- editor page: form -->
+  <data name="editor.fieldRouteId" xml:space="preserve"><value>Route id</value></data>
+  <data name="editor.fieldCluster" xml:space="preserve"><value>Cluster</value></data>
+  <data name="editor.selectCluster" xml:space="preserve"><value>— select cluster —</value></data>
+  <data name="editor.fieldMatchPath" xml:space="preserve"><value>Match path</value></data>
+  <data name="editor.fieldOrder" xml:space="preserve"><value>Order</value></data>
+  <data name="editor.fieldHosts" xml:space="preserve"><value>Hosts</value></data>
+  <data name="editor.fieldMethods" xml:space="preserve"><value>Methods</value></data>
+  <data name="editor.fieldAuthorization" xml:space="preserve"><value>Authorization policy</value></data>
+  <data name="editor.fieldCors" xml:space="preserve"><value>CORS policy</value></data>
+  <data name="editor.fieldTransforms" xml:space="preserve"><value>Transforms</value></data>
+  <data name="editor.fieldClusterId" xml:space="preserve"><value>Cluster id</value></data>
+  <data name="editor.fieldLbPolicy" xml:space="preserve"><value>Load balancing policy</value></data>
+  <data name="editor.fieldDestinations" xml:space="preserve"><value>Destinations</value></data>
+  <data name="editor.fieldActiveHealth" xml:space="preserve"><value>Active health checks</value></data>
+  <data name="editor.fieldPassiveHealth" xml:space="preserve"><value>Passive health checks</value></data>
+  <data name="editor.phOrder" xml:space="preserve"><value>lower wins</value></data>
+  <data name="editor.phMethods" xml:space="preserve"><value>GET, POST (empty = any)</value></data>
+  <data name="editor.phPolicy" xml:space="preserve"><value>default (optional)</value></data>
+  <data name="editor.phDestName" xml:space="preserve"><value>name</value></data>
+  <data name="editor.transformsInvalid" xml:space="preserve"><value>Invalid JSON — must be an array of transform objects.</value></data>
+  <data name="editor.transformsHint" xml:space="preserve"><value>Array of transform objects, e.g. [{"PathRemovePrefix":"/api"}]. Applied on save.</value></data>
+  <data name="editor.noDestinations" xml:space="preserve"><value>No destinations — add one below.</value></data>
+  <data name="editor.addDestination" xml:space="preserve"><value>Add destination</value></data>
+  <data name="editor.removeDestination" xml:space="preserve"><value>Remove destination</value></data>
+  <data name="editor.roBanner" xml:space="preserve"><value>This {0} comes from a non-file configuration source (e.g. code or a database provider) and cannot be edited here. Edit it in its source (e.g. appsettings.json) — the UI never modifies it.</value></data>
+
+  <!-- editor page: dialogs, toasts, errors -->
+  <data name="editor.idInUse" xml:space="preserve"><value>That id is already in use.</value></data>
+  <data name="editor.idEmpty" xml:space="preserve"><value>The id cannot be empty.</value></data>
+  <data name="editor.confirmDeleteRoute" xml:space="preserve"><value>Delete route '{0}'? The change applies after saving.</value></data>
+  <data name="editor.confirmDeleteCluster" xml:space="preserve"><value>Delete cluster '{0}'?</value></data>
+  <data name="editor.routesRef.one" xml:space="preserve"><value>{0} route references it and will fail validation until reassigned.</value></data>
+  <data name="editor.routesRef.other" xml:space="preserve"><value>{0} routes reference it and will fail validation until reassigned.</value></data>
+  <data name="editor.confirmDiscard" xml:space="preserve"><value>Discard unsaved changes and reload the live configuration?</value></data>
+  <data name="editor.confirmReset" xml:space="preserve"><value>Discard all UI changes and return to the appsettings.json configuration?&#10;&#10;This deletes yarp-ui.routes.json and applies the seed config live.</value></data>
+  <data name="editor.confirmRestore" xml:space="preserve"><value>Restore every modified appsettings file from its .yarpui.bak backup?&#10;&#10;Changes made from the UI are rolled back; the files return to the state they had before the UI first modified them.</value></data>
+  <data name="editor.errorsTitle" xml:space="preserve"><value>The configuration was not applied:</value></data>
+  <data name="editor.saveHttpError" xml:space="preserve"><value>Save failed with HTTP {0}.</value></data>
+  <data name="editor.applied" xml:space="preserve"><value>Configuration applied — the proxy is live.</value></data>
+  <data name="editor.validationFailed" xml:space="preserve"><value>Validation failed — see the errors above.</value></data>
+  <data name="editor.saveFailed" xml:space="preserve"><value>Save failed: {0}</value></data>
+  <data name="editor.reloadFailed" xml:space="preserve"><value>Reload failed: {0}</value></data>
+  <data name="editor.resetFailed" xml:space="preserve"><value>Reset failed: {0}</value></data>
+  <data name="editor.resetFailedShort" xml:space="preserve"><value>Reset failed.</value></data>
+  <data name="editor.restoredFromBackup" xml:space="preserve"><value>appsettings restored from backup.</value></data>
+  <data name="editor.resetToSeed" xml:space="preserve"><value>Reset to the appsettings.json configuration.</value></data>
+  <data name="editor.fixTransforms" xml:space="preserve"><value>Fix invalid Transforms JSON first</value></data>
+
+  <!-- config source pill (map + editor toolbars) -->
+  <data name="pill.uiManaged" xml:space="preserve"><value>UI-managed config</value></data>
+  <data name="pill.uiManagedTitle" xml:space="preserve"><value>Live configuration is persisted in yarp-ui.routes.json, which overrides the ReverseProxy section in appsettings.json.</value></data>
+  <data name="pill.appsettingsTitle" xml:space="preserve"><value>Live configuration comes from the ReverseProxy section in appsettings.json. The first save from the UI switches to a managed file.</value></data>
+  <data name="pill.attachMode" xml:space="preserve"><value>Edits write to appsettings.json</value></data>
+  <data name="pill.attachModeTitle" xml:space="preserve"><value>Saving writes each change back into the appsettings.json file the route or cluster came from — YARP hot-reloads the file, so edits go live without a restart. Items from non-file sources (locked) stay read-only. The first modification of a file keeps a .yarpui.bak backup for Restore.</value></data>
+
+  <!-- map graph -->
+  <data name="map.typeRoute" xml:space="preserve"><value>Route</value></data>
+  <data name="map.typeCluster" xml:space="preserve"><value>Cluster</value></data>
+  <data name="map.typeDestination" xml:space="preserve"><value>Destination</value></data>
+  <data name="map.anyHostPath" xml:space="preserve"><value>any host / path</value></data>
+  <data name="map.lbDefault" xml:space="preserve"><value>PowerOfTwoChoices (default)</value></data>
+  <data name="map.clusterNotFound" xml:space="preserve"><value>Cluster not found</value></data>
+  <data name="map.externalSource" xml:space="preserve"><value>From a non-file configuration source</value></data>
+  <data name="map.externalBadge" xml:space="preserve"><value>external</value></data>
+  <data name="map.any" xml:space="preserve"><value>any</value></data>
+  <data name="map.enabled" xml:space="preserve"><value>enabled</value></data>
+  <data name="map.nConfigured" xml:space="preserve"><value>{0} configured</value></data>
+
+  <!-- map drawer key/value rows -->
+  <data name="map.kvCluster" xml:space="preserve"><value>Cluster</value></data>
+  <data name="map.kvPath" xml:space="preserve"><value>Path</value></data>
+  <data name="map.kvHosts" xml:space="preserve"><value>Hosts</value></data>
+  <data name="map.kvMethods" xml:space="preserve"><value>Methods</value></data>
+  <data name="map.kvOrder" xml:space="preserve"><value>Order</value></data>
+  <data name="map.kvAuthorization" xml:space="preserve"><value>Authorization policy</value></data>
+  <data name="map.kvCors" xml:space="preserve"><value>CORS policy</value></data>
+  <data name="map.kvTransforms" xml:space="preserve"><value>Transforms</value></data>
+  <data name="map.kvLoadBalancing" xml:space="preserve"><value>Load balancing</value></data>
+  <data name="map.kvDestinations" xml:space="preserve"><value>Destinations</value></data>
+  <data name="map.kvActiveHealth" xml:space="preserve"><value>Active health checks</value></data>
+  <data name="map.kvPassiveHealth" xml:space="preserve"><value>Passive health checks</value></data>
+  <data name="map.kvAddress" xml:space="preserve"><value>Address</value></data>
+  <data name="map.kvName" xml:space="preserve"><value>Name</value></data>
+
+  <!-- map legend + search -->
+  <data name="map.legendRoutes.one" xml:space="preserve"><value>{0} route</value></data>
+  <data name="map.legendRoutes.other" xml:space="preserve"><value>{0} routes</value></data>
+  <data name="map.legendClusters.one" xml:space="preserve"><value>{0} cluster</value></data>
+  <data name="map.legendClusters.other" xml:space="preserve"><value>{0} clusters</value></data>
+  <data name="map.legendDestinations.one" xml:space="preserve"><value>{0} destination</value></data>
+  <data name="map.legendDestinations.other" xml:space="preserve"><value>{0} destinations</value></data>
+  <data name="map.noMatch" xml:space="preserve"><value>no match</value></data>
+  <data name="map.match.one" xml:space="preserve"><value>{0} match</value></data>
+  <data name="map.match.other" xml:space="preserve"><value>{0} matches</value></data>
+  <data name="map.loadFailed" xml:space="preserve"><value>Failed to load configuration: {0}</value></data>
+  <data name="map.reloaded" xml:space="preserve"><value>Configuration reloaded</value></data>
+
+  <!-- logs page -->
+  <data name="logs.title" xml:space="preserve"><value>Request Logs — YARP UI</value></data>
+  <data name="logs.searchPlaceholder" xml:space="preserve"><value>Filter by path, route, cluster, destination…</value></data>
+  <data name="logs.filterStatusTitle" xml:space="preserve"><value>Filter by status class</value></data>
+  <data name="logs.allStatuses" xml:space="preserve"><value>All statuses</value></data>
+  <data name="logs.status2" xml:space="preserve"><value>2xx — success</value></data>
+  <data name="logs.status3" xml:space="preserve"><value>3xx — redirect</value></data>
+  <data name="logs.status4" xml:space="preserve"><value>4xx — client error</value></data>
+  <data name="logs.status5" xml:space="preserve"><value>5xx — server error</value></data>
+  <data name="logs.liveTitle" xml:space="preserve"><value>Refresh every 2 seconds</value></data>
+  <data name="logs.live" xml:space="preserve"><value>Live</value></data>
+  <data name="logs.retentionTitle" xml:space="preserve"><value>Automatically delete request logs older than this</value></data>
+  <data name="logs.keepForever" xml:space="preserve"><value>Keep logs: forever</value></data>
+  <data name="logs.keepOneDay" xml:space="preserve"><value>Keep logs: 1 day</value></data>
+  <data name="logs.keepDays" xml:space="preserve"><value>Keep logs: {0} days</value></data>
+  <data name="logs.keepOneYear" xml:space="preserve"><value>Keep logs: 1 year</value></data>
+  <data name="logs.clear" xml:space="preserve"><value>Clear</value></data>
+  <data name="logs.clearTitle" xml:space="preserve"><value>Delete all stored request logs</value></data>
+  <data name="logs.allRoutes" xml:space="preserve"><value>All routes</value></data>
+  <data name="logs.allClusters" xml:space="preserve"><value>All clusters</value></data>
+  <data name="logs.allDestinations" xml:space="preserve"><value>All destinations</value></data>
+  <data name="logs.filterRouteTitle" xml:space="preserve"><value>Show only requests handled by this route</value></data>
+  <data name="logs.filterClusterTitle" xml:space="preserve"><value>Show only requests handled by this cluster</value></data>
+  <data name="logs.filterDestinationTitle" xml:space="preserve"><value>Show only requests sent to this destination</value></data>
+  <data name="logs.rangeTitle" xml:space="preserve"><value>Restrict results to a time frame</value></data>
+  <data name="logs.rangeLive" xml:space="preserve"><value>Live (latest)</value></data>
+  <data name="logs.last5" xml:space="preserve"><value>Last 5 min</value></data>
+  <data name="logs.last15" xml:space="preserve"><value>Last 15 min</value></data>
+  <data name="logs.lastHour" xml:space="preserve"><value>Last hour</value></data>
+  <data name="logs.last6h" xml:space="preserve"><value>Last 6 h</value></data>
+  <data name="logs.last24h" xml:space="preserve"><value>Last 24 h</value></data>
+  <data name="logs.last7d" xml:space="preserve"><value>Last 7 days</value></data>
+  <data name="logs.rangeCustom" xml:space="preserve"><value>Custom range…</value></data>
+  <data name="logs.rangeAll" xml:space="preserve"><value>All time</value></data>
+  <data name="logs.fromTitle" xml:space="preserve"><value>Custom range start (local time)</value></data>
+  <data name="logs.fromLabel" xml:space="preserve"><value>Custom range start</value></data>
+  <data name="logs.toTitle" xml:space="preserve"><value>Custom range end (local time)</value></data>
+  <data name="logs.toLabel" xml:space="preserve"><value>Custom range end</value></data>
+  <data name="logs.reset" xml:space="preserve"><value>Reset</value></data>
+  <data name="logs.resetTitle" xml:space="preserve"><value>Clear all filters and return to the live view</value></data>
+  <data name="logs.performanceTitle" xml:space="preserve"><value>Show or hide the performance panel</value></data>
+  <data name="logs.performance" xml:space="preserve"><value>Performance</value></data>
+  <data name="logs.window" xml:space="preserve"><value>Window</value></data>
+  <data name="logs.statRequests" xml:space="preserve"><value>Requests</value></data>
+  <data name="logs.statAvg" xml:space="preserve"><value>Avg</value></data>
+  <data name="logs.statP95" xml:space="preserve"><value>P95</value></data>
+  <data name="logs.statMax" xml:space="preserve"><value>Max</value></data>
+  <data name="logs.statErrorRate" xml:space="preserve"><value>Error rate</value></data>
+  <data name="logs.chartTitle" xml:space="preserve"><value>Per-request duration — colored by status class, dashed line = P95</value></data>
+  <data name="logs.slowestRoutes" xml:space="preserve"><value>Slowest routes (P95)</value></data>
+  <data name="logs.noRequestsYet" xml:space="preserve"><value>No requests in this window yet.</value></data>
+  <data name="logs.colTime" xml:space="preserve"><value>Time</value></data>
+  <data name="logs.colMethod" xml:space="preserve"><value>Method</value></data>
+  <data name="logs.colPath" xml:space="preserve"><value>Path</value></data>
+  <data name="logs.colStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="logs.colDuration" xml:space="preserve"><value>Duration</value></data>
+  <data name="logs.colClientIp" xml:space="preserve"><value>Client IP</value></data>
+  <data name="logs.colRoute" xml:space="preserve"><value>Route</value></data>
+  <data name="logs.colCluster" xml:space="preserve"><value>Cluster</value></data>
+  <data name="logs.colDestination" xml:space="preserve"><value>Destination</value></data>
+  <data name="logs.emptyLive" xml:space="preserve"><value>No proxied requests captured yet — send traffic through the proxy and it will appear here.</value></data>
+  <data name="logs.emptyHint" xml:space="preserve"><value>Only proxied requests are recorded; UI requests are excluded. Entries are stored in a local SQLite database and kept according to the retention policy.</value></data>
+  <data name="logs.emptyFiltered" xml:space="preserve"><value>No requests match the current filters — try widening the time frame or clearing the route, cluster or destination filter.</value></data>
+
+  <!-- logs page: client-side rendering -->
+  <data name="logs.countLive" xml:space="preserve"><value>{0} shown · {1} buffered</value></data>
+  <data name="logs.countFiltered" xml:space="preserve"><value>{0} shown · {1} of {2} matching</value></data>
+  <data name="logs.countAll" xml:space="preserve"><value>{0} shown · {1} matching</value></data>
+  <data name="logs.fmtSeconds" xml:space="preserve"><value>{0} s</value></data>
+  <data name="logs.fmtMs" xml:space="preserve"><value>{0} ms</value></data>
+  <data name="logs.chartFailed" xml:space="preserve"><value>failed</value></data>
+  <data name="logs.tooltipP95" xml:space="preserve"><value>P95 {0}</value></data>
+  <data name="logs.noRoute" xml:space="preserve"><value>(no route)</value></data>
+  <data name="logs.captionMin" xml:space="preserve"><value>last {0} min</value></data>
+  <data name="logs.captionHour" xml:space="preserve"><value>last {0} h</value></data>
+  <data name="logs.captionAll" xml:space="preserve"><value>all time</value></data>
+  <data name="logs.captionUpdated" xml:space="preserve"><value>{0} · updated {1}</value></data>
+  <data name="logs.routeBarMeta" xml:space="preserve"><value>{0} reqs · avg {1} · max {2}</value></data>
+  <data name="logs.errorCount.one" xml:space="preserve"><value>{0} error</value></data>
+  <data name="logs.errorCount.other" xml:space="preserve"><value>{0} errors</value></data>
+  <data name="logs.keepForeverToast" xml:space="preserve"><value>Logs are now kept forever.</value></data>
+  <data name="logs.olderThan.one" xml:space="preserve"><value>Logs older than {0} day will be deleted automatically.</value></data>
+  <data name="logs.olderThan.other" xml:space="preserve"><value>Logs older than {0} days will be deleted automatically.</value></data>
+  <data name="logs.retentionSaveFailed" xml:space="preserve"><value>Could not save the retention policy: {0}</value></data>
+  <data name="logs.cleared" xml:space="preserve"><value>Stored request logs deleted.</value></data>
+  <data name="logs.clearFailed" xml:space="preserve"><value>Clear failed: {0}</value></data>
+
+  <!-- error page -->
+  <data name="error.title" xml:space="preserve"><value>Error — YARP UI</value></data>
+  <data name="error.heading" xml:space="preserve"><value>Something went wrong</value></data>
+  <data name="error.body" xml:space="preserve"><value>An error occurred while processing your request.</value></data>
+  <data name="error.requestId" xml:space="preserve"><value>Request ID:</value></data>
+
+  <!-- API and configuration validation -->
+  <data name="validation.bodyNotJson" xml:space="preserve"><value>The request body is not valid JSON.</value></data>
+  <data name="validation.bodyEmpty" xml:space="preserve"><value>The request body is empty.</value></data>
+  <data name="validation.sortField" xml:space="preserve"><value>sort must be one of: {0}.</value></data>
+  <data name="validation.limitRange" xml:space="preserve"><value>limit must be between 1 and {0}.</value></data>
+  <data name="validation.retentionRange" xml:space="preserve"><value>retentionDays must be 0 (keep forever) or between 1 and {0}.</value></data>
+  <data name="validation.duplicateRouteId" xml:space="preserve"><value>Duplicate route id '{0}'.</value></data>
+  <data name="validation.duplicateClusterId" xml:space="preserve"><value>Duplicate cluster id '{0}'.</value></data>
+  <data name="validation.routeNonFile" xml:space="preserve"><value>Route '{0}' comes from a non-file configuration source and cannot be managed here.</value></data>
+  <data name="validation.clusterNonFile" xml:space="preserve"><value>Cluster '{0}' comes from a non-file configuration source and cannot be managed here.</value></data>
+  <data name="validation.routeNoCluster" xml:space="preserve"><value>Route '{0}' has no cluster assigned.</value></data>
+  <data name="validation.routeUnknownCluster" xml:space="preserve"><value>Route '{0}' references unknown cluster '{1}'.</value></data>
+  <data name="validation.clusterStillUsed" xml:space="preserve"><value>Cluster '{0}' is still used by route '{1}' which comes from a non-file configuration source.</value></data>
+  <data name="validation.duplicateDestination" xml:space="preserve"><value>Cluster '{0}' has duplicate destination '{1}'.</value></data>
+  <data name="validation.routeInvalid" xml:space="preserve"><value>Route '{0}': {1}</value></data>
+  <data name="validation.clusterInvalid" xml:space="preserve"><value>Cluster '{0}': {1}</value></data>
+</root>

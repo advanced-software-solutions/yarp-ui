@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
-    <Version>0.3.0</Version>
+    <Version>0.3.1</Version>
     <!-- Pages reference assets at ~/_content/YARPUI/... and the default base path
          is _content/{PackageId}, which no longer matches the PackageId (YA-RP-UI).
          Pin it so project- and package-based consumers serve the same URLs. -->
@@ -16,14 +16,14 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IsPackable>true</IsPackable>
     <PackageId>YA-RP-UI</PackageId>
-    <RepositoryUrl></RepositoryUrl>
+    <RepositoryUrl>https://github.com/advanced-software-solutions/yarp-ui</RepositoryUrl>
     <Title>YARP UI</Title>
     <Authors>Amr Swalha, Advanced Software Solutions</Authors>
     <Description>A management UI for YARP (Yet Another Reverse Proxy): visualize routes as an interactive map, edit routes, clusters and destinations live without restarts, watch proxied request logs, and protect it all with built-in authentication. Hosts standalone or embedded in any ASP.NET Core app.</Description>
     <PackageTags>yarp;reverse-proxy;proxy;management;dashboard;routes</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>0.3.0: request logs become searchable — new Logs-page filters by time frame (presets or a custom range), route, cluster and destination run server-side over the entire retained history; entries are listed newest first by default and every column is sortable; each entry now records the client IP (leftmost X-Forwarded-For when a proxy supplied it, otherwise the direct connection); GET /api/yarp/logs accepts from/to, routeId, clusterId, destinationId, sort, desc and limit; existing log databases gain the client_ip column via an in-place migration. 0.2.0: request logs are persisted to SQLite (yarp-ui-logs.db) instead of an in-memory buffer, with a UI-managed retention policy enforced by an automated hourly purge task (config seed: YarpUi:Logs:RetentionDays); the Logs page gains a performance panel — per-request durations charted over time and colored by status class, avg/P95/P99/max/error-rate stat cards, and per-route aggregates; attach mode now edits the app's own configuration — changes are written back into the appsettings.json files the routes/clusters came from (hot-reloaded by YARP, with .yarpui.bak backups and restore), items only stay read-only when they come from non-file sources. 0.1.2: fix CSS/JS 404s when consuming the package from NuGet — static assets are now pinned to _content/YARPUI instead of following the package id. 0.1.1: attach mode (overlay). 0.1.0: route map, editor, request logs, auth, standalone + embedded hosting.</PackageReleaseNotes>
+    <PackageReleaseNotes>0.3.1: Adding translations [Arabic, Spanish, Chinese] 0.3.0: request logs become searchable — new Logs-page filters by time frame (presets or a custom range), route, cluster and destination run server-side over the entire retained history; entries are listed newest first by default and every column is sortable; each entry now records the client IP (leftmost X-Forwarded-For when a proxy supplied it, otherwise the direct connection); GET /api/yarp/logs accepts from/to, routeId, clusterId, destinationId, sort, desc and limit; existing log databases gain the client_ip column via an in-place migration. 0.2.0: request logs are persisted to SQLite (yarp-ui-logs.db) instead of an in-memory buffer, with a UI-managed retention policy enforced by an automated hourly purge task (config seed: YarpUi:Logs:RetentionDays); the Logs page gains a performance panel — per-request durations charted over time and colored by status class, avg/P95/P99/max/error-rate stat cards, and per-route aggregates; attach mode now edits the app's own configuration — changes are written back into the appsettings.json files the routes/clusters came from (hot-reloaded by YARP, with .yarpui.bak backups and restore), items only stay read-only when they come from non-file sources. 0.1.2: fix CSS/JS 404s when consuming the package from NuGet — static assets are now pinned to _content/YARPUI instead of following the package id. 0.1.1: attach mode (overlay). 0.1.0: route map, editor, request logs, auth, standalone + embedded hosting.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,6 +36,17 @@
     <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="LICENSE" Pack="true" PackagePath="\" />
     <None Include="THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!-- The localization resx files live under the YARPUI.Resources namespace while the
+       assembly/root namespace is YARPASUI, so the manifest names are pinned explicitly.
+       Without LogicalName the localizer would look for YARPASUI.Resources.* and fall
+       back to English in the packaged library. -->
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\UIStrings.resx" LogicalName="YARPUI.Resources.UIStrings.resources" />
+    <EmbeddedResource Update="Resources\UIStrings.ar.resx" LogicalName="YARPUI.Resources.UIStrings.ar.resources" />
+    <EmbeddedResource Update="Resources\UIStrings.es.resx" LogicalName="YARPUI.Resources.UIStrings.es.resources" />
+    <EmbeddedResource Update="Resources\UIStrings.zh-Hans.resx" LogicalName="YARPUI.Resources.UIStrings.zh-Hans.resources" />
   </ItemGroup>
 
 </Project>

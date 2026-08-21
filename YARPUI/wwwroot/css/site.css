@@ -25,7 +25,7 @@
     --radius: 12px;
     --radius-sm: 8px;
     --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Consolas, "Courier New", monospace;
-    --sans: -apple-system, "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+    --sans: -apple-system, "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, "Noto Sans Arabic", "Noto Sans SC", Tahoma, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -150,7 +150,7 @@ body {
 }
 
 .topbar-right {
-    margin-left: auto;
+    margin-inline-start: auto;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -262,8 +262,10 @@ select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238f9db4' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 10px center;
-    padding-right: 30px;
+    padding-inline-end: 30px;
 }
+
+[dir="rtl"] select { background-position: left 10px center; }
 
 .chip {
     display: inline-flex;
@@ -301,7 +303,7 @@ select {
 
 .toast-stack {
     position: fixed;
-    right: 18px;
+    inset-inline-end: 18px;
     bottom: 18px;
     display: flex;
     flex-direction: column;
@@ -438,6 +440,13 @@ select {
     background: rgba(148, 163, 184, 0.12);
     padding: 1px 5px;
     border-radius: 4px;
+}
+
+.auth-lang {
+    position: fixed;
+    top: 18px;
+    inset-inline-end: 18px;
+    z-index: 10;
 }
 
 /* --------------------------------------------------------------------------
@@ -609,7 +618,7 @@ select {
 .ncard-badge {
     position: absolute;
     top: -7px;
-    right: 8px;
+    inset-inline-end: 8px;
     padding: 1px 7px;
     border-radius: 999px;
     font-size: 9.5px;
@@ -623,7 +632,7 @@ select {
 .ncard-warn {
     position: absolute;
     bottom: -7px;
-    right: 8px;
+    inset-inline-end: 8px;
     width: 17px;
     height: 17px;
     border-radius: 50%;
@@ -641,7 +650,8 @@ select {
 .ncard.match { box-shadow: 0 0 0 2px var(--accent-2), var(--shadow-1); }
 .ncard-external { border-style: dashed; border-color: rgba(148, 163, 184, 0.4); }
 .ncard-external .ncard-sub { color: #b9a7ec; }
-.ncard-external .ncard-title::after { content: 'external'; margin-left: 6px; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+/* Badge text comes from map.js via data-external so it localizes with the UI culture. */
+.ncard-external .ncard-title::after { content: attr(data-external); margin-inline-start: 6px; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .ncard.selected {
     border-color: var(--tc);
     transform: translateY(-2px) scale(1.04);
@@ -718,7 +728,7 @@ select {
 .drawer {
     position: absolute;
     top: 12px;
-    right: 12px;
+    inset-inline-end: 12px;
     bottom: 12px;
     width: 372px;
     max-width: calc(100% - 24px);
@@ -736,6 +746,10 @@ select {
 }
 
 .drawer.open { transform: translateX(0); }
+
+/* The drawer slides in from the inline end, so RTL mirrors the off-screen transform. */
+[dir="rtl"] .drawer { transform: translateX(calc(-100% - 26px)); }
+[dir="rtl"] .drawer.open { transform: translateX(0); }
 
 .drawer-head {
     display: flex;
@@ -802,7 +816,7 @@ select {
 .kv:nth-child(odd) { background: rgba(148, 163, 184, 0.02); }
 
 .kv-key { font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; flex: 0 0 auto; }
-.kv-value { font-family: var(--mono); font-size: 12px; text-align: right; word-break: break-all; }
+.kv-value { font-family: var(--mono); font-size: 12px; text-align: end; word-break: break-all; }
 
 .json-block {
     border: 1px solid var(--border);
@@ -903,7 +917,7 @@ pre.json {
 
 .error-title svg { width: 15px; height: 15px; }
 
-.error-panel ul { margin: 0; padding-left: 22px; color: #fca5a5; font-size: 12.5px; }
+.error-panel ul { margin: 0; padding-inline-start: 22px; color: #fca5a5; font-size: 12.5px; }
 .error-panel li { margin: 3px 0; font-family: var(--mono); }
 
 .editor-body {
@@ -921,7 +935,7 @@ pre.json {
     gap: 16px;
     min-height: 0;
     overflow-y: auto;
-    padding-right: 2px;
+    padding-inline-end: 2px;
 }
 
 .list-section {
@@ -1061,7 +1075,7 @@ pre.json {
 .editor-main {
     min-height: 0;
     overflow-y: auto;
-    padding-right: 2px;
+    padding-inline-end: 2px;
 }
 
 .form-card {
@@ -1182,7 +1196,7 @@ pre.json {
 .toggle-dot {
     position: absolute;
     top: 2px;
-    left: 2px;
+    inset-inline-start: 2px;
     width: 14px;
     height: 14px;
     border-radius: 50%;
@@ -1196,6 +1210,8 @@ pre.json {
 }
 
 .toggle input:checked + .toggle-track .toggle-dot { transform: translateX(16px); background: #fff; }
+
+[dir="rtl"] .toggle input:checked + .toggle-track .toggle-dot { transform: translateX(-16px); }
 
 .toggle-label { font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
 
@@ -1232,7 +1248,7 @@ pre.json {
     z-index: 5;
     background: rgba(11, 18, 32, 0.96);
     backdrop-filter: blur(8px);
-    text-align: left;
+    text-align: start;
     font-size: 10.5px;
     font-weight: 700;
     text-transform: uppercase;
@@ -1263,7 +1279,7 @@ pre.json {
 .th-sortable::after {
     content: "↕";
     display: inline-block;
-    margin-left: 5px;
+    margin-inline-start: 5px;
     font-size: 10px;
     opacity: 0.35;
 }

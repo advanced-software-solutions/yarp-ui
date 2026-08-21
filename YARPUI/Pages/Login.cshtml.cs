@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Localization;
+using YARPUI.Resources;
 
 namespace YARPUI.Pages;
 
@@ -17,11 +19,16 @@ public class LoginModel : PageModel
 
     private readonly IConfiguration _configuration;
     private readonly ILogger<LoginModel> _logger;
+    private readonly IStringLocalizer<UIStrings> _localizer;
 
-    public LoginModel(IConfiguration configuration, ILogger<LoginModel> logger)
+    public LoginModel(
+        IConfiguration configuration,
+        ILogger<LoginModel> logger,
+        IStringLocalizer<UIStrings> localizer)
     {
         _configuration = configuration;
         _logger = logger;
+        _localizer = localizer;
     }
 
     [BindProperty]
@@ -47,14 +54,14 @@ public class LoginModel : PageModel
         if (string.IsNullOrEmpty(expectedUsername) || string.IsNullOrEmpty(expectedPassword))
         {
             _logger.LogWarning("Login attempted but {UsernameSetting}/{PasswordSetting} are not configured.", UsernameSetting, PasswordSetting);
-            ErrorMessage = "Sign-in is not configured on the server. Set YarpUi:Auth in appsettings.json.";
+            ErrorMessage = _localizer["login.notConfigured"];
             return Page();
         }
 
         if (!FixedTimeEquals(Username, expectedUsername) || !FixedTimeEquals(Password, expectedPassword))
         {
             _logger.LogWarning("Failed sign-in attempt for user '{Username}'.", Username);
-            ErrorMessage = "Invalid username or password.";
+            ErrorMessage = _localizer["login.invalidCredentials"];
             return Page();
         }
 

@@ -162,6 +162,21 @@ La página de Registros muestra las entradas **más recientes primero** y todas 
 
 Una **política de retención** elimina registros automáticamente al superar cierta antigüedad: una tarea en segundo plano se ejecuta al arrancar y luego cada hora. La política se gestiona desde la barra de herramientas de la página de Registros (*Conservar registros: para siempre / 1 / 7 / 30 / 90 / 365 días*) y los cambios se aplican de inmediato; el valor predeterminado inicial proviene de `YarpUi:Logs:RetentionDays` en la configuración (30 días si no se establece). La política que definas en la interfaz se almacena en la propia base de datos y prevalece sobre el valor de configuración.
 
+## Localización
+
+La interfaz se distribuye en **inglés** (predeterminado), **árabe** (de derecha a izquierda), **español** y **chino simplificado**. La cultura de una solicitud se resuelve en este orden: la cadena de consulta `?culture=`, la cookie de cultura estándar de ASP.NET Core, el encabezado `Accept-Language` del navegador y, por último, la predeterminada. El selector de idioma de la barra superior (y de la página de inicio de sesión) escribe esa cookie y recarga.
+
+El host no necesita ningún cableado: el paquete inserta su propio middleware de localización limitado a las rutas de la interfaz (`/login`, las páginas de la interfaz, `/api/yarp/*`), por lo que las aplicaciones host nunca necesitan llamar a `UseRequestLocalization` y sus propias páginas conservan el comportamiento de cultura que tengan configurado.
+
+Dos opciones controlan el conjunto de idiomas (en `appsettings.json`):
+
+| Opción | Predeterminado | Significado |
+| --- | --- | --- |
+| `YarpUi:Cultures` | `en,ar,es,zh-Hans,zh-CN` | Culturas separadas por comas en las que la interfaz puede responder |
+| `YarpUi:DefaultCulture` | `en` | Cultura usada cuando una solicitud no coincide con ninguna admitida |
+
+`zh-CN` se acepta como alias de `zh-Hans` (los navegadores envían la etiqueta regional); las culturas no admitidas vuelven a la predeterminada. Los errores de validación — tanto de la API de gestión como de las comprobaciones de configuración del editor — se localizan con la misma cultura de la solicitud.
+
 ## Sin conexión / sin red
 
 Todas las bibliotecas de JavaScript (Cytoscape.js, dagre, cytoscape-dagre, Chart.js) se incluyen localmente bajo `wwwroot/lib/`. No se usa ningún CDN en tiempo de ejecución; la interfaz funciona completamente sin conexión.

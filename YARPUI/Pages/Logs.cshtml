@@ -1,7 +1,7 @@
 @page
 @model YARPUI.Pages.LogsModel
 @{
-    ViewData["Title"] = "Request Logs — YARP UI";
+    ViewData["Title"] = L["logs.title"];
     ViewData["BodyId"] = "logs";
 }
 <div class="logs-page">
@@ -10,96 +10,96 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                 <circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" />
             </svg>
-            <input id="log-search" type="search" placeholder="Filter by path, route, cluster, destination…" autocomplete="off" spellcheck="false" />
+            <input id="log-search" type="search" placeholder="@L["logs.searchPlaceholder"]" autocomplete="off" spellcheck="false" />
         </div>
-        <select id="log-status" class="select" title="Filter by status class">
-            <option value="">All statuses</option>
-            <option value="2">2xx — success</option>
-            <option value="3">3xx — redirect</option>
-            <option value="4">4xx — client error</option>
-            <option value="5">5xx — server error</option>
+        <select id="log-status" class="select" title="@L["logs.filterStatusTitle"]">
+            <option value="">@L["logs.allStatuses"]</option>
+            <option value="2">@L["logs.status2"]</option>
+            <option value="3">@L["logs.status3"]</option>
+            <option value="4">@L["logs.status4"]</option>
+            <option value="5">@L["logs.status5"]</option>
         </select>
-        <label class="toggle" title="Refresh every 2 seconds">
+        <label class="toggle" title="@L["logs.liveTitle"]">
             <input type="checkbox" id="log-auto" checked />
             <span class="toggle-track"><span class="toggle-dot"></span></span>
-            <span class="toggle-label">Live <span class="live-dot" id="live-dot"></span></span>
+            <span class="toggle-label">@L["logs.live"] <span class="live-dot" id="live-dot"></span></span>
         </label>
-        <select id="log-retention" class="select" title="Automatically delete request logs older than this">
-            <option value="0">Keep logs: forever</option>
-            <option value="1">Keep logs: 1 day</option>
-            <option value="7">Keep logs: 7 days</option>
-            <option value="30">Keep logs: 30 days</option>
-            <option value="90">Keep logs: 90 days</option>
-            <option value="365">Keep logs: 1 year</option>
+        <select id="log-retention" class="select" title="@L["logs.retentionTitle"]">
+            <option value="0">@L["logs.keepForever"]</option>
+            <option value="1">@L["logs.keepOneDay"]</option>
+            <option value="7">@string.Format(L["logs.keepDays"], 7)</option>
+            <option value="30">@string.Format(L["logs.keepDays"], 30)</option>
+            <option value="90">@string.Format(L["logs.keepDays"], 90)</option>
+            <option value="365">@L["logs.keepOneYear"]</option>
         </select>
         <span class="toolbar-spacer"></span>
         <span id="log-count" class="muted small"></span>
-        <button type="button" id="log-clear" class="btn btn-ghost" title="Delete all stored request logs">
+        <button type="button" id="log-clear" class="btn btn-ghost" title="@L["logs.clearTitle"]">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 7h16" /><path d="M10 11v6M14 11v6" /><path d="M6 7l1 13h10l1-13" /><path d="M9 7V4h6v3" />
             </svg>
-            Clear
+            @L["logs.clear"]
         </button>
     </div>
     <div class="logs-filters">
-        <select id="log-route" class="select select-sm" title="Show only requests handled by this route">
-            <option value="">All routes</option>
+        <select id="log-route" class="select select-sm" title="@L["logs.filterRouteTitle"]">
+            <option value="">@L["logs.allRoutes"]</option>
         </select>
-        <select id="log-cluster" class="select select-sm" title="Show only requests handled by this cluster">
-            <option value="">All clusters</option>
+        <select id="log-cluster" class="select select-sm" title="@L["logs.filterClusterTitle"]">
+            <option value="">@L["logs.allClusters"]</option>
         </select>
-        <select id="log-destination" class="select select-sm" title="Show only requests sent to this destination">
-            <option value="">All destinations</option>
+        <select id="log-destination" class="select select-sm" title="@L["logs.filterDestinationTitle"]">
+            <option value="">@L["logs.allDestinations"]</option>
         </select>
-        <select id="log-range" class="select select-sm" title="Restrict results to a time frame">
-            <option value="">Live (latest)</option>
-            <option value="15">Last 15 min</option>
-            <option value="60">Last hour</option>
-            <option value="360">Last 6 h</option>
-            <option value="1440">Last 24 h</option>
-            <option value="10080">Last 7 days</option>
-            <option value="custom">Custom range…</option>
-            <option value="all">All time</option>
+        <select id="log-range" class="select select-sm" title="@L["logs.rangeTitle"]">
+            <option value="">@L["logs.rangeLive"]</option>
+            <option value="15">@L["logs.last15"]</option>
+            <option value="60">@L["logs.lastHour"]</option>
+            <option value="360">@L["logs.last6h"]</option>
+            <option value="1440">@L["logs.last24h"]</option>
+            <option value="10080">@L["logs.last7d"]</option>
+            <option value="custom">@L["logs.rangeCustom"]</option>
+            <option value="all">@L["logs.rangeAll"]</option>
         </select>
-        <input id="log-from" type="datetime-local" class="input input-sm hidden" title="Custom range start (local time)" aria-label="Custom range start" />
-        <input id="log-to" type="datetime-local" class="input input-sm hidden" title="Custom range end (local time)" aria-label="Custom range end" />
-        <button type="button" id="log-reset" class="btn btn-ghost btn-sm hidden" title="Clear all filters and return to the live view">Reset</button>
+        <input id="log-from" type="datetime-local" class="input input-sm hidden" title="@L["logs.fromTitle"]" aria-label="@L["logs.fromLabel"]" />
+        <input id="log-to" type="datetime-local" class="input input-sm hidden" title="@L["logs.toTitle"]" aria-label="@L["logs.toLabel"]" />
+        <button type="button" id="log-reset" class="btn btn-ghost btn-sm hidden" title="@L["logs.resetTitle"]">@L["logs.reset"]</button>
     </div>
     <section class="charts-panel" id="charts-panel">
         <div class="charts-header">
-            <button type="button" id="charts-toggle" class="charts-toggle" title="Show or hide the performance panel">
+            <button type="button" id="charts-toggle" class="charts-toggle" title="@L["logs.performanceTitle"]">
                 <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M6 9l6 6 6-6" />
                 </svg>
-                Performance
+                @L["logs.performance"]
             </button>
             <span class="muted small" id="stats-caption"></span>
             <span class="toolbar-spacer"></span>
-            <label class="muted small" for="stats-window">Window</label>
+            <label class="muted small" for="stats-window">@L["logs.window"]</label>
             <select id="stats-window" class="select select-sm">
-                <option value="5">Last 5 min</option>
-                <option value="15" selected>Last 15 min</option>
-                <option value="60">Last hour</option>
-                <option value="1440">Last 24 h</option>
-                <option value="0">All time</option>
+                <option value="5">@L["logs.last5"]</option>
+                <option value="15" selected>@L["logs.last15"]</option>
+                <option value="60">@L["logs.lastHour"]</option>
+                <option value="1440">@L["logs.last24h"]</option>
+                <option value="0">@L["logs.rangeAll"]</option>
             </select>
         </div>
         <div class="charts-body" id="charts-body">
             <div class="stat-cards">
-                <div class="stat-card"><span class="stat-label">Requests</span><span class="stat-value" id="stat-count">—</span></div>
-                <div class="stat-card"><span class="stat-label">Avg</span><span class="stat-value" id="stat-avg">—</span></div>
-                <div class="stat-card"><span class="stat-label">P95</span><span class="stat-value" id="stat-p95">—</span></div>
-                <div class="stat-card"><span class="stat-label">Max</span><span class="stat-value" id="stat-max">—</span></div>
-                <div class="stat-card"><span class="stat-label">Error rate</span><span class="stat-value" id="stat-errors">—</span></div>
+                <div class="stat-card"><span class="stat-label">@L["logs.statRequests"]</span><span class="stat-value" id="stat-count">—</span></div>
+                <div class="stat-card"><span class="stat-label">@L["logs.statAvg"]</span><span class="stat-value" id="stat-avg">—</span></div>
+                <div class="stat-card"><span class="stat-label">@L["logs.statP95"]</span><span class="stat-value" id="stat-p95">—</span></div>
+                <div class="stat-card"><span class="stat-label">@L["logs.statMax"]</span><span class="stat-value" id="stat-max">—</span></div>
+                <div class="stat-card"><span class="stat-label">@L["logs.statErrorRate"]</span><span class="stat-value" id="stat-errors">—</span></div>
             </div>
             <div class="charts-main">
                 <div class="chart-wrap">
-                    <div class="chart-title muted small">Per-request duration — colored by status class, dashed line = P95</div>
+                    <div class="chart-title muted small">@L["logs.chartTitle"]</div>
                     <div class="chart-canvas"><canvas id="logs-chart"></canvas></div>
                 </div>
                 <div class="route-bars">
-                    <div class="chart-title muted small">Slowest routes (P95)</div>
-                    <div id="route-bars-list" class="route-bars-list"><div class="muted small route-bars-empty">No requests in this window yet.</div></div>
+                    <div class="chart-title muted small">@L["logs.slowestRoutes"]</div>
+                    <div id="route-bars-list" class="route-bars-list"><div class="muted small route-bars-empty">@L["logs.noRequestsYet"]</div></div>
                 </div>
             </div>
         </div>
@@ -108,23 +108,23 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th class="col-time th-sortable" data-sort="timestamp" aria-sort="descending">Time</th>
-                    <th class="col-method th-sortable" data-sort="method">Method</th>
-                    <th class="th-sortable" data-sort="path">Path</th>
-                    <th class="col-status th-sortable" data-sort="status">Status</th>
-                    <th class="col-duration th-sortable" data-sort="duration">Duration</th>
-                    <th class="th-sortable" data-sort="clientIp">Client IP</th>
-                    <th class="th-sortable" data-sort="route">Route</th>
-                    <th class="th-sortable" data-sort="cluster">Cluster</th>
-                    <th class="th-sortable" data-sort="destination">Destination</th>
+                    <th class="col-time th-sortable" data-sort="timestamp" aria-sort="descending">@L["logs.colTime"]</th>
+                    <th class="col-method th-sortable" data-sort="method">@L["logs.colMethod"]</th>
+                    <th class="th-sortable" data-sort="path">@L["logs.colPath"]</th>
+                    <th class="col-status th-sortable" data-sort="status">@L["logs.colStatus"]</th>
+                    <th class="col-duration th-sortable" data-sort="duration">@L["logs.colDuration"]</th>
+                    <th class="th-sortable" data-sort="clientIp">@L["logs.colClientIp"]</th>
+                    <th class="th-sortable" data-sort="route">@L["logs.colRoute"]</th>
+                    <th class="th-sortable" data-sort="cluster">@L["logs.colCluster"]</th>
+                    <th class="th-sortable" data-sort="destination">@L["logs.colDestination"]</th>
                 </tr>
             </thead>
             <tbody id="log-rows"></tbody>
         </table>
         <div id="log-empty" class="empty-inline hidden">
-            <span id="log-empty-live">No proxied requests captured yet — send traffic through the proxy and it will appear here.</span>
-            <span class="muted small" id="log-empty-hint">Only proxied requests are recorded; UI requests are excluded. Entries are stored in a local SQLite database and kept according to the retention policy.</span>
-            <span id="log-empty-filtered" class="hidden">No requests match the current filters — try widening the time frame or clearing the route, cluster or destination filter.</span>
+            <span id="log-empty-live">@L["logs.emptyLive"]</span>
+            <span class="muted small" id="log-empty-hint">@L["logs.emptyHint"]</span>
+            <span id="log-empty-filtered" class="hidden">@L["logs.emptyFiltered"]</span>
         </div>
     </div>
 </div>

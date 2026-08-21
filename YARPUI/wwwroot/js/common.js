@@ -8,18 +8,86 @@
         dest: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="13" width="16" height="7" rx="2"/><path d="M8 7.5h.01M8 16.5h.01"/></svg>',
         plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
         minus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg>',
-        fit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3"/></svg>',
-        refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>',
+        fit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3"/></svg>',
+        refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>',
         close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
-        trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg>',
+        trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg>',
         search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
-        edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9a2.5 2.5 0 0 0-3.5-3.5L4.5 16.5z"/></svg>',
-        warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 22 21H2Z"/><path d="M12 10v5"/><path d="M12 18.2h.01"/></svg>',
-        lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
-        save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4"/><path d="M8 20v-6h8v6"/></svg>',
+        edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20h4L19 9a2.5 2.5 0 0 0-3.5-3.5L4.5 16.5z"/></svg>',
+        warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 22 21H2Z"/><path d="M12 10v5"/><path d="M12 18.2h.01"/></svg>',
+        lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+        save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4"/><path d="M8 20v-6h8v6"/></svg>',
         info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>',
-        link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11 5.9"/><path d="M14 10a5 5 0 0 0-7.07 0L4.1 12.83a5 5 0 0 0 7.07 7.07L13 18.1"/></svg>'
+        link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10 14a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11 5.9"/><path d="M14 10a5 5 0 0 0-7.07 0L4.1 12.83a5 5 0 0 0 7.07 7.07L13 18.1"/></svg>'
     };
+
+    /* ---- localization ----
+       The server injects window.YarpUi.culture and window.YarpUi.strings (the current
+       culture's dictionary, with parent-culture fallback) before this file loads. */
+
+    function fmt(template, args) {
+        return String(template).replace(/\{(\d+)\}/g, function (match, index) {
+            var value = args[+index];
+            return value === undefined ? match : String(value);
+        });
+    }
+
+    function strings() {
+        return (window.YarpUi && window.YarpUi.strings) || {};
+    }
+
+    // S('key') returns the localized string; S('key', a, b) substitutes {0}/{1}.
+    // Missing keys fall back to the key itself, which makes gaps easy to spot.
+    function S(key) {
+        var value = strings()[key];
+        if (value === undefined) { return key; }
+        if (arguments.length > 1) {
+            value = fmt(value, Array.prototype.slice.call(arguments, 1));
+        }
+        return value;
+    }
+
+    // CLDR plural categories for the shipped languages: en/es one|other, zh other only,
+    // ar zero|one|two|few|many|other. Numbers 100+ with %100 in 0..2 are "other" in Arabic.
+    function pluralCategory(n, lang) {
+        n = Math.abs(Math.floor(Number(n) || 0));
+        lang = (lang || 'en').toLowerCase();
+        if (lang.indexOf('ar') === 0) {
+            if (n === 0) { return 'zero'; }
+            if (n === 1) { return 'one'; }
+            if (n === 2) { return 'two'; }
+            var m100 = n % 100;
+            if (m100 >= 3 && m100 <= 10) { return 'few'; }
+            if (m100 >= 11 && m100 <= 99) { return 'many'; }
+            return 'other';
+        }
+        if (lang.indexOf('zh') === 0) { return 'other'; }
+        return n === 1 ? 'one' : 'other';
+    }
+
+    // Sn('key', n, ...) picks key.<category> (falling back to key.other) and formats
+    // with n as {0} plus any extra arguments.
+    function Sn(key, n) {
+        var dict = strings();
+        var lang = (window.YarpUi && window.YarpUi.culture && window.YarpUi.culture.name) || 'en';
+        var value = dict[key + '.' + pluralCategory(n, lang)];
+        if (value === undefined) { value = dict[key + '.other']; }
+        if (value === undefined) { return key; }
+        return fmt(value, [n].concat(Array.prototype.slice.call(arguments, 2)));
+    }
+
+    function initLangSwitch() {
+        document.querySelectorAll('.lang-switch').forEach(function (select) {
+            select.addEventListener('change', function () {
+                var culture = select.value;
+                // The standard ASP.NET Core culture cookie, exactly as CookieRequestCultureProvider
+                // writes it ("c=es|uic=es" — | and = are valid cookie octets, no quoting needed).
+                document.cookie = '.AspNetCore.Culture=c=' + culture + '|uic=' + culture +
+                    '; path=/; max-age=31536000; samesite=lax';
+                window.location.reload();
+            });
+        });
+    }
 
     function esc(value) {
         return String(value == null ? '' : value)
@@ -92,13 +160,13 @@
         var pill = document.getElementById('source-pill');
         if (!pill) { return; }
         if (managedByUi) {
-            pill.textContent = 'UI-managed config';
+            pill.textContent = S('pill.uiManaged');
             pill.className = 'pill pill-accent';
-            pill.title = 'Live configuration is persisted in yarp-ui.routes.json, which overrides the ReverseProxy section in appsettings.json.';
+            pill.title = S('pill.uiManagedTitle');
         } else {
             pill.textContent = 'appsettings.json';
             pill.className = 'pill';
-            pill.title = 'Live configuration comes from the ReverseProxy section in appsettings.json. The first save from the UI switches to a managed file.';
+            pill.title = S('pill.appsettingsTitle');
         }
     }
 
@@ -109,15 +177,20 @@
                 link.classList.add('active');
             }
         });
+        initLangSwitch();
     });
 
-    window.YarpUi = {
+    // Merge — never replace — so the culture/strings the server injected before this
+    // file loaded survive (replacing the object wiped them and dropped every translation).
+    window.YarpUi = Object.assign(window.YarpUi || {}, {
         esc: esc,
         api: api,
         toast: toast,
         prettyJson: prettyJson,
         debounce: debounce,
         setSourcePill: setSourcePill,
+        S: S,
+        Sn: Sn,
         icon: function (name) { return ICONS[name] || ''; }
-    };
+    });
 })();

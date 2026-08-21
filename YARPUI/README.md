@@ -138,6 +138,21 @@ The Logs page shows entries **newest first** and every column is sortable. The r
 
 A **retention policy** deletes logs automatically once they pass a certain age: a background task runs at startup and then every hour. The policy is managed from the Logs page toolbar (*Keep logs: forever / 1 / 7 / 30 / 90 / 365 days*) and changing it applies immediately; the initial default comes from `YarpUi:Logs:RetentionDays` in configuration (30 days if unset). The policy you set in the UI is stored in the database itself and wins over the configuration value.
 
+## Localization
+
+The UI ships in **English** (default), **Arabic** (rendered right-to-left), **Spanish** and **Simplified Chinese**. A request's culture is resolved in this order: the `?culture=` query string, the standard ASP.NET Core culture cookie, the browser's `Accept-Language` header, then the default. The language switcher in the top bar (and on the login page) writes that cookie and reloads.
+
+No host wiring is required: the package inserts its own request-localization middleware scoped to the UI's routes only (`/login`, the UI pages, `/api/yarp/*`), so host applications never need to call `UseRequestLocalization` and their own pages keep whatever culture behavior they had.
+
+Two settings control the language set (in `appsettings.json`):
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `YarpUi:Cultures` | `en,ar,es,zh-Hans,zh-CN` | Comma-separated cultures the UI may respond in |
+| `YarpUi:DefaultCulture` | `en` | Culture used when a request doesn't match any supported one |
+
+`zh-CN` is accepted as an alias for `zh-Hans` (browsers send the regional tag); unsupported cultures fall back to the default. Validation errors — both from the management API and from the editor's configuration checks — are localized with the same request culture.
+
 ## Offline / no network
 
 All JavaScript libraries (Cytoscape.js, dagre, cytoscape-dagre, Chart.js) are vendored under `wwwroot/lib/`. No CDN is used at runtime; the UI works fully offline.

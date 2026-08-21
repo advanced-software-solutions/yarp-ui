@@ -10,6 +10,9 @@ internal sealed class CookieJar
 
     public bool Has(string name) => _cookies.ContainsKey(name);
 
+    /// <summary>Plants a cookie as if the server had issued it (e.g. the culture cookie).</summary>
+    public void Set(string name, string value) => _cookies[name] = value;
+
     public void Store(HttpResponseMessage response)
     {
         if (!response.Headers.TryGetValues("Set-Cookie", out var headers))

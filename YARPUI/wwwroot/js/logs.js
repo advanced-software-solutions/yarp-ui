@@ -9,6 +9,8 @@
     'use strict';
 
     var esc = window.YarpUi.esc;
+    var S = window.YarpUi.S;
+    var Sn = window.YarpUi.Sn;
 
     var entries = [];
     var lastSeq = 0;
@@ -71,9 +73,9 @@
 
     function fmtMs(value) {
         if (value == null || isNaN(value)) { return '—'; }
-        if (value >= 1000) { return (value / 1000).toFixed(2) + ' s'; }
-        if (value >= 100) { return Math.round(value) + ' ms'; }
-        return value.toFixed(1) + ' ms';
+        if (value >= 1000) { return S('logs.fmtSeconds', (value / 1000).toFixed(2)); }
+        if (value >= 100) { return S('logs.fmtMs', Math.round(value)); }
+        return S('logs.fmtMs', value.toFixed(1));
     }
 
     function passesFilter(entry) {
@@ -133,10 +135,11 @@
 
         var countLabel = document.getElementById('log-count');
         if (total === null) {
-            countLabel.textContent = visible.length + ' shown · ' + entries.length + ' buffered';
+            countLabel.textContent = S('logs.countLive', visible.length.toLocaleString(), entries.length.toLocaleString());
+        } else if (total > entries.length) {
+            countLabel.textContent = S('logs.countFiltered', visible.length.toLocaleString(), entries.length.toLocaleString(), total.toLocaleString());
         } else {
-            countLabel.textContent = visible.length + ' shown · ' + entries.length.toLocaleString() +
-                (total > entries.length ? ' of ' + total.toLocaleString() + ' matching' : ' matching');
+            countLabel.textContent = S('logs.countAll', visible.length.toLocaleString(), entries.length.toLocaleString());
         }
 
         var filtered = filtersActive();
@@ -160,7 +163,7 @@
                 '<td class="col-method"><span class="method-pill m-' + esc((e.method || '').toLowerCase()) + '">' + esc(e.method) + '</span></td>' +
                 '<td class="mono cell-path" title="' + esc(e.path) + '">' + esc(e.path) + '</td>' +
                 '<td class="col-status"><span class="status-pill ' + statusClass(e.statusCode) + '">' + status + '</span></td>' +
-                '<td class="col-duration mono">' + (e.durationMs == null ? '—' : e.durationMs.toFixed(1) + ' ms') + '</td>' +
+                '<td class="col-duration mono">' + (e.durationMs == null ? '—' : S('logs.fmtMs', e.durationMs.toFixed(1))) + '</td>' +
                 '<td class="mono cell-dim">' + esc(e.clientIp || '—') + '</td>' +
                 '<td class="mono cell-dim">' + esc(e.routeId || '—') + '</td>' +
                 '<td class="mono cell-dim">' + esc(e.clusterId || '—') + '</td>' +
@@ -273,7 +276,7 @@
         var groups = Object.keys(STATUS_COLORS);
         var datasets = groups.map(function (group) {
             return {
-                label: group,
+                label: group === 'failed' ? S('logs.chartFailed') : group,
                 data: [],
                 backgroundColor: STATUS_COLORS[group],
                 pointRadius: 2.5,
@@ -316,7 +319,7 @@
                     },
                     y: {
                         beginAtZero: true,
-                        ticks: { callback: function (value) { return value + ' ms'; } },
+                        ticks: { callback: function (value) { return S('logs.fmtMs', value); } },
                         grid: { color: 'rgba(148, 163, 184, 0.08)' }
                     }
                 },
@@ -328,12 +331,12 @@
                         callbacks: {
                             label: function (item) {
                                 if (item.dataset.label === 'P95') {
-                                    return 'P95 ' + fmtMs(item.parsed.y);
+                                    return ' ' + S('logs.tooltipP95', fmtMs(item.parsed.y));
                                 }
                                 var entry = item.raw.entry;
-                                if (!entry) { return fmtMs(item.parsed.y); }
-                                return ' ' + formatTime(entry.timestampUtc) + ' · ' + (entry.statusCode == null ? 'failed' : entry.statusCode) +
-                                    ' · ' + fmtMs(entry.durationMs) + ' · ' + (entry.routeId || '(no route)');
+                                if (!entry) { return ' ' + fmtMs(item.parsed.y); }
+                                return ' ' + formatTime(entry.timestampUtc) + ' · ' + (entry.statusCode == null ? S('logs.chartFailed') : entry.statusCode) +
+                                    ' · ' + fmtMs(entry.durationMs) + ' · ' + (entry.routeId || S('logs.noRoute'));
                             }
                         }
                     }
@@ -407,9 +410,11 @@
         errors.textContent = s.errorCount.toLocaleString() + ' · ' + rate.toFixed(1) + '%';
         errors.classList.toggle('stat-danger', s.errorCount > 0);
 
-        document.getElementById('stats-caption').textContent =
-            (statsWindow > 0 ? 'last ' + (statsWindow >= 60 ? (statsWindow / 60) + ' h' : statsWindow + ' min') : 'all time') +
-            ' · updated ' + pad(new Date().getHours()) + ':' + pad(new Date().getMinutes()) + ':' + pad(new Date().getSeconds());
+        var windowText = statsWindow > 0
+            ? (statsWindow >= 60 ? S('logs.captionHour', statsWindow / 60) : S('logs.captionMin', statsWindow))
+            : S('logs.captionAll');
+        var updated = pad(new Date().getHours()) + ':' + pad(new Date().getMinutes()) + ':' + pad(new Date().getSeconds());
+        document.getElementById('stats-caption').textContent = S('logs.captionUpdated', windowText, updated);
 
         renderRouteBars(stats.routes || []);
     }
@@ -417,7 +422,7 @@
     function renderRouteBars(routes) {
         var list = document.getElementById('route-bars-list');
         if (!routes.length) {
-            list.innerHTML = '<div class="muted small route-bars-empty">No requests in this window yet.</div>';
+            list.innerHTML = '<div class="muted small route-bars-empty">' + esc(S('logs.noRequestsYet')) + '</div>';
             return;
         }
 
@@ -426,10 +431,10 @@
 
         list.innerHTML = top.map(function (r) {
             var width = Math.max(2, Math.round((r.p95Ms / maxP95) * 100));
-            var meta = r.count.toLocaleString() + ' reqs · avg ' + fmtMs(r.avgMs) + ' · max ' + fmtMs(r.maxMs);
-            if (r.errorCount > 0) { meta += ' · <span class="route-bar-errors">' + r.errorCount.toLocaleString() + ' errors</span>'; }
+            var meta = S('logs.routeBarMeta', r.count.toLocaleString(), fmtMs(r.avgMs), fmtMs(r.maxMs));
+            if (r.errorCount > 0) { meta += ' · <span class="route-bar-errors">' + esc(Sn('logs.errorCount', r.errorCount)) + '</span>'; }
             return '<div class="route-bar-row">' +
-                '<div class="route-bar-top"><span class="mono" title="' + esc(r.routeId || '(no route)') + '">' + esc(r.routeId || '(no route)') + '</span>' +
+                '<div class="route-bar-top"><span class="mono" title="' + esc(r.routeId || S('logs.noRoute')) + '">' + esc(r.routeId || S('logs.noRoute')) + '</span>' +
                 '<span class="muted small">' + meta + '</span></div>' +
                 '<div class="route-bar-track"><div class="route-bar-fill" style="width:' + width + '%"></div></div>' +
                 '</div>';
@@ -458,9 +463,9 @@
     // deleted while their history is still retained). Destination options scope to the selected
     // cluster, or span every cluster when none is selected.
     function rebuildFilterOptions() {
-        rebuildSelect('log-route', 'All routes',
+        rebuildSelect('log-route', S('logs.allRoutes'),
             uniqueSorted(configRoutes.concat(Object.keys(seenRoutes))), filters.routeId);
-        rebuildSelect('log-cluster', 'All clusters',
+        rebuildSelect('log-cluster', S('logs.allClusters'),
             uniqueSorted(Object.keys(configClusters).concat(Object.keys(seenClusters))), filters.clusterId);
 
         var destinations = [];
@@ -471,7 +476,7 @@
                 destinations = destinations.concat(configClusters[id]);
             });
         }
-        rebuildSelect('log-destination', 'All destinations',
+        rebuildSelect('log-destination', S('logs.allDestinations'),
             uniqueSorted(destinations.concat(Object.keys(seenDestinations))), filters.destinationId);
     }
 
@@ -507,13 +512,20 @@
 
     /* ---- retention policy ---- */
 
+    function retentionLabel(days) {
+        if (days === 0) { return S('logs.keepForever'); }
+        if (days === 1) { return S('logs.keepOneDay'); }
+        if (days === 365) { return S('logs.keepOneYear'); }
+        return S('logs.keepDays', days);
+    }
+
     function setRetentionValue(days) {
         var select = document.getElementById('log-retention');
         var exists = Array.prototype.some.call(select.options, function (o) { return +o.value === days; });
         if (!exists) {
             var option = document.createElement('option');
             option.value = String(days);
-            option.textContent = 'Keep logs: ' + days + ' days';
+            option.textContent = retentionLabel(days);
             select.appendChild(option);
         }
         select.value = String(days);
@@ -539,16 +551,14 @@
                 body: JSON.stringify({ retentionDays: days })
             });
             if (res.ok) {
-                window.YarpUi.toast(days === 0
-                    ? 'Logs are now kept forever.'
-                    : 'Logs older than ' + days + ' ' + (days === 1 ? 'day' : 'days') + ' will be deleted automatically.', 'success');
+                window.YarpUi.toast(days === 0 ? S('logs.keepForeverToast') : Sn('logs.olderThan', days), 'success');
             } else {
                 var data = await res.json().catch(function () { return null; });
-                window.YarpUi.toast('Could not save the retention policy: ' + ((data && data.errors && data.errors[0]) || res.status), 'error');
+                window.YarpUi.toast(S('logs.retentionSaveFailed', (data && data.errors && data.errors[0]) || res.status), 'error');
                 loadRetention(); // snap the select back to the stored value
             }
         } catch (e) {
-            window.YarpUi.toast('Could not save the retention policy: ' + e.message, 'error');
+            window.YarpUi.toast(S('logs.retentionSaveFailed', e.message), 'error');
         }
     }
 
@@ -660,9 +670,9 @@
                 render();
                 poll();
                 fetchStats();
-                window.YarpUi.toast('Stored request logs deleted.', 'success');
+                window.YarpUi.toast(S('logs.cleared'), 'success');
             } catch (e) {
-                window.YarpUi.toast('Clear failed: ' + e.message, 'error');
+                window.YarpUi.toast(S('logs.clearFailed', e.message), 'error');
             }
         });
 

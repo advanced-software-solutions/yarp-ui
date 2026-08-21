@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Localization;
 using Yarp.ReverseProxy;
 using Yarp.ReverseProxy.Configuration;
 using YARPUI;
 using YARPUI.Api;
+using YARPUI.Hosting;
 using YARPUI.Services;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -158,6 +160,7 @@ public static class YarpUiServiceCollectionExtensions
         IServiceCollection services, IConfiguration configuration, string dataDirectory, bool attachMode)
     {
         services.AddRazorPages();
+        YarpUiLocalization.AddYarpUiLocalization(services, configuration);
 
         services.AddSingleton(sp => new ProxyConfigService(
             configuration,
@@ -166,7 +169,8 @@ public static class YarpUiServiceCollectionExtensions
             sp.GetRequiredService<IConfigValidator>(),
             sp.GetService<IProxyStateLookup>(),
             attachMode,
-            sp.GetRequiredService<ILogger<ProxyConfigService>>()));
+            sp.GetRequiredService<ILogger<ProxyConfigService>>(),
+            sp.GetRequiredService<IStringLocalizer<YARPUI.Resources.UIStrings>>()));
 
         // Request logs: SQLite-backed (survives restarts) in the data directory, fed by a
         // background writer; a retention service purges entries older than the policy allows.

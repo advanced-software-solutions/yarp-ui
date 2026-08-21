@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- YARP UI 的简体中文资源。 -->
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <!-- shared layout -->
+  <data name="layout.fallbackTitle" xml:space="preserve"><value>YARP UI</value></data>
+  <data name="layout.brandTitle" xml:space="preserve"><value>路由地图</value></data>
+  <data name="nav.map" xml:space="preserve"><value>地图</value></data>
+  <data name="nav.editor" xml:space="preserve"><value>编辑器</value></data>
+  <data name="nav.logs" xml:space="preserve"><value>日志</value></data>
+  <data name="layout.signedIn" xml:space="preserve"><value>已登录</value></data>
+  <data name="layout.signOut" xml:space="preserve"><value>退出登录</value></data>
+  <data name="layout.languageTitle" xml:space="preserve"><value>语言</value></data>
+
+  <!-- login -->
+  <data name="login.title" xml:space="preserve"><value>登录 — YARP UI</value></data>
+  <data name="login.subtitle" xml:space="preserve"><value>反向代理控制台</value></data>
+  <data name="login.username" xml:space="preserve"><value>用户名</value></data>
+  <data name="login.password" xml:space="preserve"><value>密码</value></data>
+  <data name="login.signIn" xml:space="preserve"><value>登录</value></data>
+  <data name="login.footer" xml:space="preserve"><value>凭据在 &lt;code&gt;appsettings.json&lt;/code&gt; 的 &lt;code&gt;YarpUi:Auth&lt;/code&gt; 节中配置。</value></data>
+  <data name="login.notConfigured" xml:space="preserve"><value>服务器未配置登录。请在 appsettings.json 中设置 YarpUi:Auth。</value></data>
+  <data name="login.invalidCredentials" xml:space="preserve"><value>用户名或密码错误。</value></data>
+
+  <!-- route map page -->
+  <data name="index.title" xml:space="preserve"><value>路由地图 — YARP UI</value></data>
+  <data name="index.searchPlaceholder" xml:space="preserve"><value>搜索路由、群集、目标…</value></data>
+  <data name="index.zoomOut" xml:space="preserve"><value>缩小</value></data>
+  <data name="index.zoomIn" xml:space="preserve"><value>放大</value></data>
+  <data name="index.fit" xml:space="preserve"><value>适应屏幕</value></data>
+  <data name="index.reload" xml:space="preserve"><value>重新加载配置</value></data>
+  <data name="index.hint" xml:space="preserve"><value>点击节点查看其链路 · 拖动平移 · 滚轮缩放</value></data>
+  <data name="index.loading" xml:space="preserve"><value>正在加载配置…</value></data>
+  <data name="index.emptyTitle" xml:space="preserve"><value>尚未配置路由</value></data>
+  <data name="index.emptyBody1" xml:space="preserve"><value>代理当前使用空配置运行。</value></data>
+  <data name="index.emptyBody2" xml:space="preserve"><value>前往编辑器添加你的第一条路由和目标。</value></data>
+  <data name="index.openEditor" xml:space="preserve"><value>打开编辑器</value></data>
+  <data name="index.close" xml:space="preserve"><value>关闭</value></data>
+  <data name="index.editInEditor" xml:space="preserve"><value>在编辑器中编辑</value></data>
+
+  <!-- editor page -->
+  <data name="editor.title" xml:space="preserve"><value>编辑器 — YARP UI</value></data>
+  <data name="editor.heading" xml:space="preserve"><value>配置编辑器</value></data>
+  <data name="editor.unsavedChanges" xml:space="preserve"><value>有未保存的更改</value></data>
+  <data name="editor.reload" xml:space="preserve"><value>重新加载</value></data>
+  <data name="editor.reloadTitle" xml:space="preserve"><value>放弃更改并重新加载当前配置</value></data>
+  <data name="editor.save" xml:space="preserve"><value>保存并应用</value></data>
+  <data name="editor.saveTitle" xml:space="preserve"><value>校验、实时应用并持久化</value></data>
+  <data name="editor.routes" xml:space="preserve"><value>路由</value></data>
+  <data name="editor.clusters" xml:space="preserve"><value>群集</value></data>
+  <data name="editor.addRoute" xml:space="preserve"><value>添加路由</value></data>
+  <data name="editor.addCluster" xml:space="preserve"><value>添加群集</value></data>
+  <data name="editor.resetToAppsettings" xml:space="preserve"><value>重置为 appsettings.json</value></data>
+  <data name="editor.resetTitle" xml:space="preserve"><value>删除 yarp-ui.routes.json 并恢复 appsettings.json 中的配置</value></data>
+  <data name="editor.restoreBackup" xml:space="preserve"><value>恢复 appsettings 备份</value></data>
+  <data name="editor.restoreTitle" xml:space="preserve"><value>从 .yarpui.bak 备份（UI 首次修改前保存的）恢复每个被修改的 appsettings 文件。</value></data>
+  <data name="editor.nothingSelected" xml:space="preserve"><value>未选中任何项</value></data>
+  <data name="editor.pickItem" xml:space="preserve"><value>从列表中选择一个路由或群集，或添加一个新项。</value></data>
+
+  <!-- editor page: list items -->
+  <data name="editor.noCluster" xml:space="preserve"><value>无群集</value></data>
+  <data name="editor.noRoutes" xml:space="preserve"><value>没有路由</value></data>
+  <data name="editor.noClusters" xml:space="preserve"><value>没有群集</value></data>
+  <data name="editor.destCount.other" xml:space="preserve"><value>{0} 个目标</value></data>
+  <data name="editor.deleteRouteTitle" xml:space="preserve"><value>删除路由</value></data>
+  <data name="editor.deleteClusterTitle" xml:space="preserve"><value>删除群集</value></data>
+  <data name="editor.itemExternalTitle" xml:space="preserve"><value>{0} — 来自非文件配置源（只读）</value></data>
+  <data name="editor.lockTitle" xml:space="preserve"><value>来自非文件配置源（只读）</value></data>
+
+  <!-- editor page: form -->
+  <data name="editor.fieldRouteId" xml:space="preserve"><value>路由 ID</value></data>
+  <data name="editor.fieldCluster" xml:space="preserve"><value>群集</value></data>
+  <data name="editor.selectCluster" xml:space="preserve"><value>— 选择群集 —</value></data>
+  <data name="editor.fieldMatchPath" xml:space="preserve"><value>匹配路径</value></data>
+  <data name="editor.fieldOrder" xml:space="preserve"><value>顺序</value></data>
+  <data name="editor.fieldHosts" xml:space="preserve"><value>主机</value></data>
+  <data name="editor.fieldMethods" xml:space="preserve"><value>方法</value></data>
+  <data name="editor.fieldAuthorization" xml:space="preserve"><value>授权策略</value></data>
+  <data name="editor.fieldCors" xml:space="preserve"><value>CORS 策略</value></data>
+  <data name="editor.fieldTransforms" xml:space="preserve"><value>转换（Transforms）</value></data>
+  <data name="editor.fieldClusterId" xml:space="preserve"><value>群集 ID</value></data>
+  <data name="editor.fieldLbPolicy" xml:space="preserve"><value>负载均衡策略</value></data>
+  <data name="editor.fieldDestinations" xml:space="preserve"><value>目标</value></data>
+  <data name="editor.fieldActiveHealth" xml:space="preserve"><value>主动健康检查</value></data>
+  <data name="editor.fieldPassiveHealth" xml:space="preserve"><value>被动健康检查</value></data>
+  <data name="editor.phOrder" xml:space="preserve"><value>值小者优先</value></data>
+  <data name="editor.phMethods" xml:space="preserve"><value>GET, POST（留空 = 任意）</value></data>
+  <data name="editor.phPolicy" xml:space="preserve"><value>默认（可选）</value></data>
+  <data name="editor.phDestName" xml:space="preserve"><value>名称</value></data>
+  <data name="editor.transformsInvalid" xml:space="preserve"><value>JSON 无效 — 必须是转换对象的数组。</value></data>
+  <data name="editor.transformsHint" xml:space="preserve"><value>转换对象的数组，例如 [{"PathRemovePrefix":"/api"}]。保存时应用。</value></data>
+  <data name="editor.noDestinations" xml:space="preserve"><value>没有目标 — 在下方添加一个。</value></data>
+  <data name="editor.addDestination" xml:space="preserve"><value>添加目标</value></data>
+  <data name="editor.removeDestination" xml:space="preserve"><value>移除目标</value></data>
+  <data name="editor.roBanner" xml:space="preserve"><value>此{0}来自非文件配置源（例如代码或数据库提供程序），无法在此编辑。请在它的来源处编辑（例如 appsettings.json）— UI 绝不会修改它。</value></data>
+
+  <!-- editor page: dialogs, toasts, errors -->
+  <data name="editor.idInUse" xml:space="preserve"><value>该 ID 已被使用。</value></data>
+  <data name="editor.idEmpty" xml:space="preserve"><value>ID 不能为空。</value></data>
+  <data name="editor.confirmDeleteRoute" xml:space="preserve"><value>删除路由“{0}”？更改将在保存后应用。</value></data>
+  <data name="editor.confirmDeleteCluster" xml:space="preserve"><value>删除群集“{0}”？</value></data>
+  <data name="editor.routesRef.other" xml:space="preserve"><value>{0} 个路由引用了它，在重新分配之前校验会失败。</value></data>
+  <data name="editor.confirmDiscard" xml:space="preserve"><value>放弃未保存的更改并重新加载当前配置？</value></data>
+  <data name="editor.confirmReset" xml:space="preserve"><value>放弃所有 UI 更改并恢复 appsettings.json 中的配置？&#10;&#10;这将删除 yarp-ui.routes.json 并实时应用初始配置。</value></data>
+  <data name="editor.confirmRestore" xml:space="preserve"><value>从 .yarpui.bak 备份恢复每个被修改的 appsettings 文件？&#10;&#10;通过 UI 做出的更改将被回滚；文件将恢复到 UI 首次修改之前的状态。</value></data>
+  <data name="editor.errorsTitle" xml:space="preserve"><value>配置未应用：</value></data>
+  <data name="editor.saveHttpError" xml:space="preserve"><value>保存失败，HTTP {0}。</value></data>
+  <data name="editor.applied" xml:space="preserve"><value>配置已应用 — 代理已生效。</value></data>
+  <data name="editor.validationFailed" xml:space="preserve"><value>校验失败 — 请查看上方的错误。</value></data>
+  <data name="editor.saveFailed" xml:space="preserve"><value>保存失败：{0}</value></data>
+  <data name="editor.reloadFailed" xml:space="preserve"><value>重新加载失败：{0}</value></data>
+  <data name="editor.resetFailed" xml:space="preserve"><value>重置失败：{0}</value></data>
+  <data name="editor.resetFailedShort" xml:space="preserve"><value>重置失败。</value></data>
+  <data name="editor.restoredFromBackup" xml:space="preserve"><value>已从备份恢复 appsettings。</value></data>
+  <data name="editor.resetToSeed" xml:space="preserve"><value>已重置为 appsettings.json 中的配置。</value></data>
+  <data name="editor.fixTransforms" xml:space="preserve"><value>请先修复无效的 Transforms JSON</value></data>
+
+  <!-- config source pill (map + editor toolbars) -->
+  <data name="pill.uiManaged" xml:space="preserve"><value>UI 托管配置</value></data>
+  <data name="pill.uiManagedTitle" xml:space="preserve"><value>当前配置保存在 yarp-ui.routes.json 中，它优先于 appsettings.json 中的 ReverseProxy 节。</value></data>
+  <data name="pill.appsettingsTitle" xml:space="preserve"><value>当前配置来自 appsettings.json 的 ReverseProxy 节。UI 首次保存后将切换为托管文件。</value></data>
+  <data name="pill.attachMode" xml:space="preserve"><value>编辑写回 appsettings.json</value></data>
+  <data name="pill.attachModeTitle" xml:space="preserve"><value>保存时每项更改都会写回路由或群集所在的 appsettings.json 文件 — YARP 会热重载该文件，因此编辑无需重启即可生效。来自非文件源的条目（锁定）保持只读。首次修改文件时会保留 .yarpui.bak 备份用于恢复。</value></data>
+
+  <!-- map graph -->
+  <data name="map.typeRoute" xml:space="preserve"><value>路由</value></data>
+  <data name="map.typeCluster" xml:space="preserve"><value>群集</value></data>
+  <data name="map.typeDestination" xml:space="preserve"><value>目标</value></data>
+  <data name="map.anyHostPath" xml:space="preserve"><value>任意主机 / 路径</value></data>
+  <data name="map.lbDefault" xml:space="preserve"><value>PowerOfTwoChoices（默认）</value></data>
+  <data name="map.clusterNotFound" xml:space="preserve"><value>找不到群集</value></data>
+  <data name="map.externalSource" xml:space="preserve"><value>来自非文件配置源</value></data>
+  <data name="map.externalBadge" xml:space="preserve"><value>外部</value></data>
+  <data name="map.any" xml:space="preserve"><value>任意</value></data>
+  <data name="map.enabled" xml:space="preserve"><value>已启用</value></data>
+  <data name="map.nConfigured" xml:space="preserve"><value>已配置 {0} 项</value></data>
+
+  <!-- map drawer key/value rows -->
+  <data name="map.kvCluster" xml:space="preserve"><value>群集</value></data>
+  <data name="map.kvPath" xml:space="preserve"><value>路径</value></data>
+  <data name="map.kvHosts" xml:space="preserve"><value>主机</value></data>
+  <data name="map.kvMethods" xml:space="preserve"><value>方法</value></data>
+  <data name="map.kvOrder" xml:space="preserve"><value>顺序</value></data>
+  <data name="map.kvAuthorization" xml:space="preserve"><value>授权策略</value></data>
+  <data name="map.kvCors" xml:space="preserve"><value>CORS 策略</value></data>
+  <data name="map.kvTransforms" xml:space="preserve"><value>转换（Transforms）</value></data>
+  <data name="map.kvLoadBalancing" xml:space="preserve"><value>负载均衡</value></data>
+  <data name="map.kvDestinations" xml:space="preserve"><value>目标</value></data>
+  <data name="map.kvActiveHealth" xml:space="preserve"><value>主动健康检查</value></data>
+  <data name="map.kvPassiveHealth" xml:space="preserve"><value>被动健康检查</value></data>
+  <data name="map.kvAddress" xml:space="preserve"><value>地址</value></data>
+  <data name="map.kvName" xml:space="preserve"><value>名称</value></data>
+
+  <!-- map legend + search -->
+  <data name="map.legendRoutes.other" xml:space="preserve"><value>{0} 个路由</value></data>
+  <data name="map.legendClusters.other" xml:space="preserve"><value>{0} 个群集</value></data>
+  <data name="map.legendDestinations.other" xml:space="preserve"><value>{0} 个目标</value></data>
+  <data name="map.noMatch" xml:space="preserve"><value>无匹配</value></data>
+  <data name="map.match.other" xml:space="preserve"><value>{0} 个匹配</value></data>
+  <data name="map.loadFailed" xml:space="preserve"><value>加载配置失败：{0}</value></data>
+  <data name="map.reloaded" xml:space="preserve"><value>配置已重新加载</value></data>
+
+  <!-- logs page -->
+  <data name="logs.title" xml:space="preserve"><value>请求日志 — YARP UI</value></data>
+  <data name="logs.searchPlaceholder" xml:space="preserve"><value>按路径、路由、群集、目标筛选…</value></data>
+  <data name="logs.filterStatusTitle" xml:space="preserve"><value>按状态类别筛选</value></data>
+  <data name="logs.allStatuses" xml:space="preserve"><value>所有状态</value></data>
+  <data name="logs.status2" xml:space="preserve"><value>2xx — 成功</value></data>
+  <data name="logs.status3" xml:space="preserve"><value>3xx — 重定向</value></data>
+  <data name="logs.status4" xml:space="preserve"><value>4xx — 客户端错误</value></data>
+  <data name="logs.status5" xml:space="preserve"><value>5xx — 服务器错误</value></data>
+  <data name="logs.liveTitle" xml:space="preserve"><value>每 2 秒刷新</value></data>
+  <data name="logs.live" xml:space="preserve"><value>实时</value></data>
+  <data name="logs.retentionTitle" xml:space="preserve"><value>自动删除早于该时长的请求日志</value></data>
+  <data name="logs.keepForever" xml:space="preserve"><value>保留日志：永久</value></data>
+  <data name="logs.keepOneDay" xml:space="preserve"><value>保留日志：1 天</value></data>
+  <data name="logs.keepDays" xml:space="preserve"><value>保留日志：{0} 天</value></data>
+  <data name="logs.keepOneYear" xml:space="preserve"><value>保留日志：1 年</value></data>
+  <data name="logs.clear" xml:space="preserve"><value>清空</value></data>
+  <data name="logs.clearTitle" xml:space="preserve"><value>删除所有已存储的请求日志</value></data>
+  <data name="logs.allRoutes" xml:space="preserve"><value>所有路由</value></data>
+  <data name="logs.allClusters" xml:space="preserve"><value>所有群集</value></data>
+  <data name="logs.allDestinations" xml:space="preserve"><value>所有目标</value></data>
+  <data name="logs.filterRouteTitle" xml:space="preserve"><value>仅显示由该路由处理的请求</value></data>
+  <data name="logs.filterClusterTitle" xml:space="preserve"><value>仅显示由该群集处理的请求</value></data>
+  <data name="logs.filterDestinationTitle" xml:space="preserve"><value>仅显示发送到该目标的请求</value></data>
+  <data name="logs.rangeTitle" xml:space="preserve"><value>将结果限制在某个时间范围</value></data>
+  <data name="logs.rangeLive" xml:space="preserve"><value>实时（最新）</value></data>
+  <data name="logs.last5" xml:space="preserve"><value>最近 5 分钟</value></data>
+  <data name="logs.last15" xml:space="preserve"><value>最近 15 分钟</value></data>
+  <data name="logs.lastHour" xml:space="preserve"><value>最近 1 小时</value></data>
+  <data name="logs.last6h" xml:space="preserve"><value>最近 6 小时</value></data>
+  <data name="logs.last24h" xml:space="preserve"><value>最近 24 小时</value></data>
+  <data name="logs.last7d" xml:space="preserve"><value>最近 7 天</value></data>
+  <data name="logs.rangeCustom" xml:space="preserve"><value>自定义范围…</value></data>
+  <data name="logs.rangeAll" xml:space="preserve"><value>全部时间</value></data>
+  <data name="logs.fromTitle" xml:space="preserve"><value>自定义范围起点（本地时间）</value></data>
+  <data name="logs.fromLabel" xml:space="preserve"><value>自定义范围起点</value></data>
+  <data name="logs.toTitle" xml:space="preserve"><value>自定义范围终点（本地时间）</value></data>
+  <data name="logs.toLabel" xml:space="preserve"><value>自定义范围终点</value></data>
+  <data name="logs.reset" xml:space="preserve"><value>重置</value></data>
+  <data name="logs.resetTitle" xml:space="preserve"><value>清除所有筛选条件并回到实时视图</value></data>
+  <data name="logs.performanceTitle" xml:space="preserve"><value>显示或隐藏性能面板</value></data>
+  <data name="logs.performance" xml:space="preserve"><value>性能</value></data>
+  <data name="logs.window" xml:space="preserve"><value>时间窗</value></data>
+  <data name="logs.statRequests" xml:space="preserve"><value>请求数</value></data>
+  <data name="logs.statAvg" xml:space="preserve"><value>平均</value></data>
+  <data name="logs.statP95" xml:space="preserve"><value>P95</value></data>
+  <data name="logs.statMax" xml:space="preserve"><value>最大</value></data>
+  <data name="logs.statErrorRate" xml:space="preserve"><value>错误率</value></data>
+  <data name="logs.chartTitle" xml:space="preserve"><value>单请求耗时 — 按状态类别着色，虚线 = P95</value></data>
+  <data name="logs.slowestRoutes" xml:space="preserve"><value>最慢的路由（P95）</value></data>
+  <data name="logs.noRequestsYet" xml:space="preserve"><value>该时间窗内还没有请求。</value></data>
+  <data name="logs.colTime" xml:space="preserve"><value>时间</value></data>
+  <data name="logs.colMethod" xml:space="preserve"><value>方法</value></data>
+  <data name="logs.colPath" xml:space="preserve"><value>路径</value></data>
+  <data name="logs.colStatus" xml:space="preserve"><value>状态</value></data>
+  <data name="logs.colDuration" xml:space="preserve"><value>耗时</value></data>
+  <data name="logs.colClientIp" xml:space="preserve"><value>客户端 IP</value></data>
+  <data name="logs.colRoute" xml:space="preserve"><value>路由</value></data>
+  <data name="logs.colCluster" xml:space="preserve"><value>群集</value></data>
+  <data name="logs.colDestination" xml:space="preserve"><value>目标</value></data>
+  <data name="logs.emptyLive" xml:space="preserve"><value>尚未捕获经过代理的请求 — 向代理发送流量后即可在此看到。</value></data>
+  <data name="logs.emptyHint" xml:space="preserve"><value>仅记录经过代理的请求；UI 自身的请求除外。条目存储在本地 SQLite 数据库中，并按保留策略保存。</value></data>
+  <data name="logs.emptyFiltered" xml:space="preserve"><value>没有请求匹配当前筛选条件 — 试试放宽时间范围，或清除路由、群集、目标筛选。</value></data>
+
+  <!-- logs page: client-side rendering -->
+  <data name="logs.countLive" xml:space="preserve"><value>显示 {0} 条 · 缓存 {1} 条</value></data>
+  <data name="logs.countFiltered" xml:space="preserve"><value>显示 {0} 条 · 共 {2} 条匹配中的 {1} 条</value></data>
+  <data name="logs.countAll" xml:space="preserve"><value>显示 {0} 条 · 匹配 {1} 条</value></data>
+  <data name="logs.fmtSeconds" xml:space="preserve"><value>{0} 秒</value></data>
+  <data name="logs.fmtMs" xml:space="preserve"><value>{0} 毫秒</value></data>
+  <data name="logs.chartFailed" xml:space="preserve"><value>失败</value></data>
+  <data name="logs.tooltipP95" xml:space="preserve"><value>P95 {0}</value></data>
+  <data name="logs.noRoute" xml:space="preserve"><value>（无路由）</value></data>
+  <data name="logs.captionMin" xml:space="preserve"><value>最近 {0} 分钟</value></data>
+  <data name="logs.captionHour" xml:space="preserve"><value>最近 {0} 小时</value></data>
+  <data name="logs.captionAll" xml:space="preserve"><value>全部时间</value></data>
+  <data name="logs.captionUpdated" xml:space="preserve"><value>{0} · 更新于 {1}</value></data>
+  <data name="logs.routeBarMeta" xml:space="preserve"><value>{0} 次请求 · 平均 {1} · 最大 {2}</value></data>
+  <data name="logs.errorCount.other" xml:space="preserve"><value>{0} 个错误</value></data>
+  <data name="logs.keepForeverToast" xml:space="preserve"><value>日志现在将永久保留。</value></data>
+  <data name="logs.olderThan.other" xml:space="preserve"><value>早于 {0} 天的日志将被自动删除。</value></data>
+  <data name="logs.retentionSaveFailed" xml:space="preserve"><value>无法保存保留策略：{0}</value></data>
+  <data name="logs.cleared" xml:space="preserve"><value>已删除存储的请求日志。</value></data>
+  <data name="logs.clearFailed" xml:space="preserve"><value>清空失败：{0}</value></data>
+
+  <!-- error page -->
+  <data name="error.title" xml:space="preserve"><value>错误 — YARP UI</value></data>
+  <data name="error.heading" xml:space="preserve"><value>出了点问题</value></data>
+  <data name="error.body" xml:space="preserve"><value>处理你的请求时发生错误。</value></data>
+  <data name="error.requestId" xml:space="preserve"><value>请求 ID：</value></data>
+
+  <!-- API and configuration validation -->
+  <data name="validation.bodyNotJson" xml:space="preserve"><value>请求体不是有效的 JSON。</value></data>
+  <data name="validation.bodyEmpty" xml:space="preserve"><value>请求体为空。</value></data>
+  <data name="validation.sortField" xml:space="preserve"><value>sort 必须是以下之一：{0}。</value></data>
+  <data name="validation.limitRange" xml:space="preserve"><value>limit 必须在 1 到 {0} 之间。</value></data>
+  <data name="validation.retentionRange" xml:space="preserve"><value>retentionDays 必须为 0（永久保留）或在 1 到 {0} 之间。</value></data>
+  <data name="validation.duplicateRouteId" xml:space="preserve"><value>路由 ID“{0}”重复。</value></data>
+  <data name="validation.duplicateClusterId" xml:space="preserve"><value>群集 ID“{0}”重复。</value></data>
+  <data name="validation.routeNonFile" xml:space="preserve"><value>路由“{0}”来自非文件配置源，无法在此管理。</value></data>
+  <data name="validation.clusterNonFile" xml:space="preserve"><value>群集“{0}”来自非文件配置源，无法在此管理。</value></data>
+  <data name="validation.routeNoCluster" xml:space="preserve"><value>路由“{0}”未分配群集。</value></data>
+  <data name="validation.routeUnknownCluster" xml:space="preserve"><value>路由“{0}”引用了未知群集“{1}”。</value></data>
+  <data name="validation.clusterStillUsed" xml:space="preserve"><value>群集“{0}”仍被路由“{1}”使用，而该路由来自非文件配置源。</value></data>
+  <data name="validation.duplicateDestination" xml:space="preserve"><value>群集“{0}”存在重复的目标“{1}”。</value></data>
+  <data name="validation.routeInvalid" xml:space="preserve"><value>路由“{0}”：{1}</value></data>
+  <data name="validation.clusterInvalid" xml:space="preserve"><value>群集“{0}”：{1}</value></data>
+</root>

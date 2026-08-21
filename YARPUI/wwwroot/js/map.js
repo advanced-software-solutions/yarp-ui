@@ -4,6 +4,8 @@
 
     var esc = window.YarpUi.esc;
     var icon = window.YarpUi.icon;
+    var S = window.YarpUi.S;
+    var Sn = window.YarpUi.Sn;
     var cy = null;
     var config = null;
     var selectedId = null;
@@ -12,9 +14,9 @@
     var flowOffset = 0;
 
     var TYPE_META = {
-        route: { cls: 'route', label: 'Route', w: 218, h: 64 },
-        cluster: { cls: 'cluster', label: 'Cluster', w: 202, h: 64 },
-        dest: { cls: 'dest', label: 'Destination', w: 234, h: 64 }
+        route: { cls: 'route', label: S('map.typeRoute'), w: 218, h: 64 },
+        cluster: { cls: 'cluster', label: S('map.typeCluster'), w: 202, h: 64 },
+        dest: { cls: 'dest', label: S('map.typeDestination'), w: 234, h: 64 }
     };
 
     function nodeId(type, id) { return type + ':' + id; }
@@ -22,7 +24,7 @@
     function routeSub(route) {
         if (route.Match && route.Match.Path) { return route.Match.Path; }
         if (route.Match && route.Match.Hosts && route.Match.Hosts.length) { return route.Match.Hosts.join(', '); }
-        return 'any host / path';
+        return S('map.anyHostPath');
     }
 
     function buildElements(cfg) {
@@ -38,7 +40,7 @@
             clusterIds[c.ClusterId] = true;
             elements.push({
                 group: 'nodes',
-                data: { id: nodeId('cluster', c.ClusterId), type: 'cluster', label: c.ClusterId, sub: c.LoadBalancingPolicy || 'PowerOfTwoChoices (default)', external: isExternalCluster(c.ClusterId) }
+                data: { id: nodeId('cluster', c.ClusterId), type: 'cluster', label: c.ClusterId, sub: c.LoadBalancingPolicy || S('map.lbDefault'), external: isExternalCluster(c.ClusterId) }
             });
             Object.keys(c.Destinations || {}).forEach(function (name) {
                 var address = (c.Destinations[name] && c.Destinations[name].Address) || '';
@@ -83,14 +85,17 @@
             methods = '<span class="ncard-badge">' + esc(d.methods.join(' ')) + '</span>';
         }
         var warn = d.type === 'route' && d.brokenCluster
-            ? '<span class="ncard-warn" title="Cluster not found">' + icon('warn') + '</span>'
+            ? '<span class="ncard-warn" title="' + esc(S('map.clusterNotFound')) + '">' + icon('warn') + '</span>'
             : '';
+        // The "external" badge text lives in a data attribute the CSS renders via ::after,
+        // so it can be localized while staying out of the layout math.
+        var externalAttr = d.external ? ' data-external="' + esc(S('map.externalBadge')) + '"' : '';
         return '' +
             '<div class="ncard ncard-' + meta.cls + (d.external ? ' ncard-external' : '') + '" data-nodeid="' + esc(d.id) + '" data-type="' + d.type + '"' +
-                (d.external ? ' title="From a non-file configuration source"' : '') + '>' +
+                (d.external ? ' title="' + esc(S('map.externalSource')) + '"' : '') + '>' +
                 '<span class="ncard-icon">' + icon(d.type === 'dest' ? 'dest' : d.type) + '</span>' +
                 '<span class="ncard-text">' +
-                    '<span class="ncard-title">' + esc(d.label) + '</span>' +
+                    '<span class="ncard-title"' + externalAttr + '>' + esc(d.label) + '</span>' +
                     '<span class="ncard-sub" title="' + esc(d.sub) + '">' + esc(d.sub) + '</span>' +
                 '</span>' +
                 methods + warn +
@@ -243,24 +248,24 @@
         var rows = '';
         if (d.type === 'route') {
             var r = obj;
-            rows += kvRow('Cluster', r.ClusterId);
-            rows += kvRow('Path', r.Match && r.Match.Path);
-            rows += kvRow('Hosts', r.Match && r.Match.Hosts ? r.Match.Hosts.join(', ') : null);
-            rows += kvRow('Methods', r.Match && r.Match.Methods ? r.Match.Methods.join(', ') : 'any');
-            rows += kvRow('Order', r.Order);
-            rows += kvRow('Authorization policy', r.AuthorizationPolicy);
-            rows += kvRow('CORS policy', r.CorsPolicy);
-            rows += kvRow('Transforms', r.Transforms ? r.Transforms.length + ' configured' : null);
+            rows += kvRow(S('map.kvCluster'), r.ClusterId);
+            rows += kvRow(S('map.kvPath'), r.Match && r.Match.Path);
+            rows += kvRow(S('map.kvHosts'), r.Match && r.Match.Hosts ? r.Match.Hosts.join(', ') : null);
+            rows += kvRow(S('map.kvMethods'), r.Match && r.Match.Methods ? r.Match.Methods.join(', ') : S('map.any'));
+            rows += kvRow(S('map.kvOrder'), r.Order);
+            rows += kvRow(S('map.kvAuthorization'), r.AuthorizationPolicy);
+            rows += kvRow(S('map.kvCors'), r.CorsPolicy);
+            rows += kvRow(S('map.kvTransforms'), r.Transforms ? S('map.nConfigured', r.Transforms.length) : null);
         } else if (d.type === 'cluster') {
             var c = obj;
-            rows += kvRow('Load balancing', c.LoadBalancingPolicy || 'PowerOfTwoChoices (default)');
-            rows += kvRow('Destinations', c.Destinations ? Object.keys(c.Destinations).length + '' : '0');
-            rows += kvRow('Active health checks', c.HealthCheck && c.HealthCheck.Active && c.HealthCheck.Active.Enabled ? 'enabled' : null);
-            rows += kvRow('Passive health checks', c.HealthCheck && c.HealthCheck.Passive && c.HealthCheck.Passive.Enabled ? 'enabled' : null);
+            rows += kvRow(S('map.kvLoadBalancing'), c.LoadBalancingPolicy || S('map.lbDefault'));
+            rows += kvRow(S('map.kvDestinations'), c.Destinations ? Object.keys(c.Destinations).length + '' : '0');
+            rows += kvRow(S('map.kvActiveHealth'), c.HealthCheck && c.HealthCheck.Active && c.HealthCheck.Active.Enabled ? S('map.enabled') : null);
+            rows += kvRow(S('map.kvPassiveHealth'), c.HealthCheck && c.HealthCheck.Passive && c.HealthCheck.Passive.Enabled ? S('map.enabled') : null);
         } else {
-            rows += kvRow('Address', obj.Address);
-            rows += kvRow('Cluster', obj.Cluster);
-            rows += kvRow('Name', obj.Name);
+            rows += kvRow(S('map.kvAddress'), obj.Address);
+            rows += kvRow(S('map.kvCluster'), obj.Cluster);
+            rows += kvRow(S('map.kvName'), obj.Name);
         }
 
         body.innerHTML =
@@ -289,9 +294,9 @@
             return sum + Object.keys(c.Destinations || {}).length;
         }, 0);
         legend.innerHTML =
-            '<span class="legend-chip legend-route"><span class="legend-dot"></span>' + routes + ' route' + (routes === 1 ? '' : 's') + '</span>' +
-            '<span class="legend-chip legend-cluster"><span class="legend-dot"></span>' + clusters + ' cluster' + (clusters === 1 ? '' : 's') + '</span>' +
-            '<span class="legend-chip legend-dest"><span class="legend-dot"></span>' + dests + ' destination' + (dests === 1 ? '' : 's') + '</span>';
+            '<span class="legend-chip legend-route"><span class="legend-dot"></span>' + Sn('map.legendRoutes', routes) + '</span>' +
+            '<span class="legend-chip legend-cluster"><span class="legend-dot"></span>' + Sn('map.legendClusters', clusters) + '</span>' +
+            '<span class="legend-chip legend-dest"><span class="legend-dot"></span>' + Sn('map.legendDestinations', dests) + '</span>';
     }
 
     function initGraph(cfg) {
@@ -409,7 +414,7 @@
         });
         var count = searchMatches.length;
         var counter = document.getElementById('search-count');
-        counter.textContent = count === 0 ? 'no match' : count + ' match' + (count === 1 ? '' : 'es');
+        counter.textContent = count === 0 ? S('map.noMatch') : Sn('map.match', count);
         counter.classList.remove('hidden');
         selectedId = null;
         hideDrawer();
@@ -435,7 +440,7 @@
                 cy = null;
             }
         } catch (err) {
-            window.YarpUi.toast('Failed to load configuration: ' + err.message, 'error');
+            window.YarpUi.toast(S('map.loadFailed', err.message), 'error');
         } finally {
             status.classList.add('hidden');
         }
@@ -470,7 +475,7 @@
             cy.zoom({ level: cy.zoom() / 1.25, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } });
         });
         document.getElementById('btn-refresh').addEventListener('click', function () {
-            load(true).then(function () { window.YarpUi.toast('Configuration reloaded', 'success'); });
+            load(true).then(function () { window.YarpUi.toast(S('map.reloaded'), 'success'); });
         });
 
         load(true);

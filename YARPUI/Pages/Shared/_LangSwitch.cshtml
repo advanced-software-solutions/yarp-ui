@@ -1,0 +1,30 @@
+@using System.Globalization
+@using Microsoft.AspNetCore.Localization
+@using Microsoft.Extensions.Options
+@using YARPUI.Hosting
+@inject IOptions<RequestLocalizationOptions> LocalizationOptions
+@{
+    var uiCulture = Context.Features.Get<IRequestCultureFeature>()?.RequestCulture.UICulture ?? CultureInfo.CurrentUICulture;
+    var choices = YarpUiLocalization.SwitcherCultures(LocalizationOptions.Value.SupportedUICultures);
+
+    // Mark the option selected when it matches the current culture or any of its
+    // parents, so a zh-CN request highlights the zh-Hans option it resolves to.
+    bool Matches(CultureInfo current, CultureInfo option)
+    {
+        for (var c = current; !string.IsNullOrEmpty(c.Name); c = c.Parent)
+        {
+            if (string.Equals(c.Name, option.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+<select class="select select-sm lang-switch" title="@L["layout.languageTitle"]" aria-label="@L["layout.languageTitle"]">
+    @foreach (var culture in choices)
+    {
+        <option value="@culture.Name" selected="@(Matches(uiCulture, culture))">@culture.NativeName</option>
+    }
+</select>

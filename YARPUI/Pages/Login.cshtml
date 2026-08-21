@@ -1,19 +1,26 @@
 @page
 @model YARPUI.Pages.LoginModel
+@using System.Globalization
+@using Microsoft.AspNetCore.Localization
 @{
     Layout = null;
-    ViewData["Title"] = "Sign in — YARP UI";
+    ViewData["Title"] = L["login.title"];
+    var uiCulture = HttpContext.Features.Get<IRequestCultureFeature>()?.RequestCulture.UICulture ?? CultureInfo.CurrentUICulture;
+    var dir = uiCulture.TextInfo.IsRightToLeft ? "rtl" : "ltr";
 }
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@uiCulture.Name" dir="@dir">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sign in — YARP UI</title>
+    <title>@L["login.title"]</title>
     <link rel="stylesheet" href="~/_content/YARPUI/css/site.css" asp-append-version="true" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%238b5cf6'/%3E%3Ccircle cx='9' cy='16' r='3.2' fill='white'/%3E%3Ccircle cx='23' cy='8.5' r='3.2' fill='white'/%3E%3Ccircle cx='23' cy='23.5' r='3.2' fill='white'/%3E%3Cpath d='M12 15.2h4.5a5 5 0 0 0 5-5M12 16.8h4.5a5 5 0 0 1 5 5' stroke='white' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
 </head>
 <body class="auth-body">
+    <div class="auth-lang">
+        <partial name="_LangSwitch" />
+    </div>
     <div class="auth-card">
         <div class="auth-brand">
             <span class="brand-mark brand-mark-lg">
@@ -25,7 +32,7 @@
                 </svg>
             </span>
             <div class="auth-title">YARP <b>UI</b></div>
-            <div class="auth-sub">Reverse proxy control room</div>
+            <div class="auth-sub">@L["login.subtitle"]</div>
         </div>
 
         @if (!string.IsNullOrEmpty(Model.ErrorMessage))
@@ -41,19 +48,21 @@
         <form method="post">
             <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
             <div class="field">
-                <label asp-for="Username">Username</label>
+                <label asp-for="Username">@L["login.username"]</label>
                 <input asp-for="Username" autofocus autocomplete="username" placeholder="admin" />
             </div>
             <div class="field">
-                <label asp-for="Password">Password</label>
+                <label asp-for="Password">@L["login.password"]</label>
                 <input asp-for="Password" type="password" autocomplete="current-password" placeholder="••••••••" />
             </div>
-            <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+            <button type="submit" class="btn btn-primary btn-block">@L["login.signIn"]</button>
         </form>
 
         <div class="auth-foot">
-            Credentials are configured in <code>appsettings.json</code> under <code>YarpUi:Auth</code>.
+            @Html.Raw(L["login.footer"])
         </div>
     </div>
+    <partial name="_StringsScript" />
+    <script src="~/_content/YARPUI/js/common.js" asp-append-version="true"></script>
 </body>
 </html>

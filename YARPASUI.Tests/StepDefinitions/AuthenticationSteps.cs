@@ -57,7 +57,8 @@ internal sealed class AuthenticationSteps(ApiTestContext ctx)
     public void ThenLoginPageShowsMessage(string message)
     {
         Assert.NotNull(ctx.Body);
-        Assert.Contains(message, ctx.Body);
+        // Non-ASCII message text (localized languages) arrives HTML-entity encoded.
+        Assert.Contains(message, System.Net.WebUtility.HtmlDecode(ctx.Body));
     }
 
     [Then("a UI session cookie is issued")]

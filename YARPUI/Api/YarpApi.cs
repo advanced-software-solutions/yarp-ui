@@ -1,5 +1,7 @@
 using System.Text.Json;
+using Microsoft.Extensions.Localization;
 using Yarp.ReverseProxy.Configuration;
+using YARPUI.Resources;
 using YARPUI.Services;
 
 namespace YARPUI.Api;
@@ -34,7 +36,7 @@ public static class YarpApi
             return Results.Json(ToResponse(configService), ConfigJsonOptions);
         });
 
-        group.MapPut("/config", async (HttpContext http, ProxyConfigService configService) =>
+        group.MapPut("/config", async (HttpContext http, ProxyConfigService configService, IStringLocalizer<UIStrings> L) =>
         {
             ConfigUpdateRequest? request;
             try
@@ -43,12 +45,12 @@ public static class YarpApi
             }
             catch (JsonException)
             {
-                return Results.BadRequest(new { errors = new[] { "The request body is not valid JSON." } });
+                return Results.BadRequest(new { errors = new[] { L["validation.bodyNotJson"].Value } });
             }
 
             if (request is null)
             {
-                return Results.BadRequest(new { errors = new[] { "The request body is empty." } });
+                return Results.BadRequest(new { errors = new[] { L["validation.bodyEmpty"].Value } });
             }
 
             var routes = request.Routes ?? Array.Empty<RouteConfig>();
@@ -79,6 +81,7 @@ public static class YarpApi
         // time range and route/cluster/destination.
         group.MapGet("/logs", (
             SqliteRequestLogStore store,
+            IStringLocalizer<UIStrings> L,
             long? after,
             long? from,
             long? to,
@@ -100,12 +103,12 @@ public static class YarpApi
 
             if (sort is not null && !SqliteRequestLogStore.IsValidSortField(sort))
             {
-                return Results.BadRequest(new { errors = new[] { $"sort must be one of: {SqliteRequestLogStore.SortFields}." } });
+                return Results.BadRequest(new { errors = new[] { L["validation.sortField", SqliteRequestLogStore.SortFields].Value } });
             }
 
             if (limit is < 1 or > SqliteRequestLogStore.MaxQueryLimit)
             {
-                return Results.BadRequest(new { errors = new[] { $"limit must be between 1 and {SqliteRequestLogStore.MaxQueryLimit}." } });
+                return Results.BadRequest(new { errors = new[] { L["validation.limitRange", SqliteRequestLogStore.MaxQueryLimit].Value } });
             }
 
             var result = store.Query(new RequestLogQuery
@@ -140,7 +143,7 @@ public static class YarpApi
             return Results.Json(new { retentionDays = store.GetRetentionDays() });
         });
 
-        group.MapPut("/logs/settings", async (HttpContext http, SqliteRequestLogStore store) =>
+        group.MapPut("/logs/settings", async (HttpContext http, SqliteRequestLogStore store, IStringLocalizer<UIStrings> L) =>
         {
             LogSettingsUpdateRequest? request;
             try
@@ -149,7 +152,7 @@ public static class YarpApi
             }
             catch (JsonException)
             {
-                return Results.BadRequest(new { errors = new[] { "The request body is not valid JSON." } });
+                return Results.BadRequest(new { errors = new[] { L["validation.bodyNotJson"].Value } });
             }
 
             if (request?.RetentionDays is null or < 0 or > SqliteRequestLogStore.MaxRetentionDays)
@@ -158,7 +161,7 @@ public static class YarpApi
                 {
                     errors = new[]
                     {
-                        $"retentionDays must be 0 (keep forever) or between 1 and {SqliteRequestLogStore.MaxRetentionDays}.",
+                        L["validation.retentionRange", SqliteRequestLogStore.MaxRetentionDays].Value,
                     },
                 });
             }

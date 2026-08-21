@@ -1,8 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Localization;
 using Yarp.ReverseProxy;
 using Yarp.ReverseProxy.Configuration;
+using YARPUI.Resources;
 
 namespace YARPUI.Services;
 
@@ -74,6 +76,7 @@ public sealed class ProxyConfigService
     private readonly IProxyStateLookup? _stateLookup;
     private readonly bool _isAttachMode;
     private readonly ILogger<ProxyConfigService> _logger;
+    private readonly IStringLocalizer<UIStrings> _localizer;
     private readonly object _sync = new();
 
     public ProxyConfigService(
@@ -83,7 +86,8 @@ public sealed class ProxyConfigService
         IConfigValidator validator,
         IProxyStateLookup? stateLookup,
         bool isAttachMode,
-        ILogger<ProxyConfigService> logger)
+        ILogger<ProxyConfigService> logger,
+        IStringLocalizer<UIStrings> localizer)
     {
         _dataDirectory = ResolveDataDirectory(configuration, environment.ContentRootPath);
         _contentRoot = environment.ContentRootPath;
@@ -93,7 +97,12 @@ public sealed class ProxyConfigService
         _stateLookup = stateLookup;
         _isAttachMode = isAttachMode;
         _logger = logger;
+        // The ResourceManager localizer resolves the culture per call, so sharing one
+        // instance across requests (this service is a singleton) stays culture-correct.
+        _localizer = localizer;
     }
+
+    private string L(string key, params object[] args) => _localizer[key, args];
 
     public string UiConfigPath => Path.Combine(_dataDirectory, UiConfigFileName);
 
@@ -298,12 +307,12 @@ public sealed class ProxyConfigService
 
         if (routes.GroupBy(r => r.RouteId, StringComparer.OrdinalIgnoreCase).FirstOrDefault(g => g.Count() > 1) is { } duplicateRoute)
         {
-            errors.Add($"Duplicate route id '{duplicateRoute.Key}'.");
+            errors.Add(L("validation.duplicateRouteId", duplicateRoute.Key ?? string.Empty));
         }
 
         if (clusters.GroupBy(c => c.ClusterId, StringComparer.OrdinalIgnoreCase).FirstOrDefault(g => g.Count() > 1) is { } duplicateCluster)
         {
-            errors.Add($"Duplicate cluster id '{duplicateCluster.Key}'.");
+            errors.Add(L("validation.duplicateClusterId", duplicateCluster.Key ?? string.Empty));
         }
 
         // Items the UI cannot edit (config from a custom provider, e.g. a database): the editor
@@ -320,7 +329,7 @@ public sealed class ProxyConfigService
         {
             if (fixedRouteIds.Contains(route.RouteId!))
             {
-                errors.Add($"Route '{route.RouteId}' comes from a non-file configuration source and cannot be managed here.");
+                errors.Add(L("validation.routeNonFile", route.RouteId!));
             }
         }
 
@@ -328,7 +337,7 @@ public sealed class ProxyConfigService
         {
             if (fixedClusterIds.Contains(cluster.ClusterId!))
             {
-                errors.Add($"Cluster '{cluster.ClusterId}' comes from a non-file configuration source and cannot be managed here.");
+                errors.Add(L("validation.clusterNonFile", cluster.ClusterId!));
             }
         }
 
@@ -345,7 +354,7 @@ public sealed class ProxyConfigService
         {
             if (string.IsNullOrWhiteSpace(route.ClusterId))
             {
-                errors.Add($"Route '{route.RouteId}' has no cluster assigned.");
+                errors.Add(L("validation.routeNoCluster", route.RouteId ?? string.Empty));
             }
             else if (!allClusterIds.Contains(route.ClusterId) &&
                      !(liveRouteCluster.TryGetValue(route.RouteId ?? string.Empty, out var previous) &&
@@ -353,7 +362,7 @@ public sealed class ProxyConfigService
             {
                 // A reference that already exists in the live config is a pre-existing condition
                 // the editor didn't introduce; YARP itself only logs it and serves 502s for the route.
-                errors.Add($"Route '{route.RouteId}' references unknown cluster '{route.ClusterId}'.");
+                errors.Add(L("validation.routeUnknownCluster", route.RouteId ?? string.Empty, route.ClusterId));
             }
         }
 
@@ -364,7 +373,7 @@ public sealed class ProxyConfigService
             var clusterId = fixedRoute.ClusterId ?? string.Empty;
             if (live.EditableClusterIds.Contains(clusterId) && !savedClusterIds.Contains(clusterId))
             {
-                errors.Add($"Cluster '{clusterId}' is still used by route '{fixedRoute.RouteId}' which comes from a non-file configuration source.");
+                errors.Add(L("validation.clusterStillUsed", clusterId, fixedRoute.RouteId!));
             }
         }
 
@@ -372,7 +381,7 @@ public sealed class ProxyConfigService
         {
             if (cluster.Destinations?.GroupBy(d => d.Key, StringComparer.OrdinalIgnoreCase).FirstOrDefault(g => g.Count() > 1) is { } duplicateDestination)
             {
-                errors.Add($"Cluster '{cluster.ClusterId}' has duplicate destination '{duplicateDestination.Key}'.");
+                errors.Add(L("validation.duplicateDestination", cluster.ClusterId ?? string.Empty, duplicateDestination.Key));
             }
         }
 
@@ -380,7 +389,7 @@ public sealed class ProxyConfigService
         {
             foreach (var exception in await _validator.ValidateRouteAsync(route))
             {
-                errors.Add($"Route '{route.RouteId}': {exception.Message}");
+                errors.Add(L("validation.routeInvalid", route.RouteId ?? string.Empty, exception.Message));
             }
         }
 
@@ -388,7 +397,7 @@ public sealed class ProxyConfigService
         {
             foreach (var exception in await _validator.ValidateClusterAsync(cluster))
             {
-                errors.Add($"Cluster '{cluster.ClusterId}': {exception.Message}");
+                errors.Add(L("validation.clusterInvalid", cluster.ClusterId ?? string.Empty, exception.Message));
             }
         }
 

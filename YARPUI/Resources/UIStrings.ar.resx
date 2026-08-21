@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- موارد واجهة YARP UI بالعربية. -->
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <!-- shared layout -->
+  <data name="layout.fallbackTitle" xml:space="preserve"><value>YARP UI</value></data>
+  <data name="layout.brandTitle" xml:space="preserve"><value>خريطة المسارات</value></data>
+  <data name="nav.map" xml:space="preserve"><value>الخريطة</value></data>
+  <data name="nav.editor" xml:space="preserve"><value>المحرّر</value></data>
+  <data name="nav.logs" xml:space="preserve"><value>السجلات</value></data>
+  <data name="layout.signedIn" xml:space="preserve"><value>تم تسجيل الدخول</value></data>
+  <data name="layout.signOut" xml:space="preserve"><value>تسجيل الخروج</value></data>
+  <data name="layout.languageTitle" xml:space="preserve"><value>اللغة</value></data>
+
+  <!-- login -->
+  <data name="login.title" xml:space="preserve"><value>تسجيل الدخول — YARP UI</value></data>
+  <data name="login.subtitle" xml:space="preserve"><value>غرفة تحكم البروكسي العكسي</value></data>
+  <data name="login.username" xml:space="preserve"><value>اسم المستخدم</value></data>
+  <data name="login.password" xml:space="preserve"><value>كلمة المرور</value></data>
+  <data name="login.signIn" xml:space="preserve"><value>تسجيل الدخول</value></data>
+  <data name="login.footer" xml:space="preserve"><value>يتم تكوين بيانات الاعتماد في &lt;code&gt;appsettings.json&lt;/code&gt; تحت &lt;code&gt;YarpUi:Auth&lt;/code&gt;.</value></data>
+  <data name="login.notConfigured" xml:space="preserve"><value>تسجيل الدخول غير مُكوَّن على الخادم. عيّن YarpUi:Auth في appsettings.json.</value></data>
+  <data name="login.invalidCredentials" xml:space="preserve"><value>اسم المستخدم أو كلمة المرور غير صحيحة.</value></data>
+
+  <!-- route map page -->
+  <data name="index.title" xml:space="preserve"><value>خريطة المسارات — YARP UI</value></data>
+  <data name="index.searchPlaceholder" xml:space="preserve"><value>ابحث في المسارات والمجموعات والوجهات…</value></data>
+  <data name="index.zoomOut" xml:space="preserve"><value>تصغير</value></data>
+  <data name="index.zoomIn" xml:space="preserve"><value>تكبير</value></data>
+  <data name="index.fit" xml:space="preserve"><value>ملاءمة الشاشة</value></data>
+  <data name="index.reload" xml:space="preserve"><value>إعادة تحميل التكوين</value></data>
+  <data name="index.hint" xml:space="preserve"><value>انقر عقدة لتتبّع سلسلتها · اسحب للتنقل · مرّر العجلة للتكبير</value></data>
+  <data name="index.loading" xml:space="preserve"><value>جارٍ تحميل التكوين…</value></data>
+  <data name="index.emptyTitle" xml:space="preserve"><value>لا توجد مسارات مُكوَّنة</value></data>
+  <data name="index.emptyBody1" xml:space="preserve"><value>البروكسي يعمل حاليًا بتكوين فارغ.</value></data>
+  <data name="index.emptyBody2" xml:space="preserve"><value>انتقل إلى المحرّر لإضافة أول مسار ووجهاتك.</value></data>
+  <data name="index.openEditor" xml:space="preserve"><value>فتح المحرّر</value></data>
+  <data name="index.close" xml:space="preserve"><value>إغلاق</value></data>
+  <data name="index.editInEditor" xml:space="preserve"><value>تحرير في المحرّر</value></data>
+
+  <!-- editor page -->
+  <data name="editor.title" xml:space="preserve"><value>المحرّر — YARP UI</value></data>
+  <data name="editor.heading" xml:space="preserve"><value>محرّر التكوين</value></data>
+  <data name="editor.unsavedChanges" xml:space="preserve"><value>تغييرات غير محفوظة</value></data>
+  <data name="editor.reload" xml:space="preserve"><value>إعادة تحميل</value></data>
+  <data name="editor.reloadTitle" xml:space="preserve"><value>تجاهل التغييرات وإعادة تحميل التكوين المباشر</value></data>
+  <data name="editor.save" xml:space="preserve"><value>حفظ وتطبيق</value></data>
+  <data name="editor.saveTitle" xml:space="preserve"><value>التحقق والتطبيق المباشر والحفظ الدائم</value></data>
+  <data name="editor.routes" xml:space="preserve"><value>المسارات</value></data>
+  <data name="editor.clusters" xml:space="preserve"><value>المجموعات</value></data>
+  <data name="editor.addRoute" xml:space="preserve"><value>إضافة مسار</value></data>
+  <data name="editor.addCluster" xml:space="preserve"><value>إضافة مجموعة</value></data>
+  <data name="editor.resetToAppsettings" xml:space="preserve"><value>إعادة التعيين إلى appsettings.json</value></data>
+  <data name="editor.resetTitle" xml:space="preserve"><value>حذف yarp-ui.routes.json والعودة إلى التكوين في appsettings.json</value></data>
+  <data name="editor.restoreBackup" xml:space="preserve"><value>استعادة نسخة appsettings الاحتياطية</value></data>
+  <data name="editor.restoreTitle" xml:space="preserve"><value>استعادة كل ملف appsettings معدَّل من نسخته الاحتياطية .yarpui.bak (المأخوذة قبل أول تعديل من الواجهة).</value></data>
+  <data name="editor.nothingSelected" xml:space="preserve"><value>لم يتم تحديد شيء</value></data>
+  <data name="editor.pickItem" xml:space="preserve"><value>اختر مسارًا أو مجموعة من القائمة الجانبية، أو أضف عنصرًا جديدًا.</value></data>
+
+  <!-- editor page: list items -->
+  <data name="editor.noCluster" xml:space="preserve"><value>بدون مجموعة</value></data>
+  <data name="editor.noRoutes" xml:space="preserve"><value>لا توجد مسارات</value></data>
+  <data name="editor.noClusters" xml:space="preserve"><value>لا توجد مجموعات</value></data>
+  <data name="editor.destCount.zero" xml:space="preserve"><value>{0} وجهة</value></data>
+  <data name="editor.destCount.one" xml:space="preserve"><value>وجهة واحدة</value></data>
+  <data name="editor.destCount.two" xml:space="preserve"><value>وجهتان</value></data>
+  <data name="editor.destCount.few" xml:space="preserve"><value>{0} وجهات</value></data>
+  <data name="editor.destCount.many" xml:space="preserve"><value>{0} وجهة</value></data>
+  <data name="editor.destCount.other" xml:space="preserve"><value>{0} وجهة</value></data>
+  <data name="editor.deleteRouteTitle" xml:space="preserve"><value>حذف المسار</value></data>
+  <data name="editor.deleteClusterTitle" xml:space="preserve"><value>حذف المجموعة</value></data>
+  <data name="editor.itemExternalTitle" xml:space="preserve"><value>{0} — من مصدر تكوين خارج الملفات (للقراءة فقط)</value></data>
+  <data name="editor.lockTitle" xml:space="preserve"><value>من مصدر تكوين خارج الملفات (للقراءة فقط)</value></data>
+
+  <!-- editor page: form -->
+  <data name="editor.fieldRouteId" xml:space="preserve"><value>معرّف المسار</value></data>
+  <data name="editor.fieldCluster" xml:space="preserve"><value>المجموعة</value></data>
+  <data name="editor.selectCluster" xml:space="preserve"><value>— اختر مجموعة —</value></data>
+  <data name="editor.fieldMatchPath" xml:space="preserve"><value>مسار المطابقة</value></data>
+  <data name="editor.fieldOrder" xml:space="preserve"><value>الترتيب</value></data>
+  <data name="editor.fieldHosts" xml:space="preserve"><value>المضيفون</value></data>
+  <data name="editor.fieldMethods" xml:space="preserve"><value>الطرق (Methods)</value></data>
+  <data name="editor.fieldAuthorization" xml:space="preserve"><value>سياسة التخويل</value></data>
+  <data name="editor.fieldCors" xml:space="preserve"><value>سياسة CORS</value></data>
+  <data name="editor.fieldTransforms" xml:space="preserve"><value>التحويلات (Transforms)</value></data>
+  <data name="editor.fieldClusterId" xml:space="preserve"><value>معرّف المجموعة</value></data>
+  <data name="editor.fieldLbPolicy" xml:space="preserve"><value>سياسة موازنة الحمل</value></data>
+  <data name="editor.fieldDestinations" xml:space="preserve"><value>الوجهات</value></data>
+  <data name="editor.fieldActiveHealth" xml:space="preserve"><value>فحوص الصحة النشطة</value></data>
+  <data name="editor.fieldPassiveHealth" xml:space="preserve"><value>فحوص الصحة السلبية</value></data>
+  <data name="editor.phOrder" xml:space="preserve"><value>الأقل يفوز</value></data>
+  <data name="editor.phMethods" xml:space="preserve"><value>GET, POST (فارغ = الكل)</value></data>
+  <data name="editor.phPolicy" xml:space="preserve"><value>الافتراضية (اختياري)</value></data>
+  <data name="editor.phDestName" xml:space="preserve"><value>الاسم</value></data>
+  <data name="editor.transformsInvalid" xml:space="preserve"><value>JSON غير صالح — يجب أن يكون مصفوفة من كائنات التحويل.</value></data>
+  <data name="editor.transformsHint" xml:space="preserve"><value>مصفوفة من كائنات التحويل، مثل [{"PathRemovePrefix":"/api"}]. تُطبَّق عند الحفظ.</value></data>
+  <data name="editor.noDestinations" xml:space="preserve"><value>لا توجد وجهات — أضف واحدة أدناه.</value></data>
+  <data name="editor.addDestination" xml:space="preserve"><value>إضافة وجهة</value></data>
+  <data name="editor.removeDestination" xml:space="preserve"><value>إزالة الوجهة</value></data>
+  <data name="editor.roBanner" xml:space="preserve"><value>{0} هذا من مصدر تكوين خارج الملفات (مثل الكود أو مزوّد قاعدة بيانات) ولا يمكن تحريره هنا. حرّره في مصدره (مثل appsettings.json) — الواجهة لا تُعدّله أبدًا.</value></data>
+
+  <!-- editor page: dialogs, toasts, errors -->
+  <data name="editor.idInUse" xml:space="preserve"><value>هذا المعرّف مستخدم بالفعل.</value></data>
+  <data name="editor.idEmpty" xml:space="preserve"><value>لا يمكن أن يكون المعرّف فارغًا.</value></data>
+  <data name="editor.confirmDeleteRoute" xml:space="preserve"><value>حذف المسار '{0}'؟ يُطبَّق التغيير بعد الحفظ.</value></data>
+  <data name="editor.confirmDeleteCluster" xml:space="preserve"><value>حذف المجموعة '{0}'؟</value></data>
+  <data name="editor.routesRef.one" xml:space="preserve"><value>يشير إليه مسار واحد وسيفشل التحقق حتى تُعيد التعيين.</value></data>
+  <data name="editor.routesRef.two" xml:space="preserve"><value>يشير إليه مساران وسيفشل التحقق حتى تُعيد التعيين.</value></data>
+  <data name="editor.routesRef.few" xml:space="preserve"><value>يشير إليه {0} مسارات وسيفشل التحقق حتى تُعيد التعيين.</value></data>
+  <data name="editor.routesRef.many" xml:space="preserve"><value>يشير إليه {0} مسارًا وسيفشل التحقق حتى تُعيد التعيين.</value></data>
+  <data name="editor.routesRef.other" xml:space="preserve"><value>يشير إليه {0} مسار وسيفشل التحقق حتى تُعيد التعيين.</value></data>
+  <data name="editor.confirmDiscard" xml:space="preserve"><value>تجاهل التغييرات غير المحفوظة وإعادة تحميل التكوين المباشر؟</value></data>
+  <data name="editor.confirmReset" xml:space="preserve"><value>تجاهل كل تغييرات الواجهة والعودة إلى تكوين appsettings.json؟&#10;&#10;سيحذف هذا yarp-ui.routes.json ويطبّق التكوين الأولي مباشرة.</value></data>
+  <data name="editor.confirmRestore" xml:space="preserve"><value>استعادة كل ملف appsettings معدَّل من نسخته الاحتياطية .yarpui.bak؟&#10;&#10;تُتراجع التغييرات التي أُجريت من الواجهة؛ وتعود الملفات إلى حالتها قبل أول تعديل عليها من الواجهة.</value></data>
+  <data name="editor.errorsTitle" xml:space="preserve"><value>لم يُطبَّق التكوين:</value></data>
+  <data name="editor.saveHttpError" xml:space="preserve"><value>فشل الحفظ برمز HTTP {0}.</value></data>
+  <data name="editor.applied" xml:space="preserve"><value>تم تطبيق التكوين — البروكسي يعمل به الآن.</value></data>
+  <data name="editor.validationFailed" xml:space="preserve"><value>فشل التحقق — راجع الأخطاء أعلاه.</value></data>
+  <data name="editor.saveFailed" xml:space="preserve"><value>فشل الحفظ: {0}</value></data>
+  <data name="editor.reloadFailed" xml:space="preserve"><value>فشلت إعادة التحميل: {0}</value></data>
+  <data name="editor.resetFailed" xml:space="preserve"><value>فشلت إعادة التعيين: {0}</value></data>
+  <data name="editor.resetFailedShort" xml:space="preserve"><value>فشلت إعادة التعيين.</value></data>
+  <data name="editor.restoredFromBackup" xml:space="preserve"><value>تمت استعادة appsettings من النسخة الاحتياطية.</value></data>
+  <data name="editor.resetToSeed" xml:space="preserve"><value>تمت إعادة التعيين إلى تكوين appsettings.json.</value></data>
+  <data name="editor.fixTransforms" xml:space="preserve"><value>أصلح أولًا JSON التحويلات غير الصالح</value></data>
+
+  <!-- config source pill (map + editor toolbars) -->
+  <data name="pill.uiManaged" xml:space="preserve"><value>تكوين تديره الواجهة</value></data>
+  <data name="pill.uiManagedTitle" xml:space="preserve"><value>يُحفظ التكوين المباشر في yarp-ui.routes.json، وهو يتجاوز قسم ReverseProxy في appsettings.json.</value></data>
+  <data name="pill.appsettingsTitle" xml:space="preserve"><value>يأتي التكوين المباشر من قسم ReverseProxy في appsettings.json. أول حفظ من الواجهة يحوّل التكوين إلى ملف مُدار.</value></data>
+  <data name="pill.attachMode" xml:space="preserve"><value>تُكتب التعديلات في appsettings.json</value></data>
+  <data name="pill.attachModeTitle" xml:space="preserve"><value>يكتب الحفظ كل تغيير مرة أخرى في ملف appsettings.json الذي جاء منه المسار أو المجموعة — يعيد YARP تحميل الملف تلقائيًا، فتُطبَّق التعديلات دون إعادة تشغيل. عناصر مصادر خارج الملفات (مقفلة) تبقى للقراءة فقط. أول تعديل لملف يُبقي نسخة احتياطية .yarpui.bak للاستعادة.</value></data>
+
+  <!-- map graph -->
+  <data name="map.typeRoute" xml:space="preserve"><value>مسار</value></data>
+  <data name="map.typeCluster" xml:space="preserve"><value>مجموعة</value></data>
+  <data name="map.typeDestination" xml:space="preserve"><value>وجهة</value></data>
+  <data name="map.anyHostPath" xml:space="preserve"><value>أي مضيف / مسار</value></data>
+  <data name="map.lbDefault" xml:space="preserve"><value>PowerOfTwoChoices (الافتراضي)</value></data>
+  <data name="map.clusterNotFound" xml:space="preserve"><value>المجموعة غير موجودة</value></data>
+  <data name="map.externalSource" xml:space="preserve"><value>من مصدر تكوين خارج الملفات</value></data>
+  <data name="map.externalBadge" xml:space="preserve"><value>خارجي</value></data>
+  <data name="map.any" xml:space="preserve"><value>الكل</value></data>
+  <data name="map.enabled" xml:space="preserve"><value>مُفعَّل</value></data>
+  <data name="map.nConfigured" xml:space="preserve"><value>{0} مُكوَّنة</value></data>
+
+  <!-- map drawer key/value rows -->
+  <data name="map.kvCluster" xml:space="preserve"><value>المجموعة</value></data>
+  <data name="map.kvPath" xml:space="preserve"><value>المسار</value></data>
+  <data name="map.kvHosts" xml:space="preserve"><value>المضيفون</value></data>
+  <data name="map.kvMethods" xml:space="preserve"><value>الطرق (Methods)</value></data>
+  <data name="map.kvOrder" xml:space="preserve"><value>الترتيب</value></data>
+  <data name="map.kvAuthorization" xml:space="preserve"><value>سياسة التخويل</value></data>
+  <data name="map.kvCors" xml:space="preserve"><value>سياسة CORS</value></data>
+  <data name="map.kvTransforms" xml:space="preserve"><value>التحويلات (Transforms)</value></data>
+  <data name="map.kvLoadBalancing" xml:space="preserve"><value>موازنة الحمل</value></data>
+  <data name="map.kvDestinations" xml:space="preserve"><value>الوجهات</value></data>
+  <data name="map.kvActiveHealth" xml:space="preserve"><value>فحوص الصحة النشطة</value></data>
+  <data name="map.kvPassiveHealth" xml:space="preserve"><value>فحوص الصحة السلبية</value></data>
+  <data name="map.kvAddress" xml:space="preserve"><value>العنوان</value></data>
+  <data name="map.kvName" xml:space="preserve"><value>الاسم</value></data>
+
+  <!-- map legend + search -->
+  <data name="map.legendRoutes.zero" xml:space="preserve"><value>لا توجد مسارات</value></data>
+  <data name="map.legendRoutes.one" xml:space="preserve"><value>مسار واحد</value></data>
+  <data name="map.legendRoutes.two" xml:space="preserve"><value>مساران</value></data>
+  <data name="map.legendRoutes.few" xml:space="preserve"><value>{0} مسارات</value></data>
+  <data name="map.legendRoutes.many" xml:space="preserve"><value>{0} مسارًا</value></data>
+  <data name="map.legendRoutes.other" xml:space="preserve"><value>{0} مسار</value></data>
+  <data name="map.legendClusters.zero" xml:space="preserve"><value>لا توجد مجموعات</value></data>
+  <data name="map.legendClusters.one" xml:space="preserve"><value>مجموعة واحدة</value></data>
+  <data name="map.legendClusters.two" xml:space="preserve"><value>مجموعتان</value></data>
+  <data name="map.legendClusters.few" xml:space="preserve"><value>{0} مجموعات</value></data>
+  <data name="map.legendClusters.many" xml:space="preserve"><value>{0} مجموعة</value></data>
+  <data name="map.legendClusters.other" xml:space="preserve"><value>{0} مجموعة</value></data>
+  <data name="map.legendDestinations.zero" xml:space="preserve"><value>لا توجد وجهات</value></data>
+  <data name="map.legendDestinations.one" xml:space="preserve"><value>وجهة واحدة</value></data>
+  <data name="map.legendDestinations.two" xml:space="preserve"><value>وجهتان</value></data>
+  <data name="map.legendDestinations.few" xml:space="preserve"><value>{0} وجهات</value></data>
+  <data name="map.legendDestinations.many" xml:space="preserve"><value>{0} وجهة</value></data>
+  <data name="map.legendDestinations.other" xml:space="preserve"><value>{0} وجهة</value></data>
+  <data name="map.noMatch" xml:space="preserve"><value>لا تطابق</value></data>
+  <data name="map.match.one" xml:space="preserve"><value>تطابق واحد</value></data>
+  <data name="map.match.two" xml:space="preserve"><value>تطابقان</value></data>
+  <data name="map.match.few" xml:space="preserve"><value>{0} تطابقات</value></data>
+  <data name="map.match.many" xml:space="preserve"><value>{0} تطابقًا</value></data>
+  <data name="map.match.other" xml:space="preserve"><value>{0} تطابق</value></data>
+  <data name="map.loadFailed" xml:space="preserve"><value>فشل تحميل التكوين: {0}</value></data>
+  <data name="map.reloaded" xml:space="preserve"><value>تمت إعادة تحميل التكوين</value></data>
+
+  <!-- logs page -->
+  <data name="logs.title" xml:space="preserve"><value>سجلات الطلبات — YARP UI</value></data>
+  <data name="logs.searchPlaceholder" xml:space="preserve"><value>تصفية حسب المسار (Path) أو المسار (Route) أو المجموعة أو الوجهة…</value></data>
+  <data name="logs.filterStatusTitle" xml:space="preserve"><value>تصفية حسب فئة الحالة</value></data>
+  <data name="logs.allStatuses" xml:space="preserve"><value>كل الحالات</value></data>
+  <data name="logs.status2" xml:space="preserve"><value>2xx — نجاح</value></data>
+  <data name="logs.status3" xml:space="preserve"><value>3xx — إعادة توجيه</value></data>
+  <data name="logs.status4" xml:space="preserve"><value>4xx — خطأ من العميل</value></data>
+  <data name="logs.status5" xml:space="preserve"><value>5xx — خطأ من الخادم</value></data>
+  <data name="logs.liveTitle" xml:space="preserve"><value>تحديث كل ثانيتين</value></data>
+  <data name="logs.live" xml:space="preserve"><value>مباشر</value></data>
+  <data name="logs.retentionTitle" xml:space="preserve"><value>حذف سجلات الطلبات الأقدم من هذه المدة تلقائيًا</value></data>
+  <data name="logs.keepForever" xml:space="preserve"><value>الاحتفاظ بالسجلات: للأبد</value></data>
+  <data name="logs.keepOneDay" xml:space="preserve"><value>الاحتفاظ بالسجلات: يوم واحد</value></data>
+  <data name="logs.keepDays" xml:space="preserve"><value>الاحتفاظ بالسجلات: {0} أيام</value></data>
+  <data name="logs.keepOneYear" xml:space="preserve"><value>الاحتفاظ بالسجلات: سنة واحدة</value></data>
+  <data name="logs.clear" xml:space="preserve"><value>مسح</value></data>
+  <data name="logs.clearTitle" xml:space="preserve"><value>حذف كل سجلات الطلبات المخزّنة</value></data>
+  <data name="logs.allRoutes" xml:space="preserve"><value>كل المسارات</value></data>
+  <data name="logs.allClusters" xml:space="preserve"><value>كل المجموعات</value></data>
+  <data name="logs.allDestinations" xml:space="preserve"><value>كل الوجهات</value></data>
+  <data name="logs.filterRouteTitle" xml:space="preserve"><value>إظهار الطلبات التي تعامل معها هذا المسار فقط</value></data>
+  <data name="logs.filterClusterTitle" xml:space="preserve"><value>إظهار الطلبات التي تعامل معها هذه المجموعة فقط</value></data>
+  <data name="logs.filterDestinationTitle" xml:space="preserve"><value>إظهار الطلبات المُرسلة إلى هذه الوجهة فقط</value></data>
+  <data name="logs.rangeTitle" xml:space="preserve"><value>حصر النتائج في إطار زمني</value></data>
+  <data name="logs.rangeLive" xml:space="preserve"><value>مباشر (الأحدث)</value></data>
+  <data name="logs.last5" xml:space="preserve"><value>آخر 5 دقائق</value></data>
+  <data name="logs.last15" xml:space="preserve"><value>آخر 15 دقيقة</value></data>
+  <data name="logs.lastHour" xml:space="preserve"><value>الساعة الأخيرة</value></data>
+  <data name="logs.last6h" xml:space="preserve"><value>آخر 6 ساعات</value></data>
+  <data name="logs.last24h" xml:space="preserve"><value>آخر 24 ساعة</value></data>
+  <data name="logs.last7d" xml:space="preserve"><value>آخر 7 أيام</value></data>
+  <data name="logs.rangeCustom" xml:space="preserve"><value>نطاق مخصص…</value></data>
+  <data name="logs.rangeAll" xml:space="preserve"><value>كل الفترات</value></data>
+  <data name="logs.fromTitle" xml:space="preserve"><value>بداية النطاق المخصص (التوقيت المحلي)</value></data>
+  <data name="logs.fromLabel" xml:space="preserve"><value>بداية النطاق المخصص</value></data>
+  <data name="logs.toTitle" xml:space="preserve"><value>نهاية النطاق المخصص (التوقيت المحلي)</value></data>
+  <data name="logs.toLabel" xml:space="preserve"><value>نهاية النطاق المخصص</value></data>
+  <data name="logs.reset" xml:space="preserve"><value>إعادة تعيين</value></data>
+  <data name="logs.resetTitle" xml:space="preserve"><value>مسح كل المرشحات والعودة إلى العرض المباشر</value></data>
+  <data name="logs.performanceTitle" xml:space="preserve"><value>إظهار لوحة الأداء أو إخفاؤها</value></data>
+  <data name="logs.performance" xml:space="preserve"><value>الأداء</value></data>
+  <data name="logs.window" xml:space="preserve"><value>النافذة الزمنية</value></data>
+  <data name="logs.statRequests" xml:space="preserve"><value>الطلبات</value></data>
+  <data name="logs.statAvg" xml:space="preserve"><value>المتوسط</value></data>
+  <data name="logs.statP95" xml:space="preserve"><value>P95</value></data>
+  <data name="logs.statMax" xml:space="preserve"><value>الأقصى</value></data>
+  <data name="logs.statErrorRate" xml:space="preserve"><value>نسبة الأخطاء</value></data>
+  <data name="logs.chartTitle" xml:space="preserve"><value>مدة كل طلب — ملوّنة حسب فئة الحالة، والخط المتقطع = P95</value></data>
+  <data name="logs.slowestRoutes" xml:space="preserve"><value>أبطأ المسارات (P95)</value></data>
+  <data name="logs.noRequestsYet" xml:space="preserve"><value>لا توجد طلبات في هذه النافذة الزمنية بعد.</value></data>
+  <data name="logs.colTime" xml:space="preserve"><value>الوقت</value></data>
+  <data name="logs.colMethod" xml:space="preserve"><value>الطريقة</value></data>
+  <data name="logs.colPath" xml:space="preserve"><value>المسار</value></data>
+  <data name="logs.colStatus" xml:space="preserve"><value>الحالة</value></data>
+  <data name="logs.colDuration" xml:space="preserve"><value>المدة</value></data>
+  <data name="logs.colClientIp" xml:space="preserve"><value>IP العميل</value></data>
+  <data name="logs.colRoute" xml:space="preserve"><value>المسار (Route)</value></data>
+  <data name="logs.colCluster" xml:space="preserve"><value>المجموعة</value></data>
+  <data name="logs.colDestination" xml:space="preserve"><value>الوجهة</value></data>
+  <data name="logs.emptyLive" xml:space="preserve"><value>لم تُسجَّل أي طلبات عبر البروكسي بعد — أرسل حركة عبر البروكسي وستظهر هنا.</value></data>
+  <data name="logs.emptyHint" xml:space="preserve"><value>تُسجَّل الطلبات التي تمر عبر البروكسي فقط؛ ويُستثنى طلبات الواجهة نفسها. تُخزَّن المدخلات في قاعدة بيانات SQLite محلية ويُحتفظ بها وفق سياسة الاحتفاظ.</value></data>
+  <data name="logs.emptyFiltered" xml:space="preserve"><value>لا طلبات تطابق المرشحات الحالية — جرّب توسيع الإطار الزمني أو إزالة مرشّح المسار أو المجموعة أو الوجهة.</value></data>
+
+  <!-- logs page: client-side rendering -->
+  <data name="logs.countLive" xml:space="preserve"><value>{0} معروضة · {1} في الذاكرة</value></data>
+  <data name="logs.countFiltered" xml:space="preserve"><value>{0} معروضة · {1} من {2} مطابقة</value></data>
+  <data name="logs.countAll" xml:space="preserve"><value>{0} معروضة · {1} مطابقة</value></data>
+  <data name="logs.fmtSeconds" xml:space="preserve"><value>{0} ث</value></data>
+  <data name="logs.fmtMs" xml:space="preserve"><value>{0} م‌ث</value></data>
+  <data name="logs.chartFailed" xml:space="preserve"><value>فاشلة</value></data>
+  <data name="logs.tooltipP95" xml:space="preserve"><value>P95 {0}</value></data>
+  <data name="logs.noRoute" xml:space="preserve"><value>(بدون مسار)</value></data>
+  <data name="logs.captionMin" xml:space="preserve"><value>آخر {0} دقيقة</value></data>
+  <data name="logs.captionHour" xml:space="preserve"><value>آخر {0} ساعة</value></data>
+  <data name="logs.captionAll" xml:space="preserve"><value>كل الفترات</value></data>
+  <data name="logs.captionUpdated" xml:space="preserve"><value>{0} · آخر تحديث {1}</value></data>
+  <data name="logs.routeBarMeta" xml:space="preserve"><value>{0} طلب · متوسط {1} · أقصى {2}</value></data>
+  <data name="logs.errorCount.zero" xml:space="preserve"><value>{0} أخطاء</value></data>
+  <data name="logs.errorCount.one" xml:space="preserve"><value>خطأ واحد</value></data>
+  <data name="logs.errorCount.two" xml:space="preserve"><value>خطآن</value></data>
+  <data name="logs.errorCount.few" xml:space="preserve"><value>{0} أخطاء</value></data>
+  <data name="logs.errorCount.many" xml:space="preserve"><value>{0} خطأً</value></data>
+  <data name="logs.errorCount.other" xml:space="preserve"><value>{0} خطأ</value></data>
+  <data name="logs.keepForeverToast" xml:space="preserve"><value>يُحتفظ بالسجلات الآن للأبد.</value></data>
+  <data name="logs.olderThan.one" xml:space="preserve"><value>سيُحذف تلقائيًا السجلات الأقدم من يوم واحد.</value></data>
+  <data name="logs.olderThan.two" xml:space="preserve"><value>سيُحذف تلقائيًا السجلات الأقدم من يومين.</value></data>
+  <data name="logs.olderThan.few" xml:space="preserve"><value>سيُحذف تلقائيًا السجلات الأقدم من {0} أيام.</value></data>
+  <data name="logs.olderThan.many" xml:space="preserve"><value>سيُحذف تلقائيًا السجلات الأقدم من {0} يومًا.</value></data>
+  <data name="logs.olderThan.other" xml:space="preserve"><value>سيُحذف تلقائيًا السجلات الأقدم من {0} يوم.</value></data>
+  <data name="logs.retentionSaveFailed" xml:space="preserve"><value>تعذّر حفظ سياسة الاحتفاظ: {0}</value></data>
+  <data name="logs.cleared" xml:space="preserve"><value>حُذفت سجلات الطلبات المخزّنة.</value></data>
+  <data name="logs.clearFailed" xml:space="preserve"><value>فشل المسح: {0}</value></data>
+
+  <!-- error page -->
+  <data name="error.title" xml:space="preserve"><value>خطأ — YARP UI</value></data>
+  <data name="error.heading" xml:space="preserve"><value>حدث خلل ما</value></data>
+  <data name="error.body" xml:space="preserve"><value>حدث خطأ أثناء معالجة طلبك.</value></data>
+  <data name="error.requestId" xml:space="preserve"><value>معرّف الطلب:</value></data>
+
+  <!-- API and configuration validation -->
+  <data name="validation.bodyNotJson" xml:space="preserve"><value>متن الطلب ليس JSON صالحًا.</value></data>
+  <data name="validation.bodyEmpty" xml:space="preserve"><value>متن الطلب فارغ.</value></data>
+  <data name="validation.sortField" xml:space="preserve"><value>يجب أن يكون sort أحد القيم: {0}.</value></data>
+  <data name="validation.limitRange" xml:space="preserve"><value>يجب أن يكون limit بين 1 و{0}.</value></data>
+  <data name="validation.retentionRange" xml:space="preserve"><value>يجب أن يكون retentionDays يساوي 0 (احتفاظ دائم) أو بين 1 و{0}.</value></data>
+  <data name="validation.duplicateRouteId" xml:space="preserve"><value>معرّف المسار '{0}' مكرَّر.</value></data>
+  <data name="validation.duplicateClusterId" xml:space="preserve"><value>معرّف المجموعة '{0}' مكرَّر.</value></data>
+  <data name="validation.routeNonFile" xml:space="preserve"><value>المسار '{0}' من مصدر تكوين خارج الملفات ولا يمكن إدارته هنا.</value></data>
+  <data name="validation.clusterNonFile" xml:space="preserve"><value>المجموعة '{0}' من مصدر تكوين خارج الملفات ولا يمكن إدارتها هنا.</value></data>
+  <data name="validation.routeNoCluster" xml:space="preserve"><value>المسار '{0}' بلا مجموعة معيَّنة.</value></data>
+  <data name="validation.routeUnknownCluster" xml:space="preserve"><value>المسار '{0}' يشير إلى مجموعة غير معروفة '{1}'.</value></data>
+  <data name="validation.clusterStillUsed" xml:space="preserve"><value>المجموعة '{0}' لا يزال يستخدمها المسار '{1}' وهو من مصدر تكوين خارج الملفات.</value></data>
+  <data name="validation.duplicateDestination" xml:space="preserve"><value>المجموعة '{0}' فيها وجهة مكرَّرة '{1}'.</value></data>
+  <data name="validation.routeInvalid" xml:space="preserve"><value>المسار '{0}': {1}</value></data>
+  <data name="validation.clusterInvalid" xml:space="preserve"><value>المجموعة '{0}': {1}</value></data>
+</root>

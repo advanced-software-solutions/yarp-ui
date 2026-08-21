@@ -4,6 +4,8 @@
 
     var esc = window.YarpUi.esc;
     var icon = window.YarpUi.icon;
+    var S = window.YarpUi.S;
+    var Sn = window.YarpUi.Sn;
 
     var LB_POLICIES = ['', 'First', 'Random', 'RoundRobin', 'LeastRequests', 'PowerOfTwoChoices'];
 
@@ -85,29 +87,25 @@
         var pill = document.getElementById('source-pill');
         if (!pill) { return; }
         if (cfg && cfg.AttachMode) {
-            pill.textContent = 'Edits write to appsettings.json';
+            pill.textContent = S('pill.attachMode');
             pill.className = 'pill pill-accent';
-            pill.title = 'Saving writes each change back into the appsettings.json file the route or cluster came from \u2014 ' +
-                'YARP hot-reloads the file, so edits go live without a restart. Items from non-file sources (locked) stay read-only. ' +
-                'The first modification of a file keeps a .yarpui.bak backup for Restore.';
+            pill.title = S('pill.attachModeTitle');
         } else if (cfg && cfg.ManagedByUi) {
-            pill.textContent = 'UI-managed config';
+            pill.textContent = S('pill.uiManaged');
             pill.className = 'pill pill-accent';
-            pill.title = 'Live configuration is persisted in yarp-ui.routes.json, which overrides the ReverseProxy section in appsettings.json.';
+            pill.title = S('pill.uiManagedTitle');
         } else {
             pill.textContent = 'appsettings.json';
             pill.className = 'pill';
-            pill.title = 'Live configuration comes from the ReverseProxy section in appsettings.json. The first save from the UI switches to a managed file.';
+            pill.title = S('pill.appsettingsTitle');
         }
     }
 
     function updateResetButton() {
         var btn = document.getElementById('btn-reset');
         if (btn) {
-            btn.textContent = attachMode ? 'Restore appsettings backup' : 'Reset to appsettings.json';
-            btn.title = attachMode
-                ? 'Restore every modified appsettings file from its .yarpui.bak backup (taken before the UI first changed it).'
-                : 'Delete yarp-ui.routes.json and return to the configuration in appsettings.json';
+            btn.textContent = attachMode ? S('editor.restoreBackup') : S('editor.resetToAppsettings');
+            btn.title = attachMode ? S('editor.restoreTitle') : S('editor.resetTitle');
         }
     }
 
@@ -199,28 +197,31 @@
             var active = selected && selected.type === 'route' && selected.id === r.RouteId;
             var broken = !r.ClusterId || !clusterById(r.ClusterId);
             var managed = isEditableRoute(r.RouteId);
-            var sub = r.Match.Path || (r.Match.Hosts.length ? r.Match.Hosts.join(', ') : 'any host / path');
-            return '<li class="item' + (active ? ' active' : '') + (managed ? '' : ' item-external') + '" data-type="route" data-id="' + esc(r.RouteId) + '" title="' + (managed ? esc(r.RouteId) : esc(r.RouteId) + ' — from a non-file configuration source (read-only)') + '">' +
+            var sub = r.Match.Path || (r.Match.Hosts.length ? r.Match.Hosts.join(', ') : S('map.anyHostPath'));
+            var title = managed ? esc(r.RouteId) : esc(S('editor.itemExternalTitle', r.RouteId));
+            return '<li class="item' + (active ? ' active' : '') + (managed ? '' : ' item-external') + '" data-type="route" data-id="' + esc(r.RouteId) + '" title="' + title + '">' +
                 '<span class="item-icon item-icon-route">' + icon('route') + '</span>' +
                 '<span class="item-text"><span class="item-title">' + esc(r.RouteId) + '</span><span class="item-sub">' + esc(sub) + '</span></span>' +
-                '<span class="item-chip' + (broken ? ' item-chip-warn' : '') + '" title="Cluster">' + esc(r.ClusterId || 'no cluster') + '</span>' +
+                '<span class="item-chip' + (broken ? ' item-chip-warn' : '') + '" title="' + esc(S('map.kvCluster')) + '">' + esc(r.ClusterId || S('editor.noCluster')) + '</span>' +
                 (managed
-                    ? '<button type="button" class="item-del" title="Delete route">' + icon('trash') + '</button>'
-                    : '<span class="item-lock" title="From a non-file configuration source (read-only)">' + icon('lock') + '</span>') +
+                    ? '<button type="button" class="item-del" title="' + esc(S('editor.deleteRouteTitle')) + '">' + icon('trash') + '</button>'
+                    : '<span class="item-lock" title="' + esc(S('editor.lockTitle')) + '">' + icon('lock') + '</span>') +
                 '</li>';
-        }).join('') || '<li class="item-empty">No routes</li>';
+        }).join('') || '<li class="item-empty">' + esc(S('editor.noRoutes')) + '</li>';
 
         clusterList.innerHTML = clusters.map(function (c) {
             var active = selected && selected.type === 'cluster' && selected.id === c.ClusterId;
             var managed = isEditableCluster(c.ClusterId);
-            return '<li class="item' + (active ? ' active' : '') + (managed ? '' : ' item-external') + '" data-type="cluster" data-id="' + esc(c.ClusterId) + '" title="' + (managed ? esc(c.ClusterId) : esc(c.ClusterId) + ' — from a non-file configuration source (read-only)') + '">' +
+            var title = managed ? esc(c.ClusterId) : esc(S('editor.itemExternalTitle', c.ClusterId));
+            var sub = Sn('editor.destCount', c._destRows.length) + ' · ' + esc(c.LoadBalancingPolicy || 'PowerOfTwoChoices');
+            return '<li class="item' + (active ? ' active' : '') + (managed ? '' : ' item-external') + '" data-type="cluster" data-id="' + esc(c.ClusterId) + '" title="' + title + '">' +
                 '<span class="item-icon item-icon-cluster">' + icon('cluster') + '</span>' +
-                '<span class="item-text"><span class="item-title">' + esc(c.ClusterId) + '</span><span class="item-sub">' + c._destRows.length + ' destination' + (c._destRows.length === 1 ? '' : 's') + ' · ' + esc(c.LoadBalancingPolicy || 'PowerOfTwoChoices') + '</span></span>' +
+                '<span class="item-text"><span class="item-title">' + esc(c.ClusterId) + '</span><span class="item-sub">' + sub + '</span></span>' +
                 (managed
-                    ? '<button type="button" class="item-del" title="Delete cluster">' + icon('trash') + '</button>'
-                    : '<span class="item-lock" title="From a non-file configuration source (read-only)">' + icon('lock') + '</span>') +
+                    ? '<button type="button" class="item-del" title="' + esc(S('editor.deleteClusterTitle')) + '">' + icon('trash') + '</button>'
+                    : '<span class="item-lock" title="' + esc(S('editor.lockTitle')) + '">' + icon('lock') + '</span>') +
                 '</li>';
-        }).join('') || '<li class="item-empty">No clusters</li>';
+        }).join('') || '<li class="item-empty">' + esc(S('editor.noClusters')) + '</li>';
     }
 
     function field(label, inner, full, hint) {
@@ -237,26 +238,26 @@
         }).join('');
 
         var transformsHint = parseTransforms(r) === null
-            ? '<span class="hint-error">Invalid JSON — must be an array of transform objects.</span>'
-            : '<span class="muted">Array of transform objects, e.g. [{"PathRemovePrefix":"/api"}]. Applied on save.</span>';
+            ? '<span class="hint-error">' + esc(S('editor.transformsInvalid')) + '</span>'
+            : '<span class="muted">' + esc(S('editor.transformsHint')) + '</span>';
 
         return '' +
             '<div class="form-card">' +
                 '<div class="form-head">' +
                     '<span class="item-icon item-icon-route">' + icon('route') + '</span>' +
                     '<span class="form-title">' + esc(r.RouteId) + '</span>' +
-                    '<span class="type-chip type-route">Route</span>' +
+                    '<span class="type-chip type-route">' + esc(S('map.typeRoute')) + '</span>' +
                 '</div>' +
                 '<div class="form-grid">' +
-                    field('Route id', '<input type="text" data-field="RouteId" value="' + esc(r.RouteId) + '" spellcheck="false">') +
-                    field('Cluster', '<select data-field="ClusterId"><option value="">— select cluster —</option>' + clusterOptions + '</select>') +
-                    field('Match path', '<input type="text" data-field="Match.Path" value="' + esc(r.Match.Path) + '" placeholder="/api/{**catch-all}" spellcheck="false">') +
-                    field('Order', '<input type="number" data-field="Order" value="' + (r.Order == null ? '' : r.Order) + '" placeholder="lower wins">') +
-                    field('Hosts', '<input type="text" data-field="Match.Hosts" value="' + esc(r.Match.Hosts.join(', ')) + '" placeholder="api.example.com, docs.example.com" spellcheck="false">', false, '') +
-                    field('Methods', '<input type="text" data-field="Match.Methods" value="' + esc(r.Match.Methods.join(', ')) + '" placeholder="GET, POST (empty = any)" spellcheck="false">') +
-                    field('Authorization policy', '<input type="text" data-field="AuthorizationPolicy" value="' + esc(r.AuthorizationPolicy) + '" placeholder="default (optional)" spellcheck="false">') +
-                    field('CORS policy', '<input type="text" data-field="CorsPolicy" value="' + esc(r.CorsPolicy) + '" placeholder="default (optional)" spellcheck="false">') +
-                    field('Transforms', '<textarea data-field="Transforms" rows="9" class="mono" spellcheck="false">' + esc(r._transformsText) + '</textarea>', true, transformsHint) +
+                    field(S('editor.fieldRouteId'), '<input type="text" data-field="RouteId" value="' + esc(r.RouteId) + '" spellcheck="false">') +
+                    field(S('editor.fieldCluster'), '<select data-field="ClusterId"><option value="">' + esc(S('editor.selectCluster')) + '</option>' + clusterOptions + '</select>') +
+                    field(S('editor.fieldMatchPath'), '<input type="text" data-field="Match.Path" value="' + esc(r.Match.Path) + '" placeholder="/api/{**catch-all}" spellcheck="false">') +
+                    field(S('editor.fieldOrder'), '<input type="number" data-field="Order" value="' + (r.Order == null ? '' : r.Order) + '" placeholder="' + esc(S('editor.phOrder')) + '">') +
+                    field(S('editor.fieldHosts'), '<input type="text" data-field="Match.Hosts" value="' + esc(r.Match.Hosts.join(', ')) + '" placeholder="api.example.com, docs.example.com" spellcheck="false">', false, '') +
+                    field(S('editor.fieldMethods'), '<input type="text" data-field="Match.Methods" value="' + esc(r.Match.Methods.join(', ')) + '" placeholder="' + esc(S('editor.phMethods')) + '" spellcheck="false">') +
+                    field(S('editor.fieldAuthorization'), '<input type="text" data-field="AuthorizationPolicy" value="' + esc(r.AuthorizationPolicy) + '" placeholder="' + esc(S('editor.phPolicy')) + '" spellcheck="false">') +
+                    field(S('editor.fieldCors'), '<input type="text" data-field="CorsPolicy" value="' + esc(r.CorsPolicy) + '" placeholder="' + esc(S('editor.phPolicy')) + '" spellcheck="false">') +
+                    field(S('editor.fieldTransforms'), '<textarea data-field="Transforms" rows="9" class="mono" spellcheck="false">' + esc(r._transformsText) + '</textarea>', true, transformsHint) +
                 '</div>' +
             '</div>';
     }
@@ -264,15 +265,15 @@
     function renderClusterForm(c) {
         var policyOptions = LB_POLICIES.map(function (p) {
             var sel = p === c.LoadBalancingPolicy ? ' selected' : '';
-            var label = p === '' ? 'PowerOfTwoChoices (default)' : p;
+            var label = p === '' ? S('map.lbDefault') : p;
             return '<option value="' + esc(p) + '"' + sel + '>' + esc(label) + '</option>';
         }).join('');
 
         var rows = c._destRows.map(function (row, index) {
             return '<div class="dest-row" data-index="' + index + '">' +
-                '<input type="text" class="dest-name" data-dest="name" data-index="' + index + '" value="' + esc(row.name) + '" placeholder="name" spellcheck="false">' +
+                '<input type="text" class="dest-name" data-dest="name" data-index="' + index + '" value="' + esc(row.name) + '" placeholder="' + esc(S('editor.phDestName')) + '" spellcheck="false">' +
                 '<input type="text" class="dest-address mono" data-dest="address" data-index="' + index + '" value="' + esc(row.address) + '" placeholder="https://service.internal/" spellcheck="false">' +
-                '<button type="button" class="btn btn-ghost btn-icon dest-del" data-index="' + index + '" title="Remove destination">' + icon('trash') + '</button>' +
+                '<button type="button" class="btn btn-ghost btn-icon dest-del" data-index="' + index + '" title="' + esc(S('editor.removeDestination')) + '">' + icon('trash') + '</button>' +
                 '</div>';
         }).join('');
 
@@ -281,18 +282,18 @@
                 '<div class="form-head">' +
                     '<span class="item-icon item-icon-cluster">' + icon('cluster') + '</span>' +
                     '<span class="form-title">' + esc(c.ClusterId) + '</span>' +
-                    '<span class="type-chip type-cluster">Cluster</span>' +
+                    '<span class="type-chip type-cluster">' + esc(S('map.typeCluster')) + '</span>' +
                 '</div>' +
                 '<div class="form-grid">' +
-                    field('Cluster id', '<input type="text" data-field="ClusterId" value="' + esc(c.ClusterId) + '" spellcheck="false">') +
-                    field('Load balancing policy', '<select data-field="LoadBalancingPolicy">' + policyOptions + '</select>') +
+                    field(S('editor.fieldClusterId'), '<input type="text" data-field="ClusterId" value="' + esc(c.ClusterId) + '" spellcheck="false">') +
+                    field(S('editor.fieldLbPolicy'), '<select data-field="LoadBalancingPolicy">' + policyOptions + '</select>') +
                     '<div class="field field-full">' +
-                        '<label>Destinations</label>' +
-                        '<div class="dest-list">' + (rows || '<div class="item-empty">No destinations — add one below.</div>') + '</div>' +
-                        '<button type="button" class="btn btn-ghost btn-sm dest-add">' + icon('plus') + ' Add destination</button>' +
+                        '<label>' + esc(S('editor.fieldDestinations')) + '</label>' +
+                        '<div class="dest-list">' + (rows || '<div class="item-empty">' + esc(S('editor.noDestinations')) + '</div>') + '</div>' +
+                        '<button type="button" class="btn btn-ghost btn-sm dest-add">' + icon('plus') + ' ' + esc(S('editor.addDestination')) + '</button>' +
                     '</div>' +
-                    '<div class="field"><label class="checkline"><input type="checkbox" data-field="HealthActive"' + (c._healthActive ? ' checked' : '') + '> Active health checks</label></div>' +
-                    '<div class="field"><label class="checkline"><input type="checkbox" data-field="HealthPassive"' + (c._healthPassive ? ' checked' : '') + '> Passive health checks</label></div>' +
+                    '<div class="field"><label class="checkline"><input type="checkbox" data-field="HealthActive"' + (c._healthActive ? ' checked' : '') + '> ' + esc(S('editor.fieldActiveHealth')) + '</label></div>' +
+                    '<div class="field"><label class="checkline"><input type="checkbox" data-field="HealthPassive"' + (c._healthPassive ? ' checked' : '') + '> ' + esc(S('editor.fieldPassiveHealth')) + '</label></div>' +
                 '</div>' +
             '</div>';
     }
@@ -303,16 +304,15 @@
             main.innerHTML =
                 '<div class="editor-placeholder">' +
                     '<div class="empty-icon">' + icon('edit') + '</div>' +
-                    '<h2>Nothing selected</h2>' +
-                    '<p class="muted">Pick a route or cluster on the left, or add a new one.</p>' +
+                    '<h2>' + esc(S('editor.nothingSelected')) + '</h2>' +
+                    '<p class="muted">' + esc(S('editor.pickItem')) + '</p>' +
                 '</div>';
             return;
         }
         var managed = selected.type === 'route' ? isEditableRoute(selected.id) : isEditableCluster(selected.id);
         var banner = managed ? '' :
             '<div class="ro-banner">' + icon('lock') +
-            ' This ' + selected.type + ' comes from a non-file configuration source (e.g. code or a database provider) and cannot be edited here. ' +
-            'Edit it in its source (e.g. appsettings.json) — the UI never modifies it.</div>';
+            ' ' + esc(S('editor.roBanner', selected.type === 'route' ? S('map.typeRoute') : S('map.typeCluster'))) + '</div>';
         var html;
         if (selected.type === 'route') {
             var r = routeById(selected.id);
@@ -334,7 +334,7 @@
         document.getElementById('dirty-indicator').classList.toggle('hidden', !dirty);
         var save = document.getElementById('btn-save');
         save.disabled = loading || !dirty || invalid > 0;
-        save.title = invalid > 0 ? 'Fix invalid Transforms JSON first' : 'Validate, apply live and persist';
+        save.title = invalid > 0 ? S('editor.fixTransforms') : S('editor.saveTitle');
     }
 
     function refreshSelection() {
@@ -363,7 +363,7 @@
                 (type === 'route' ? m.RouteId : m.ClusterId).toLowerCase() === newId.toLowerCase();
         });
         if (!newId || taken) {
-            window.YarpUi.toast(taken ? 'That id is already in use.' : 'The id cannot be empty.', 'error');
+            window.YarpUi.toast(taken ? S('editor.idInUse') : S('editor.idEmpty'), 'error');
             input.value = oldId;
             return;
         }
@@ -386,7 +386,7 @@
 
     function deleteRoute(id) {
         if (!isEditableRoute(id)) { return; }
-        if (!window.confirm("Delete route '" + id + "'? The change applies after saving.")) { return; }
+        if (!window.confirm(S('editor.confirmDeleteRoute', id))) { return; }
         routes = routes.filter(function (r) { return r.RouteId !== id; });
         editableRoutes.delete(id);
         if (selected && selected.type === 'route' && selected.id === id) { selected = null; }
@@ -396,8 +396,8 @@
     function deleteCluster(id) {
         if (!isEditableCluster(id)) { return; }
         var refs = routes.filter(function (r) { return r.ClusterId === id; }).length;
-        var msg = "Delete cluster '" + id + "'?";
-        if (refs) { msg += '\n' + refs + " route(s) reference it and will fail validation until reassigned."; }
+        var msg = S('editor.confirmDeleteCluster', id);
+        if (refs) { msg += '\n' + Sn('editor.routesRef', refs); }
         if (!window.confirm(msg)) { return; }
         clusters = clusters.filter(function (c) { return c.ClusterId !== id; });
         editableClusters.delete(id);
@@ -448,8 +448,8 @@
                         var hint = t.closest('.field').querySelector('.field-hint');
                         if (hint) {
                             hint.innerHTML = r._transformsValid
-                                ? '<span class="muted">Array of transform objects, e.g. [{"PathRemovePrefix":"/api"}]. Applied on save.</span>'
-                                : '<span class="hint-error">Invalid JSON — must be an array of transform objects.</span>';
+                                ? '<span class="muted">' + esc(S('editor.transformsHint')) + '</span>'
+                                : '<span class="hint-error">' + esc(S('editor.transformsInvalid')) + '</span>';
                         }
                         break;
                 }
@@ -519,13 +519,13 @@
         if (!li) { return; }
         if (type === 'route') {
             var r = routeById(id);
-            var sub = r.Match.Path || (r.Match.Hosts.length ? r.Match.Hosts.join(', ') : 'any host / path');
+            var sub = r.Match.Path || (r.Match.Hosts.length ? r.Match.Hosts.join(', ') : S('map.anyHostPath'));
             li.querySelector('.item-sub').textContent = sub;
-            li.querySelector('.item-chip').textContent = r.ClusterId || 'no cluster';
+            li.querySelector('.item-chip').textContent = r.ClusterId || S('editor.noCluster');
             li.querySelector('.item-chip').classList.toggle('item-chip-warn', !r.ClusterId || !clusterById(r.ClusterId));
         } else {
             var c = clusterById(id);
-            li.querySelector('.item-sub').textContent = c._destRows.length + ' destination' + (c._destRows.length === 1 ? '' : 's') + ' · ' + (c.LoadBalancingPolicy || 'PowerOfTwoChoices');
+            li.querySelector('.item-sub').textContent = Sn('editor.destCount', c._destRows.length) + ' · ' + (c.LoadBalancingPolicy || 'PowerOfTwoChoices');
         }
     }
 
@@ -533,7 +533,7 @@
 
     function showErrors(errors) {
         var panel = document.getElementById('server-errors');
-        panel.innerHTML = '<div class="error-title">' + icon('warn') + ' The configuration was not applied:</div>' +
+        panel.innerHTML = '<div class="error-title">' + icon('warn') + ' ' + esc(S('editor.errorsTitle')) + '</div>' +
             '<ul>' + errors.map(function (e2) { return '<li>' + esc(e2) + '</li>'; }).join('') + '</ul>';
         panel.classList.remove('hidden');
     }
@@ -560,7 +560,7 @@
                 applyConfig(cfg);
                 hideErrors();
                 refreshSelection();
-                window.YarpUi.toast('Configuration applied — the proxy is live.', 'success');
+                window.YarpUi.toast(S('editor.applied'), 'success');
                 // If the host's config reload lands after the save response, quietly re-fetch
                 // so the page settles on the latest settings (unless the user is editing again).
                 setTimeout(function () {
@@ -569,11 +569,11 @@
             } else {
                 var err = {};
                 try { err = await res.json(); } catch (e) { /* ignore */ }
-                showErrors(err.errors || ['Save failed with HTTP ' + res.status + '.']);
-                window.YarpUi.toast('Validation failed — see the errors above.', 'error');
+                showErrors(err.errors || [S('editor.saveHttpError', res.status)]);
+                window.YarpUi.toast(S('editor.validationFailed'), 'error');
             }
         } catch (err2) {
-            window.YarpUi.toast('Save failed: ' + err2.message, 'error');
+            window.YarpUi.toast(S('editor.saveFailed', err2.message), 'error');
         } finally {
             loading = false;
             btn.classList.remove('loading');
@@ -582,7 +582,7 @@
     }
 
     async function reload(skipConfirm) {
-        if (!skipConfirm && isDirty() && !window.confirm('Discard unsaved changes and reload the live configuration?')) { return; }
+        if (!skipConfirm && isDirty() && !window.confirm(S('editor.confirmDiscard'))) { return; }
         try {
             var res = await window.YarpUi.api('/api/yarp/config');
             if (!res.ok) { throw new Error('HTTP ' + res.status); }
@@ -591,14 +591,12 @@
             hideErrors();
             refreshSelection();
         } catch (err) {
-            window.YarpUi.toast('Reload failed: ' + err.message, 'error');
+            window.YarpUi.toast(S('editor.reloadFailed', err.message), 'error');
         }
     }
 
     async function resetToSeed() {
-        var msg = attachMode
-            ? 'Restore every modified appsettings file from its .yarpui.bak backup?\n\nChanges made from the UI are rolled back; the files return to the state they had before the UI first modified them.'
-            : 'Discard all UI changes and return to the appsettings.json configuration?\n\nThis deletes yarp-ui.routes.json and applies the seed config live.';
+        var msg = attachMode ? S('editor.confirmRestore') : S('editor.confirmReset');
         if (!window.confirm(msg)) { return; }
         try {
             var res = await window.YarpUi.api('/api/yarp/config/reset', { method: 'POST' });
@@ -606,14 +604,14 @@
                 var cfg = await res.json();
                 applyConfig(cfg);
                 refreshSelection();
-                window.YarpUi.toast(attachMode ? 'appsettings restored from backup.' : 'Reset to the appsettings.json configuration.', 'success');
+                window.YarpUi.toast(attachMode ? S('editor.restoredFromBackup') : S('editor.resetToSeed'), 'success');
             } else {
                 var err = {};
                 try { err = await res.json(); } catch (e) { /* ignore */ }
-                showErrors(err.errors || ['Reset failed.']);
+                showErrors(err.errors || [S('editor.resetFailedShort')]);
             }
         } catch (err2) {
-            window.YarpUi.toast('Reset failed: ' + err2.message, 'error');
+            window.YarpUi.toast(S('editor.resetFailed', err2.message), 'error');
         }
     }
 

@@ -162,6 +162,21 @@ appsettings.json ("ReverseProxy" section)   ← hand-written seed
 
 **保留策略**会在日志超过一定时间后自动删除它们：后台任务在启动时以及之后每小时运行。策略从日志页面工具栏管理（*保留日志：永久 / 1 / 7 / 30 / 90 / 365 天*），更改立即生效；初始默认值来自配置中的 `YarpUi:Logs:RetentionDays`（未设置时为 30 天）。你在界面中设置的策略存储在数据库本身中，并优先于配置值。
 
+## 本地化
+
+界面提供**英语**（默认）、**阿拉伯语**（从右到左渲染）、**西班牙语**和**简体中文**。请求的文化按以下顺序解析：`?culture=` 查询参数、ASP.NET Core 标准文化 Cookie、浏览器的 `Accept-Language` 标头，最后是默认值。顶栏（以及登录页）中的语言切换器会写入该 Cookie 并重新加载。
+
+宿主无需任何配置：包会插入自己的请求本地化中间件，且仅作用于界面的路由（`/login`、界面页面、`/api/yarp/*`），因此宿主应用无需调用 `UseRequestLocalization`，其自身页面也保持原有的文化行为。
+
+两个设置控制语言集合（在 `appsettings.json` 中）：
+
+| 设置 | 默认值 | 含义 |
+| --- | --- | --- |
+| `YarpUi:Cultures` | `en,ar,es,zh-Hans,zh-CN` | 界面可以使用的、以逗号分隔的文化列表 |
+| `YarpUi:DefaultCulture` | `en` | 请求不匹配任何受支持文化时使用的文化 |
+
+`zh-CN` 被接受为 `zh-Hans` 的别名（浏览器发送的是区域标记）；不支持的文化会回退到默认值。校验错误——无论是来自管理 API 还是编辑器的配置检查——都会使用与请求相同的文化进行本地化。
+
 ## 离线 / 无网络
 
 所有 JavaScript 库（Cytoscape.js、dagre、cytoscape-dagre、Chart.js）都在 `wwwroot/lib/` 下本地打包。运行时不使用任何 CDN；界面可完全离线工作。
