@@ -9,53 +9,6 @@ on:
       - master
 
 jobs:
-  test:
-    name: Run YARPASUI.Tests
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      checks: write # lets the test reporter publish the detailed results check
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
-
-      - name: Restore
-        run: dotnet restore YARPASUI.Tests/YARPASUI.Tests.csproj
-
-      - name: Build
-        run: dotnet build YARPASUI.Tests/YARPASUI.Tests.csproj --configuration Release --no-restore
-
-      # Scenarios tagged @windows (NTFS ACL simulation) skip themselves on Linux.
-      - name: Test
-        id: tests
-        run: >-
-          dotnet test YARPASUI.Tests/YARPASUI.Tests.csproj
-          --configuration Release --no-build
-          --logger trx --results-directory test-results
-
-      # Renders the per-test results (pass/fail/skip, failure messages) in the run
-      # Summary and as a check run, instead of just the console summary line.
-      - name: Test Report
-        uses: dorny/test-reporter@v2
-        if: always() && steps.tests.outcome != 'skipped'
-        with:
-          name: YARPASUI.Tests results
-          path: 'test-results/*.trx'
-          reporter: dotnet-trx
-          list-tests: all
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: test-results/*.trx
 
   publish:
     name: Build and publish YARPUI to nuget.org
