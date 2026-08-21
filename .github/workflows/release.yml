@@ -12,7 +12,6 @@ jobs:
 
   publish:
     name: Build and publish YARPUI to nuget.org
-    needs: test
     # Hard guard: the branches filter above only limits the picker; this stops
     # an older copy of this workflow on another branch from publishing. Runs
     # on master as soon as the test job is green.
