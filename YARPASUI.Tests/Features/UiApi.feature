@@ -181,3 +181,83 @@ Feature: Management API
     Then the response status is 200
     When I GET "/api/yarp/logs"
     Then the response json entries count is 0
+
+  Scenario: Logged entries include the captured client IP
+    Given the proxy has logged these requests
+      | Method | Path | Status | DurationMs | RouteId | ClientIp    |
+      | GET    | /one | 200    | 10         | api     | 203.0.113.9 |
+    When I GET "/api/yarp/logs"
+    Then the response status is 200
+    And the response json entries are
+      | Method | Path | Status | ClientIp    |
+      | GET    | /one | 200    | 203.0.113.9 |
+
+  Scenario: Searched logs come back newest first with a total match count
+    Given the proxy has logged these requests
+      | Method | Path    | Status | DurationMs | RouteId |
+      | GET    | /first  | 200    | 10         | api     |
+      | GET    | /second | 200    | 10         | api     |
+    When I GET "/api/yarp/logs?limit=10"
+    Then the response status is 200
+    And the response json entries are
+      | Path    |
+      | /second |
+      | /first  |
+    And the response json total is 2
+
+  Scenario: Logs can be filtered by route, cluster and destination
+    Given the proxy has logged these requests
+      | Method | Path | Status | DurationMs | RouteId | ClusterId | DestinationId |
+      | GET    | /a   | 200    | 10         | api     | c1        | d1            |
+      | GET    | /b   | 200    | 10         | web     | c2        | d2            |
+      | GET    | /c   | 200    | 10         | api     | c2        | d3            |
+    When I GET "/api/yarp/logs?routeId=api"
+    Then the response status is 200
+    And the response json entries are
+      | Path |
+      | /c   |
+      | /a   |
+    When I GET "/api/yarp/logs?clusterId=c1"
+    Then the response status is 200
+    And the response json entries count is 1
+    When I GET "/api/yarp/logs?destinationId=d2"
+    Then the response status is 200
+    And the response json entries are
+      | Path |
+      | /b   |
+
+  Scenario: Logs can be restricted to a time frame
+    Given the proxy has logged these requests
+      | Method | Path   | Status | DurationMs | RouteId |
+      | GET    | /fresh | 200    | 10         | api     |
+    And an entry from 10 days ago was written directly to the log database
+    When I GET "/api/yarp/logs" with a time range covering the last 5 days
+    Then the response status is 200
+    And the response json entries are
+      | Path   |
+      | /fresh |
+    And the response json total is 1
+
+  Scenario: Logs can be sorted by duration
+    Given the proxy has logged these requests
+      | Method | Path | Status | DurationMs | RouteId |
+      | GET    | /a   | 200    | 10         | api     |
+      | GET    | /b   | 200    | 30         | api     |
+      | GET    | /c   | 200    | 20         | api     |
+    When I GET "/api/yarp/logs?sort=duration&desc=false"
+    Then the response status is 200
+    And the response json entries are
+      | Path |
+      | /a   |
+      | /c   |
+      | /b   |
+
+  Scenario Outline: Invalid log query parameters are rejected
+    When I GET "<url>"
+    Then the response status is 400
+
+    Examples:
+      | case       | url                          |
+      | bad sort   | /api/yarp/logs?sort=bogus    |
+      | zero limit | /api/yarp/logs?limit=0       |
+      | big limit  | /api/yarp/logs?limit=5000    |

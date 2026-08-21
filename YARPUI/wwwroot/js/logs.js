@@ -1,6 +1,10 @@
-/* Request logs: polls /api/yarp/logs every 2s while Live is on, with client-side filtering.
-   The performance panel aggregates the same data: /api/yarp/logs/stats every 5s (stat cards,
-   per-route bars, P95 line) and a per-request duration scatter fed from the polled entries. */
+/* Request logs: live tailing of /api/yarp/logs (after-cursor) with client-side text/status
+   filtering and column sorting (newest first by default). When a time frame or a route/
+   cluster/destination filter is active, the page switches to a server-side history query
+   (from/to + filters + sort) that covers the whole retained window, not just the buffer.
+   The performance panel aggregates the same data: /api/yarp/logs/stats every 5s (stat
+   cards, per-route bars, P95 line) and a per-request duration scatter fed from the loaded
+   entries. */
 (function () {
     'use strict';
 
@@ -9,12 +13,25 @@
     var entries = [];
     var lastSeq = 0;
     var inFlight = false;
+    var total = null; // server-side match count while filtered; null in live mode
 
     var filterText = '';
     var filterStatus = '';
     var auto = true;
 
+    // Server-side filters. range '' = live tailing; 'all' | 'custom' | minutes = history query.
+    var filters = { range: '', fromMs: null, toMs: null, routeId: '', clusterId: '', destinationId: '' };
+    var sort = { field: 'timestamp', dir: 'desc' };
+
     var MAX_CLIENT_ENTRIES = 500;
+
+    /* ---- filter dropdown sources (/api/yarp/config is PascalCase; log entries are camelCase) ---- */
+
+    var configRoutes = [];
+    var configClusters = {}; // clusterId -> destination names
+    var seenRoutes = {};     // ids that appeared in log rows but are no longer in the config
+    var seenClusters = {};
+    var seenDestinations = {};
 
     /* ---- performance panel state ---- */
 
@@ -65,10 +82,46 @@
         }
         if (filterText) {
             var q = filterText.toLowerCase();
-            var haystack = (entry.path || '') + ' ' + (entry.routeId || '') + ' ' + (entry.clusterId || '') + ' ' + (entry.destinationId || '') + ' ' + (entry.method || '');
+            var haystack = (entry.path || '') + ' ' + (entry.routeId || '') + ' ' + (entry.clusterId || '') + ' ' +
+                (entry.destinationId || '') + ' ' + (entry.method || '') + ' ' + (entry.clientIp || '');
             if (haystack.toLowerCase().indexOf(q) === -1) { return false; }
         }
         return true;
+    }
+
+    function filtersActive() {
+        return filters.range !== '' || filters.routeId !== '' || filters.clusterId !== '' || filters.destinationId !== '';
+    }
+
+    /* ---- sorting ---- */
+
+    function entryComparator(a, b) {
+        var result = compareBy(sort.field, a, b);
+        return sort.dir === 'asc' ? result : -result;
+    }
+
+    function compareBy(field, a, b) {
+        if (field === 'timestamp') {
+            return new Date(a.timestampUtc).getTime() - new Date(b.timestampUtc).getTime();
+        }
+        if (field === 'duration') {
+            return (a.durationMs || 0) - (b.durationMs || 0);
+        }
+        if (field === 'status') {
+            return (a.statusCode == null ? -1 : a.statusCode) - (b.statusCode == null ? -1 : b.statusCode);
+        }
+        return stringOrEmpty(a[field]).localeCompare(stringOrEmpty(b[field]));
+    }
+
+    function stringOrEmpty(value) { return value == null ? '' : String(value); }
+
+    function applySortHeaders() {
+        Array.prototype.forEach.call(document.querySelectorAll('.th-sortable'), function (th) {
+            var active = th.getAttribute('data-sort') === sort.field;
+            th.classList.toggle('sorted-asc', active && sort.dir === 'asc');
+            th.classList.toggle('sorted-desc', active && sort.dir === 'desc');
+            th.setAttribute('aria-sort', active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none');
+        });
     }
 
     /* ---- table ---- */
@@ -76,16 +129,28 @@
     function render() {
         var rows = document.getElementById('log-rows');
         var visible = entries.filter(passesFilter);
-        document.getElementById('log-count').textContent =
-            visible.length + ' shown · ' + entries.length + ' buffered';
+        visible.sort(entryComparator);
+
+        var countLabel = document.getElementById('log-count');
+        if (total === null) {
+            countLabel.textContent = visible.length + ' shown · ' + entries.length + ' buffered';
+        } else {
+            countLabel.textContent = visible.length + ' shown · ' + entries.length.toLocaleString() +
+                (total > entries.length ? ' of ' + total.toLocaleString() + ' matching' : ' matching');
+        }
+
+        var filtered = filtersActive();
+        document.getElementById('log-empty').classList.toggle('hidden', entries.length !== 0);
+        document.getElementById('log-empty-live').classList.toggle('hidden', filtered);
+        document.getElementById('log-empty-hint').classList.toggle('hidden', filtered);
+        document.getElementById('log-empty-filtered').classList.toggle('hidden', !filtered);
 
         if (!entries.length) {
             rows.innerHTML = '';
-            document.getElementById('log-empty').classList.remove('hidden');
+            applySortHeaders();
             renderChart();
             return;
         }
-        document.getElementById('log-empty').classList.add('hidden');
 
         rows.innerHTML = visible.map(function (e) {
             var status = e.statusCode == null ? '—' : e.statusCode;
@@ -96,12 +161,15 @@
                 '<td class="mono cell-path" title="' + esc(e.path) + '">' + esc(e.path) + '</td>' +
                 '<td class="col-status"><span class="status-pill ' + statusClass(e.statusCode) + '">' + status + '</span></td>' +
                 '<td class="col-duration mono">' + (e.durationMs == null ? '—' : e.durationMs.toFixed(1) + ' ms') + '</td>' +
+                '<td class="mono cell-dim">' + esc(e.clientIp || '—') + '</td>' +
                 '<td class="mono cell-dim">' + esc(e.routeId || '—') + '</td>' +
                 '<td class="mono cell-dim">' + esc(e.clusterId || '—') + '</td>' +
                 '<td class="mono cell-dim" title="' + esc(e.destinationAddress || '') + '">' + esc(e.destinationId || '—') + '</td>' +
                 '</tr>';
         }).join('');
 
+        trackSeenIds();
+        applySortHeaders();
         renderChart();
     }
 
@@ -109,22 +177,84 @@
         if (inFlight) { return; }
         inFlight = true;
         try {
-            var res = await window.YarpUi.api('/api/yarp/logs?after=' + lastSeq);
-            if (res.ok) {
-                var data = await res.json();
-                if (data.entries && data.entries.length) {
-                    entries = entries.concat(data.entries);
-                    if (entries.length > MAX_CLIENT_ENTRIES) {
-                        entries = entries.slice(entries.length - MAX_CLIENT_ENTRIES);
-                    }
-                    lastSeq = data.entries[data.entries.length - 1].seq;
-                    render();
-                }
+            if (filtersActive()) {
+                await queryLogs();
+            } else {
+                await pollLive();
             }
         } catch (e) {
             /* transient — retried on the next tick */
         } finally {
             inFlight = false;
+        }
+    }
+
+    async function pollLive() {
+        var res = await window.YarpUi.api('/api/yarp/logs?after=' + lastSeq);
+        if (res.ok) {
+            var data = await res.json();
+            if (data.entries && data.entries.length) {
+                entries = entries.concat(data.entries);
+                if (entries.length > MAX_CLIENT_ENTRIES) {
+                    entries = entries.slice(entries.length - MAX_CLIENT_ENTRIES);
+                }
+                total = null;
+                trackSeq(data.entries);
+                render();
+            }
+        }
+    }
+
+    // History search over the whole retained window (server-side filters + sort). Preset ranges
+    // recompute their start on every call so a rolling "last N minutes" stays current.
+    async function queryLogs() {
+        computeRange();
+        var params = new URLSearchParams();
+        params.set('sort', sort.field);
+        params.set('desc', sort.dir === 'desc');
+        params.set('limit', String(MAX_CLIENT_ENTRIES));
+        if (filters.fromMs !== null) { params.set('from', String(filters.fromMs)); }
+        if (filters.toMs !== null) { params.set('to', String(filters.toMs)); }
+        if (filters.routeId) { params.set('routeId', filters.routeId); }
+        if (filters.clusterId) { params.set('clusterId', filters.clusterId); }
+        if (filters.destinationId) { params.set('destinationId', filters.destinationId); }
+
+        var res = await window.YarpUi.api('/api/yarp/logs?' + params.toString());
+        if (res.ok) {
+            var data = await res.json();
+            total = typeof data.total === 'number' ? data.total : null;
+            entries = data.entries || [];
+            trackSeq(entries);
+            render();
+        }
+    }
+
+    function computeRange() {
+        if (filters.range === 'custom') {
+            filters.fromMs = dateInputMs('log-from');
+            filters.toMs = dateInputMs('log-to');
+        } else if (filters.range === 'all') {
+            filters.fromMs = null;
+            filters.toMs = null;
+        } else if (filters.range) {
+            filters.fromMs = Date.now() - (+filters.range) * 60000;
+            filters.toMs = null;
+        } else {
+            filters.fromMs = null;
+            filters.toMs = null;
+        }
+    }
+
+    function dateInputMs(id) {
+        var value = document.getElementById(id).value;
+        if (!value) { return null; }
+        var ms = Date.parse(value); // datetime-local has no zone — parsed in the browser's local time
+        return isNaN(ms) ? null : ms;
+    }
+
+    function trackSeq(list) {
+        for (var i = 0; i < list.length; i++) {
+            if (list[i].seq > lastSeq) { lastSeq = list[i].seq; }
         }
     }
 
@@ -306,6 +436,75 @@
         }).join('');
     }
 
+    /* ---- route/cluster/destination filter dropdowns ---- */
+
+    async function loadFilterOptions() {
+        try {
+            var res = await window.YarpUi.api('/api/yarp/config');
+            if (!res.ok) { return; }
+            var cfg = await res.json();
+            configRoutes = (cfg.Routes || []).map(function (r) { return r.RouteId; });
+            configClusters = {};
+            (cfg.Clusters || []).forEach(function (c) {
+                configClusters[c.ClusterId] = Object.keys(c.Destinations || {});
+            });
+            rebuildFilterOptions();
+        } catch (e) {
+            /* dropdowns stay sparse — ids seen in captured entries still become selectable */
+        }
+    }
+
+    // Options come from the live config plus ids observed in log rows (routes/clusters can be
+    // deleted while their history is still retained). Destination options scope to the selected
+    // cluster, or span every cluster when none is selected.
+    function rebuildFilterOptions() {
+        rebuildSelect('log-route', 'All routes',
+            uniqueSorted(configRoutes.concat(Object.keys(seenRoutes))), filters.routeId);
+        rebuildSelect('log-cluster', 'All clusters',
+            uniqueSorted(Object.keys(configClusters).concat(Object.keys(seenClusters))), filters.clusterId);
+
+        var destinations = [];
+        if (filters.clusterId && configClusters[filters.clusterId]) {
+            destinations = configClusters[filters.clusterId].slice();
+        } else {
+            Object.keys(configClusters).forEach(function (id) {
+                destinations = destinations.concat(configClusters[id]);
+            });
+        }
+        rebuildSelect('log-destination', 'All destinations',
+            uniqueSorted(destinations.concat(Object.keys(seenDestinations))), filters.destinationId);
+    }
+
+    function trackSeenIds() {
+        var added = false;
+        entries.forEach(function (e) {
+            if (e.routeId && !seenRoutes[e.routeId]) { seenRoutes[e.routeId] = true; added = true; }
+            if (e.clusterId && !seenClusters[e.clusterId]) { seenClusters[e.clusterId] = true; added = true; }
+            if (e.destinationId && !seenDestinations[e.destinationId]) { seenDestinations[e.destinationId] = true; added = true; }
+        });
+        if (added) { rebuildFilterOptions(); }
+    }
+
+    function uniqueSorted(values) {
+        var seen = {};
+        var list = [];
+        values.forEach(function (v) {
+            if (v && !seen[v]) { seen[v] = true; list.push(v); }
+        });
+        return list.sort();
+    }
+
+    function rebuildSelect(id, allLabel, values, selected) {
+        var select = document.getElementById(id);
+        if (!select) { return; }
+        var current = selected || '';
+        select.innerHTML = '<option value="">' + esc(allLabel) + '</option>' +
+            values.map(function (v) {
+                return '<option value="' + esc(v) + '"' + (v === current ? ' selected' : '') + '>' + esc(v) + '</option>';
+            }).join('');
+        select.value = values.indexOf(current) !== -1 ? current : '';
+    }
+
     /* ---- retention policy ---- */
 
     function setRetentionValue(days) {
@@ -362,6 +561,13 @@
         try { window.localStorage.setItem('yarpui.logs.chartsVisible', visible ? '1' : '0'); } catch (e) { /* private mode */ }
     }
 
+    function applyFiltersChanged() {
+        document.getElementById('log-reset').classList.toggle('hidden', !filtersActive());
+        document.getElementById('log-from').classList.toggle('hidden', filters.range !== 'custom');
+        document.getElementById('log-to').classList.toggle('hidden', filters.range !== 'custom');
+        poll();
+    }
+
     /* ---- wiring ---- */
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -382,6 +588,56 @@
         });
         document.getElementById('live-dot').classList.add('on');
 
+        document.getElementById('log-route').addEventListener('change', function (e) {
+            filters.routeId = e.target.value;
+            applyFiltersChanged();
+        });
+
+        document.getElementById('log-cluster').addEventListener('change', function (e) {
+            filters.clusterId = e.target.value;
+            filters.destinationId = ''; // destination options are scoped to the cluster
+            rebuildFilterOptions();
+            applyFiltersChanged();
+        });
+
+        document.getElementById('log-destination').addEventListener('change', function (e) {
+            filters.destinationId = e.target.value;
+            applyFiltersChanged();
+        });
+
+        document.getElementById('log-range').addEventListener('change', function (e) {
+            filters.range = e.target.value;
+            applyFiltersChanged();
+        });
+
+        ['log-from', 'log-to'].forEach(function (id) {
+            document.getElementById(id).addEventListener('change', function () {
+                if (filters.range === 'custom') { poll(); }
+            });
+        });
+
+        document.getElementById('log-reset').addEventListener('click', function () {
+            filters = { range: '', fromMs: null, toMs: null, routeId: '', clusterId: '', destinationId: '' };
+            ['log-route', 'log-cluster', 'log-destination', 'log-range', 'log-from', 'log-to'].forEach(function (id) {
+                document.getElementById(id).value = '';
+            });
+            rebuildFilterOptions();
+            applyFiltersChanged();
+        });
+
+        Array.prototype.forEach.call(document.querySelectorAll('.th-sortable'), function (th) {
+            th.addEventListener('click', function () {
+                var field = th.getAttribute('data-sort');
+                if (sort.field === field) {
+                    sort.dir = sort.dir === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sort.field = field;
+                    sort.dir = 'desc';
+                }
+                if (filtersActive()) { queryLogs(); } else { render(); }
+            });
+        });
+
         document.getElementById('stats-window').addEventListener('change', function (e) {
             statsWindow = +e.target.value;
             fetchStats();
@@ -400,7 +656,9 @@
                 await window.YarpUi.api('/api/yarp/logs', { method: 'DELETE' });
                 entries = [];
                 lastSeq = 0;
+                total = null;
                 render();
+                poll();
                 fetchStats();
                 window.YarpUi.toast('Stored request logs deleted.', 'success');
             } catch (e) {
@@ -414,6 +672,8 @@
 
         initChart();
         loadRetention();
+        loadFilterOptions();
+        applySortHeaders();
         render();
         poll();
         fetchStats();

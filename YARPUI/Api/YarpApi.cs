@@ -74,9 +74,52 @@ public static class YarpApi
             return Results.Json(ToResponse(configService), ConfigJsonOptions);
         });
 
-        group.MapGet("/logs", (SqliteRequestLogStore store, long? after) =>
+        // Live tailing (only `after`) streams new entries oldest-first, as the Logs page polls it.
+        // Any search parameter switches to a history query: newest first by default, filterable by
+        // time range and route/cluster/destination.
+        group.MapGet("/logs", (
+            SqliteRequestLogStore store,
+            long? after,
+            long? from,
+            long? to,
+            string? routeId,
+            string? clusterId,
+            string? destinationId,
+            string? sort,
+            bool? desc,
+            int? limit) =>
         {
-            return Results.Json(new { entries = store.GetAfter(after ?? 0) });
+            var search =
+                from is not null || to is not null
+                || !string.IsNullOrEmpty(routeId) || !string.IsNullOrEmpty(clusterId) || !string.IsNullOrEmpty(destinationId)
+                || sort is not null || desc is not null || limit is not null;
+            if (!search)
+            {
+                return Results.Json(new { entries = store.GetAfter(after ?? 0) });
+            }
+
+            if (sort is not null && !SqliteRequestLogStore.IsValidSortField(sort))
+            {
+                return Results.BadRequest(new { errors = new[] { $"sort must be one of: {SqliteRequestLogStore.SortFields}." } });
+            }
+
+            if (limit is < 1 or > SqliteRequestLogStore.MaxQueryLimit)
+            {
+                return Results.BadRequest(new { errors = new[] { $"limit must be between 1 and {SqliteRequestLogStore.MaxQueryLimit}." } });
+            }
+
+            var result = store.Query(new RequestLogQuery
+            {
+                FromMs = from,
+                ToMs = to,
+                RouteId = routeId,
+                ClusterId = clusterId,
+                DestinationId = destinationId,
+                Sort = sort ?? "timestamp",
+                Descending = desc ?? true,
+                Limit = limit ?? 500,
+            });
+            return Results.Json(new { entries = result.Entries, total = result.Total });
         });
 
         group.MapDelete("/logs", (SqliteRequestLogStore store) =>

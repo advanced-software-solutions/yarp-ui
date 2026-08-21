@@ -41,6 +41,30 @@
             Clear
         </button>
     </div>
+    <div class="logs-filters">
+        <select id="log-route" class="select select-sm" title="Show only requests handled by this route">
+            <option value="">All routes</option>
+        </select>
+        <select id="log-cluster" class="select select-sm" title="Show only requests handled by this cluster">
+            <option value="">All clusters</option>
+        </select>
+        <select id="log-destination" class="select select-sm" title="Show only requests sent to this destination">
+            <option value="">All destinations</option>
+        </select>
+        <select id="log-range" class="select select-sm" title="Restrict results to a time frame">
+            <option value="">Live (latest)</option>
+            <option value="15">Last 15 min</option>
+            <option value="60">Last hour</option>
+            <option value="360">Last 6 h</option>
+            <option value="1440">Last 24 h</option>
+            <option value="10080">Last 7 days</option>
+            <option value="custom">Custom range…</option>
+            <option value="all">All time</option>
+        </select>
+        <input id="log-from" type="datetime-local" class="input input-sm hidden" title="Custom range start (local time)" aria-label="Custom range start" />
+        <input id="log-to" type="datetime-local" class="input input-sm hidden" title="Custom range end (local time)" aria-label="Custom range end" />
+        <button type="button" id="log-reset" class="btn btn-ghost btn-sm hidden" title="Clear all filters and return to the live view">Reset</button>
+    </div>
     <section class="charts-panel" id="charts-panel">
         <div class="charts-header">
             <button type="button" id="charts-toggle" class="charts-toggle" title="Show or hide the performance panel">
@@ -84,21 +108,23 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th class="col-time">Time</th>
-                    <th class="col-method">Method</th>
-                    <th>Path</th>
-                    <th class="col-status">Status</th>
-                    <th class="col-duration">Duration</th>
-                    <th>Route</th>
-                    <th>Cluster</th>
-                    <th>Destination</th>
+                    <th class="col-time th-sortable" data-sort="timestamp" aria-sort="descending">Time</th>
+                    <th class="col-method th-sortable" data-sort="method">Method</th>
+                    <th class="th-sortable" data-sort="path">Path</th>
+                    <th class="col-status th-sortable" data-sort="status">Status</th>
+                    <th class="col-duration th-sortable" data-sort="duration">Duration</th>
+                    <th class="th-sortable" data-sort="clientIp">Client IP</th>
+                    <th class="th-sortable" data-sort="route">Route</th>
+                    <th class="th-sortable" data-sort="cluster">Cluster</th>
+                    <th class="th-sortable" data-sort="destination">Destination</th>
                 </tr>
             </thead>
             <tbody id="log-rows"></tbody>
         </table>
         <div id="log-empty" class="empty-inline hidden">
-            No proxied requests captured yet — send traffic through the proxy and it will appear here.
-            <span class="muted small">Only proxied requests are recorded; UI requests are excluded. Entries are stored in a local SQLite database and kept according to the retention policy.</span>
+            <span id="log-empty-live">No proxied requests captured yet — send traffic through the proxy and it will appear here.</span>
+            <span class="muted small" id="log-empty-hint">Only proxied requests are recorded; UI requests are excluded. Entries are stored in a local SQLite database and kept according to the retention policy.</span>
+            <span id="log-empty-filtered" class="hidden">No requests match the current filters — try widening the time frame or clearing the route, cluster or destination filter.</span>
         </div>
     </div>
 </div>

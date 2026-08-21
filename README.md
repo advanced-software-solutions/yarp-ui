@@ -1,5 +1,12 @@
 # YARP UI
 
+[![NuGet](https://img.shields.io/nuget/v/YA-RP-UI.svg)](https://www.nuget.org/packages/YA-RP-UI)
+[![downloads](https://img.shields.io/nuget/dt/YA-RP-UI.svg)](https://www.nuget.org/packages/YA-RP-UI)
+[![docker](https://img.shields.io/docker/v/amrfswalha/yarp-ui.svg?label=docker)](https://hub.docker.com/r/amrfswalha/yarp-ui)
+[![docker pulls](https://img.shields.io/docker/pulls/amrfswalha/yarp-ui.svg?label=docker%20pulls)](https://hub.docker.com/r/amrfswalha/yarp-ui)
+
+> 🌐 Languages: **English** | [العربية](README.ar.md) | [Español](README.es.md) | [简体中文](README.zh-CN.md)
+
 A management UI for [YARP](https://microsoft.github.io/reverse-proxy/) (Yet Another Reverse Proxy). A single app that is **both** a working reverse proxy and its control room:
 
 - **Route Map** (`/`) — every route → cluster → destination rendered as an interactive graph. Click a node to trace its full chain and inspect its configuration; search to highlight matches.
@@ -8,9 +15,19 @@ A management UI for [YARP](https://microsoft.github.io/reverse-proxy/) (Yet Anot
 
 > **Editions** — this repository is the **community edition**, free under Apache-2.0. A separate premium edition adds commercial features on top and is distributed under a commercial license. The premium code never lives in this repository.
 
+## Documentation
+
+Full guides live in the [project wiki](https://github.com/advanced-software-solutions/yarp-ui/wiki):
+
+- [Getting Started](https://github.com/advanced-software-solutions/yarp-ui/wiki/Getting-Started)
+- [Hosting Modes](https://github.com/advanced-software-solutions/yarp-ui/wiki/Hosting-Modes)
+- [Configuration](https://github.com/advanced-software-solutions/yarp-ui/wiki/Configuration)
+- [REST API](https://github.com/advanced-software-solutions/yarp-ui/wiki/REST-API)
+- [Docker](https://github.com/advanced-software-solutions/yarp-ui/wiki/Docker)
+
 ## Hosting modes
 
-The UI ships as a Razor Class Library (**YA-RP-UI** NuGet package) and can be hosted two ways:
+The UI ships as a Razor Class Library ([**YA-RP-UI**](https://www.nuget.org/packages/YA-RP-UI) NuGet package) and can be hosted three ways:
 
 **1. Standalone executable** — `YARPUI.Host` is a thin host that runs the proxy and the management UI in a single app:
 
@@ -21,7 +38,7 @@ cd YARPUI.Host && dotnet run      # → http://localhost:5080
 **2. Embedded in your own app** — add the package and wire it up (see `samples/EmbeddedHost`):
 
 ```xml
-<PackageReference Include="YA-RP-UI" Version="0.2.0" />
+<PackageReference Include="YA-RP-UI" Version="0.2.1" />
 ```
 
 ```csharp
@@ -83,7 +100,13 @@ Both are configured in `appsettings.json` under `YarpUi:Auth`.
 
 ## Docker
 
-A template `docker-compose.yml` ships next to the solution:
+Prebuilt images are published on [Docker Hub (`amrfswalha/yarp-ui`)](https://hub.docker.com/r/amrfswalha/yarp-ui):
+
+```bash
+docker run -d -p 8090:8080 -v yarp-ui-data:/app/data amrfswalha/yarp-ui:latest
+```
+
+Or build from source with the template `docker-compose.yml` that ships next to the solution:
 
 ```bash
 docker compose up -d --build
@@ -97,7 +120,7 @@ The UI is then served on **http://localhost:8090**. All mutable configuration is
 | `docker-data/yarp-ui.routes.json` | Written automatically on every save from the UI editor |
 | `docker-data/yarp-ui-logs.db` | Request log database (SQLite) — survives restarts, purged by the retention policy |
 
-Under the hood the container sets `YarpUi__DataDirectory=/app/data` and mounts the volume there; an `appsettings.json` in that directory overrides the one baked into the image (this also works without Docker — point `YarpUi:DataDirectory` anywhere you like). To build the image manually: `docker build -t yarp-ui:0.2.0 .` from the solution root.
+Under the hood the container sets `YarpUi__DataDirectory=/app/data` and mounts the volume there; an `appsettings.json` in that directory overrides the one baked into the image (this also works without Docker — point `YarpUi:DataDirectory` anywhere you like). To build the image manually: `docker build -t yarp-ui:0.2.1 .` from the solution root.
 
 ## IIS
 

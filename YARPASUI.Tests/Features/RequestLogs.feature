@@ -146,3 +146,106 @@ Feature: Request log persistence and performance stats
     When the retention policy is set to 7 days
     And the store is reopened with default retention 90 days
     Then the retention policy is 7 days
+
+  Scenario: A history query returns entries newest first by default
+    Given these proxied requests were captured
+      | Method | Path    | Status | DurationMs | RouteId |
+      | GET    | /first  | 200    | 10         | api     |
+      | GET    | /second | 200    | 10         | api     |
+      | GET    | /third  | 200    | 10         | api     |
+    When the pending entries are flushed
+    And the entries are queried
+    Then the returned entries are
+      | Path    |
+      | /third  |
+      | /second |
+      | /first  |
+    And the query total is 3
+
+  Scenario: The query filters by route, cluster and destination
+    Given these proxied requests were captured
+      | Method | Path | Status | DurationMs | RouteId | ClusterId | DestinationId |
+      | GET    | /a   | 200    | 10         | r1      | c1        | d1            |
+      | GET    | /b   | 200    | 10         | r1      | c2        | d2            |
+      | GET    | /c   | 200    | 10         | r2      | c1        | d3            |
+    When the pending entries are flushed
+    And the entries are queried with route "r1"
+    Then the returned entries count is 2
+    And the query total is 2
+    When the entries are queried with cluster "c1"
+    Then the returned entries count is 2
+    When the entries are queried with destination "d2"
+    Then the returned entries count is 1
+    And the returned entries are
+      | Path |
+      | /b   |
+
+  Scenario: The query honors the requested time range
+    Given these proxied requests were captured
+      | Method | Path   | Status | DurationMs | RouteId |
+      | GET    | /fresh | 200    | 10         | api     |
+    And 2 entries from 60 days ago were written directly to the database
+    When the pending entries are flushed
+    And the entries are queried between 5 days ago and 0 days ago
+    Then the returned entries count is 1
+    And the query total is 1
+    When the entries are queried between 90 days ago and 30 days ago
+    Then the returned entries count is 2
+
+  Scenario: The query sorts by duration in either direction
+    Given these proxied requests were captured
+      | Method | Path | Status | DurationMs | RouteId |
+      | GET    | /a   | 200    | 10         | api     |
+      | GET    | /b   | 200    | 30         | api     |
+      | GET    | /c   | 200    | 20         | api     |
+    When the pending entries are flushed
+    And the entries are queried sorted by duration descending
+    Then the returned entries are
+      | Path |
+      | /b   |
+      | /c   |
+      | /a   |
+    When the entries are queried sorted by duration ascending
+    Then the returned entries are
+      | Path |
+      | /a   |
+      | /c   |
+      | /b   |
+
+  Scenario: The query caps how many entries come back but counts every match
+    Given these proxied requests were captured
+      | Method | Path | Status | DurationMs | RouteId |
+      | GET    | /a   | 200    | 10         | api     |
+      | GET    | /b   | 200    | 10         | api     |
+      | GET    | /c   | 200    | 10         | api     |
+      | GET    | /d   | 200    | 10         | api     |
+    When the pending entries are flushed
+    And the entries are queried with limit 2
+    Then the returned entries count is 2
+    And the query total is 4
+
+  Scenario: The client IP is persisted with each entry
+    Given these proxied requests were captured
+      | Method | Path    | Status | DurationMs | RouteId | ClientIp    |
+      | GET    | /xff    | 200    | 10         | api     | 203.0.113.9 |
+      | GET    | /direct | 200    | 10         | api     | -           |
+    When the pending entries are flushed
+    And all entries are read
+    Then the returned entries are
+      | Path    | ClientIp    |
+      | /xff    | 203.0.113.9 |
+      | /direct | -           |
+
+  Scenario: A database created before client IP logging is upgraded in place
+    Given a legacy log database without the client IP column exists
+    When the store is reopened with default retention 30 days
+    And these proxied requests were captured
+      | Method | Path | Status | DurationMs | RouteId | ClientIp    |
+      | GET    | /new | 200    | 10         | api     | 198.51.100.7 |
+    And the pending entries are flushed
+    And all entries are read
+    Then the returned entries count is 2
+    And the returned entries are
+      | Path    | ClientIp    |
+      | /legacy | -           |
+      | /new    | 198.51.100.7 |

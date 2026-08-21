@@ -18,7 +18,9 @@ internal sealed class RequestLogSteps(RequestLogTestContext ctx)
         ctx.CreateStore(defaultRetentionDays);
     }
 
+    // The When alias serves scenarios that capture entries after reopening the store.
     [Given("these proxied requests were captured")]
+    [When("these proxied requests were captured")]
     public void GivenCapturedRequests(Table table)
     {
         foreach (var row in table.Rows)
@@ -29,10 +31,11 @@ internal sealed class RequestLogSteps(RequestLogTestContext ctx)
                 ParseStatus(row["Status"]),
                 double.Parse(row["DurationMs"]),
                 NullIfDash(row["RouteId"]),
-                clusterId: null,
-                destinationId: null,
+                OptionalCell(row, "ClusterId"),
+                OptionalCell(row, "DestinationId"),
                 destinationAddress: null,
-                error: null);
+                error: null,
+                clientIp: OptionalCell(row, "ClientIp"));
         }
     }
 
@@ -43,6 +46,31 @@ internal sealed class RequestLogSteps(RequestLogTestContext ctx)
         for (var i = 0; i < count; i++)
         {
             InsertRaw(ctx.DatabasePath, timestamp + i, "GET", "/old", 200, 100, "legacyRoute");
+        }
+    }
+
+    /// <summary>Reverts the database to the pre-0.3.0 schema so migrations can be exercised.</summary>
+    [Given("a legacy log database without the client IP column exists")]
+    public void GivenLegacyDatabase()
+    {
+        // Drop the column rather than recreating the file — pooled SQLite connections
+        // keep the database file locked for the rest of the scenario.
+        using var connection = new SqliteConnection($"Data Source={ctx.DatabasePath}");
+        connection.Open();
+        ExecuteRaw(connection, "ALTER TABLE request_logs DROP COLUMN client_ip");
+        using (var command = connection.CreateCommand())
+        {
+            command.CommandText = """
+                INSERT INTO request_logs (timestamp_ms, method, path, status_code, duration_ms, route_id)
+                VALUES (@timestamp, @method, @path, @status, @duration, @route)
+                """;
+            command.Parameters.AddWithValue("@timestamp", DateTimeOffset.UtcNow.AddDays(-1).ToUnixTimeMilliseconds());
+            command.Parameters.AddWithValue("@method", "GET");
+            command.Parameters.AddWithValue("@path", "/legacy");
+            command.Parameters.AddWithValue("@status", 200);
+            command.Parameters.AddWithValue("@duration", 25);
+            command.Parameters.AddWithValue("@route", "legacyRoute");
+            command.ExecuteNonQuery();
         }
     }
 
@@ -90,6 +118,60 @@ internal sealed class RequestLogSteps(RequestLogTestContext ctx)
         ctx.Stats = ctx.Store!.GetStats(null);
     }
 
+    [When("the entries are queried")]
+    public void WhenQueried()
+    {
+        RunQuery(new RequestLogQuery());
+    }
+
+    [When("the entries are queried with route {string}")]
+    public void WhenQueriedByRoute(string routeId)
+    {
+        RunQuery(new RequestLogQuery { RouteId = routeId });
+    }
+
+    [When("the entries are queried with cluster {string}")]
+    public void WhenQueriedByCluster(string clusterId)
+    {
+        RunQuery(new RequestLogQuery { ClusterId = clusterId });
+    }
+
+    [When("the entries are queried with destination {string}")]
+    public void WhenQueriedByDestination(string destinationId)
+    {
+        RunQuery(new RequestLogQuery { DestinationId = destinationId });
+    }
+
+    [When("the entries are queried between {int} days ago and {int} days ago")]
+    public void WhenQueriedBetween(int fromDaysAgo, int toDaysAgo)
+    {
+        var now = DateTimeOffset.UtcNow;
+        RunQuery(new RequestLogQuery
+        {
+            FromMs = now.AddDays(-fromDaysAgo).ToUnixTimeMilliseconds(),
+            ToMs = now.AddDays(-toDaysAgo).ToUnixTimeMilliseconds(),
+        });
+    }
+
+    [When("the entries are queried sorted by {word} {word}")]
+    public void WhenQueriedSorted(string field, string direction)
+    {
+        RunQuery(new RequestLogQuery { Sort = field, Descending = direction is "descending" or "desc" });
+    }
+
+    [When("the entries are queried with limit {int}")]
+    public void WhenQueriedWithLimit(int limit)
+    {
+        RunQuery(new RequestLogQuery { Limit = limit });
+    }
+
+    private void RunQuery(RequestLogQuery query)
+    {
+        var result = ctx.Store!.Query(query);
+        ctx.Entries = result.Entries;
+        ctx.QueryTotal = result.Total;
+    }
+
     [When("the retention policy is set to {int} days")]
     public void WhenRetentionSet(int days)
     {
@@ -112,11 +194,38 @@ internal sealed class RequestLogSteps(RequestLogTestContext ctx)
         {
             var row = table.Rows[i];
             var entry = ctx.Entries[i];
-            Assert.Equal(row["Method"], entry.Method);
-            Assert.Equal(row["Path"], entry.Path);
-            Assert.Equal(ParseStatus(row["Status"]), entry.StatusCode);
-            Assert.Equal(double.Parse(row["DurationMs"]), entry.DurationMs, precision: 6);
-            Assert.Equal(NullIfDash(row["RouteId"]), entry.RouteId);
+            if (row.ContainsKey("Method"))
+            {
+                Assert.Equal(row["Method"], entry.Method);
+            }
+            if (row.ContainsKey("Path"))
+            {
+                Assert.Equal(row["Path"], entry.Path);
+            }
+            if (row.ContainsKey("Status"))
+            {
+                Assert.Equal(ParseStatus(row["Status"]), entry.StatusCode);
+            }
+            if (row.ContainsKey("DurationMs"))
+            {
+                Assert.Equal(double.Parse(row["DurationMs"]), entry.DurationMs, precision: 6);
+            }
+            if (row.ContainsKey("RouteId"))
+            {
+                Assert.Equal(NullIfDash(row["RouteId"]), entry.RouteId);
+            }
+            if (row.ContainsKey("ClusterId"))
+            {
+                Assert.Equal(NullIfDash(row["ClusterId"]), entry.ClusterId);
+            }
+            if (row.ContainsKey("DestinationId"))
+            {
+                Assert.Equal(NullIfDash(row["DestinationId"]), entry.DestinationId);
+            }
+            if (row.ContainsKey("ClientIp"))
+            {
+                Assert.Equal(NullIfDash(row["ClientIp"]), entry.ClientIp);
+            }
         }
     }
 
@@ -124,6 +233,12 @@ internal sealed class RequestLogSteps(RequestLogTestContext ctx)
     public void ThenEntriesCount(int count)
     {
         Assert.Equal(count, ctx.Entries.Count);
+    }
+
+    [Then("the query total is {long}")]
+    public void ThenQueryTotal(long total)
+    {
+        Assert.Equal(total, ctx.QueryTotal);
     }
 
     [Then("the database contains {int} entries")]
@@ -184,6 +299,16 @@ internal sealed class RequestLogSteps(RequestLogTestContext ctx)
 
     private static string? NullIfDash(string value) =>
         value is "-" or "" ? null : value;
+
+    private static string? OptionalCell(DataTableRow row, string name) =>
+        row.TryGetValue(name, out var value) ? NullIfDash(value) : null;
+
+    private static void ExecuteRaw(SqliteConnection connection, string sql)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        command.ExecuteNonQuery();
+    }
 
     /// <summary>Inserts a row bypassing the store, so scenarios can control the timestamp (age).</summary>
     private static void InsertRaw(string databasePath, long timestampMs, string method, string path, int? status, double durationMs, string? routeId)

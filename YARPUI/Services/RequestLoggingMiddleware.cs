@@ -52,7 +52,8 @@ public sealed class RequestLoggingMiddleware
                         proxyFeature.Cluster?.Config?.ClusterId,
                         proxyFeature.ProxiedDestination?.DestinationId,
                         proxyFeature.ProxiedDestination?.Model?.Config?.Address,
-                        error?.Message);
+                        error?.Message,
+                        RequestClientIp.Resolve(context));
                 }
                 catch (Exception ex)
                 {

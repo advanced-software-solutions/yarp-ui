@@ -47,11 +47,12 @@ internal sealed class ApiSteps(ApiTestContext ctx)
                 row["Path"],
                 row["Status"] is "-" or "" ? null : int.Parse(row["Status"]),
                 double.Parse(row["DurationMs"]),
-                row["RouteId"] is "-" or "" ? null : row["RouteId"],
-                clusterId: null,
-                destinationId: null,
+                OptionalCell(row, "RouteId"),
+                OptionalCell(row, "ClusterId"),
+                OptionalCell(row, "DestinationId"),
                 destinationAddress: null,
-                error: null);
+                error: null,
+                clientIp: OptionalCell(row, "ClientIp"));
         }
 
         await store.FlushPendingAsync(CancellationToken.None);
@@ -80,6 +81,15 @@ internal sealed class ApiSteps(ApiTestContext ctx)
     public async Task WhenGetAsync(string path)
     {
         await SendAsync(HttpMethod.Get, path);
+    }
+
+    // Computes the `from` millisecond timestamp here — Gherkin tables cannot carry a dynamic "now".
+    [When("I GET {string} with a time range covering the last {int} days")]
+    public async Task WhenGetWithTimeRangeAsync(string path, int days)
+    {
+        var from = DateTimeOffset.UtcNow.AddDays(-days).ToUnixTimeMilliseconds();
+        var separator = path.Contains('?') ? '&' : '?';
+        await SendAsync(HttpMethod.Get, $"{path}{separator}from={from}");
     }
 
     [When("I POST {string}")]
@@ -199,9 +209,32 @@ internal sealed class ApiSteps(ApiTestContext ctx)
         Assert.Equal(table.Rows.Count, entries.Count);
         for (var i = 0; i < table.Rows.Count; i++)
         {
-            Assert.Equal(table.Rows[i]["Method"], Json.PropertyString(entries[i], "Method"));
-            Assert.Equal(table.Rows[i]["Path"], Json.PropertyString(entries[i], "Path"));
-            Assert.Equal(table.Rows[i]["Status"], Json.PropertyString(entries[i], "StatusCode"));
+            var row = table.Rows[i];
+            var entry = entries[i];
+            if (row.ContainsKey("Method"))
+            {
+                Assert.Equal(row["Method"], Json.PropertyString(entry, "Method"));
+            }
+            if (row.ContainsKey("Path"))
+            {
+                Assert.Equal(row["Path"], Json.PropertyString(entry, "Path"));
+            }
+            if (row.ContainsKey("Status"))
+            {
+                Assert.Equal(row["Status"], Json.PropertyString(entry, "StatusCode"));
+            }
+            if (row.ContainsKey("RouteId"))
+            {
+                Assert.Equal(row["RouteId"], Json.PropertyString(entry, "RouteId"));
+            }
+            if (row.ContainsKey("ClusterId"))
+            {
+                Assert.Equal(row["ClusterId"], Json.PropertyString(entry, "ClusterId"));
+            }
+            if (row.ContainsKey("ClientIp"))
+            {
+                Assert.Equal(row["ClientIp"], Json.PropertyString(entry, "ClientIp"));
+            }
         }
     }
 
@@ -209,6 +242,12 @@ internal sealed class ApiSteps(ApiTestContext ctx)
     public void ThenJsonEntriesCount(int count)
     {
         Assert.Equal(count, Json.Property(ctx.JsonRoot, "entries").EnumerateArray().Count());
+    }
+
+    [Then("the response json total is {long}")]
+    public void ThenJsonTotal(long total)
+    {
+        Assert.Equal(total, Json.Property(ctx.JsonRoot, "total").GetInt64());
     }
 
     [Then("the response json stats count is {int}")]
@@ -242,6 +281,9 @@ internal sealed class ApiSteps(ApiTestContext ctx)
     }
 
     // ---- helpers ----
+
+    private static string? OptionalCell(DataTableRow row, string name) =>
+        row.TryGetValue(name, out var value) && value is not "-" and not "" ? value : null;
 
     private async Task SendAsync(HttpMethod method, string path)
     {

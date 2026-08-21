@@ -97,6 +97,7 @@ internal sealed class RequestLogTestContext : IDisposable
     public SqliteRequestLogStore? Store { get; set; }
     public RequestLogStats? Stats { get; set; }
     public IReadOnlyList<RequestLogEntry> Entries { get; set; } = [];
+    public long? QueryTotal { get; set; }
 
     public SqliteRequestLogStore CreateStore(int defaultRetentionDays)
     {

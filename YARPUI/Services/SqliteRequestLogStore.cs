@@ -17,7 +17,23 @@ public sealed record RequestLogEntry
     public string? DestinationId { get; init; }
     public string? DestinationAddress { get; init; }
     public string? Error { get; init; }
+    public string? ClientIp { get; init; }
 }
+
+/// <summary>History search parameters for the Logs page; all filters are optional.</summary>
+public sealed record RequestLogQuery
+{
+    public long? FromMs { get; init; }
+    public long? ToMs { get; init; }
+    public string? RouteId { get; init; }
+    public string? ClusterId { get; init; }
+    public string? DestinationId { get; init; }
+    public string Sort { get; init; } = "timestamp";
+    public bool Descending { get; init; } = true;
+    public int Limit { get; init; } = 500;
+}
+
+public sealed record RequestLogQueryResult(IReadOnlyList<RequestLogEntry> Entries, long Total);
 
 /// <summary>Aggregated performance over a time window, served to the Logs performance panel.</summary>
 public sealed record RequestLogStats(
@@ -67,6 +83,7 @@ public sealed class SqliteRequestLogStore
     private const int BatchSize = 500;
     private const int MaxPerFlush = 5_000;
     private const int MaxRoutesInStats = 20;
+    public const int MaxQueryLimit = 1000;
 
     private readonly string _databasePath;
     private readonly int _defaultRetentionDays;
@@ -106,7 +123,8 @@ public sealed class SqliteRequestLogStore
         string? clusterId,
         string? destinationId,
         string? destinationAddress,
-        string? error)
+        string? error,
+        string? clientIp = null)
     {
         _pending.Writer.TryWrite(new RequestLogEntry
         {
@@ -120,6 +138,7 @@ public sealed class SqliteRequestLogStore
             DestinationId = destinationId,
             DestinationAddress = destinationAddress,
             Error = error,
+            ClientIp = clientIp,
         });
     }
 
@@ -161,7 +180,7 @@ public sealed class SqliteRequestLogStore
         using var command = connection.CreateCommand();
         command.CommandText = """
             SELECT seq, timestamp_ms, method, path, status_code, duration_ms,
-                   route_id, cluster_id, destination_id, destination_address, error
+                   route_id, cluster_id, destination_id, destination_address, error, client_ip
             FROM request_logs
             WHERE seq > @after
             ORDER BY seq
@@ -173,23 +192,122 @@ public sealed class SqliteRequestLogStore
         using var reader = command.ExecuteReader();
         while (reader.Read())
         {
-            entries.Add(new RequestLogEntry
-            {
-                Seq = reader.GetInt64(0),
-                TimestampUtc = DateTimeOffset.FromUnixTimeMilliseconds(reader.GetInt64(1)).UtcDateTime,
-                Method = reader.GetString(2),
-                Path = reader.GetString(3),
-                StatusCode = reader.IsDBNull(4) ? null : reader.GetInt32(4),
-                DurationMs = reader.GetDouble(5),
-                RouteId = reader.IsDBNull(6) ? null : reader.GetString(6),
-                ClusterId = reader.IsDBNull(7) ? null : reader.GetString(7),
-                DestinationId = reader.IsDBNull(8) ? null : reader.GetString(8),
-                DestinationAddress = reader.IsDBNull(9) ? null : reader.GetString(9),
-                Error = reader.IsDBNull(10) ? null : reader.GetString(10),
-            });
+            entries.Add(ReadEntry(reader));
         }
 
         return entries;
+    }
+
+    // Whitelisted sort fields for Query — the values are the only SQL fragments built from user input.
+    private static readonly Dictionary<string, string> SortColumns = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["timestamp"] = "timestamp_ms",
+        ["duration"] = "duration_ms",
+        ["status"] = "status_code",
+        ["method"] = "method",
+        ["path"] = "path",
+        ["route"] = "route_id",
+        ["cluster"] = "cluster_id",
+        ["destination"] = "destination_id",
+        ["clientIp"] = "client_ip",
+    };
+
+    public static bool IsValidSortField(string? sort)
+        => sort is not null && SortColumns.ContainsKey(sort);
+
+    public static string SortFields => string.Join(", ", SortColumns.Keys);
+
+    /// <summary>
+    /// History search over stored entries (time range, route/cluster/destination filters, sort).
+    /// Newest first by default; <see cref="RequestLogQueryResult.Total"/> counts every matching row.
+    /// </summary>
+    public RequestLogQueryResult Query(RequestLogQuery query)
+    {
+        if (!SortColumns.TryGetValue(query.Sort ?? "", out var sortColumn))
+        {
+            throw new ArgumentException($"Unknown sort field '{query.Sort}'.", nameof(query));
+        }
+
+        var conditions = new List<(string Sql, string Name, object Value)>();
+        if (query.FromMs is { } from)
+        {
+            conditions.Add(("timestamp_ms >= @from", "@from", from));
+        }
+        if (query.ToMs is { } to)
+        {
+            conditions.Add(("timestamp_ms <= @to", "@to", to));
+        }
+        if (!string.IsNullOrWhiteSpace(query.RouteId))
+        {
+            conditions.Add(("route_id = @route", "@route", query.RouteId));
+        }
+        if (!string.IsNullOrWhiteSpace(query.ClusterId))
+        {
+            conditions.Add(("cluster_id = @cluster", "@cluster", query.ClusterId));
+        }
+        if (!string.IsNullOrWhiteSpace(query.DestinationId))
+        {
+            conditions.Add(("destination_id = @destination", "@destination", query.DestinationId));
+        }
+
+        var whereSql = conditions.Count == 0 ? "" : " WHERE " + string.Join(" AND ", conditions.Select(c => c.Sql));
+        var direction = query.Descending ? "DESC" : "ASC";
+        var limit = Math.Clamp(query.Limit, 1, MaxQueryLimit);
+
+        using var connection = OpenConnection();
+
+        long total;
+        using (var count = connection.CreateCommand())
+        {
+            count.CommandText = "SELECT COUNT(*) FROM request_logs" + whereSql;
+            foreach (var (_, name, value) in conditions)
+            {
+                count.Parameters.AddWithValue(name, value);
+            }
+            total = (long)(count.ExecuteScalar() ?? 0L);
+        }
+
+        using var command = connection.CreateCommand();
+        command.CommandText = $"""
+            SELECT seq, timestamp_ms, method, path, status_code, duration_ms,
+                   route_id, cluster_id, destination_id, destination_address, error, client_ip
+            FROM request_logs{whereSql}
+            ORDER BY {sortColumn} {direction}, seq {direction}
+            LIMIT @limit
+            """;
+        foreach (var (_, name, value) in conditions)
+        {
+            command.Parameters.AddWithValue(name, value);
+        }
+        command.Parameters.AddWithValue("@limit", limit);
+
+        var entries = new List<RequestLogEntry>();
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            entries.Add(ReadEntry(reader));
+        }
+
+        return new RequestLogQueryResult(entries, total);
+    }
+
+    private static RequestLogEntry ReadEntry(SqliteDataReader reader)
+    {
+        return new RequestLogEntry
+        {
+            Seq = reader.GetInt64(0),
+            TimestampUtc = DateTimeOffset.FromUnixTimeMilliseconds(reader.GetInt64(1)).UtcDateTime,
+            Method = reader.GetString(2),
+            Path = reader.GetString(3),
+            StatusCode = reader.IsDBNull(4) ? null : reader.GetInt32(4),
+            DurationMs = reader.GetDouble(5),
+            RouteId = reader.IsDBNull(6) ? null : reader.GetString(6),
+            ClusterId = reader.IsDBNull(7) ? null : reader.GetString(7),
+            DestinationId = reader.IsDBNull(8) ? null : reader.GetString(8),
+            DestinationAddress = reader.IsDBNull(9) ? null : reader.GetString(9),
+            Error = reader.IsDBNull(10) ? null : reader.GetString(10),
+            ClientIp = reader.IsDBNull(11) ? null : reader.GetString(11),
+        };
     }
 
     /// <summary>Aggregated performance for the Logs performance panel. A null window covers all time.</summary>
@@ -466,11 +584,14 @@ public sealed class SqliteRequestLogStore
                 cluster_id TEXT,
                 destination_id TEXT,
                 destination_address TEXT,
-                error TEXT
+                error TEXT,
+                client_ip TEXT
             )
             """);
+        MigrateLegacySchema(connection);
         Execute(connection, "CREATE INDEX IF NOT EXISTS ix_request_logs_timestamp ON request_logs (timestamp_ms)");
         Execute(connection, "CREATE INDEX IF NOT EXISTS ix_request_logs_route ON request_logs (route_id, timestamp_ms)");
+        Execute(connection, "CREATE INDEX IF NOT EXISTS ix_request_logs_cluster ON request_logs (cluster_id, timestamp_ms)");
         Execute(connection, "CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)");
 
         // First run: seed the policy from configuration so the UI has something to show/edit.
@@ -483,6 +604,34 @@ public sealed class SqliteRequestLogStore
         }
     }
 
+    /// <summary>
+    /// Adds columns introduced after a database was first created (e.g. client_ip in 0.3.0) so
+    /// existing installations upgrade in place instead of losing their history.
+    /// </summary>
+    private static void MigrateLegacySchema(SqliteConnection connection)
+    {
+        string[] requiredColumns = ["client_ip"];
+
+        using var columns = connection.CreateCommand();
+        columns.CommandText = "PRAGMA table_info(request_logs)";
+        var present = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        using (var reader = columns.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                present.Add(reader.GetString(1));
+            }
+        }
+
+        foreach (var column in requiredColumns)
+        {
+            if (!present.Contains(column))
+            {
+                Execute(connection, $"ALTER TABLE request_logs ADD COLUMN {column} TEXT");
+            }
+        }
+    }
+
     private async Task InsertBatchAsync(IReadOnlyList<RequestLogEntry> batch, CancellationToken cancellationToken)
     {
         using var connection = OpenConnection();
@@ -491,8 +640,8 @@ public sealed class SqliteRequestLogStore
         command.Transaction = transaction;
         command.CommandText = """
             INSERT INTO request_logs (timestamp_ms, method, path, status_code, duration_ms,
-                                      route_id, cluster_id, destination_id, destination_address, error)
-            VALUES (@timestamp, @method, @path, @status, @duration, @route, @cluster, @destination, @address, @error)
+                                      route_id, cluster_id, destination_id, destination_address, error, client_ip)
+            VALUES (@timestamp, @method, @path, @status, @duration, @route, @cluster, @destination, @address, @error, @clientIp)
             """;
 
         var timestamp = command.Parameters.Add("@timestamp", SqliteType.Integer);
@@ -505,6 +654,7 @@ public sealed class SqliteRequestLogStore
         var destination = command.Parameters.Add("@destination", SqliteType.Text);
         var address = command.Parameters.Add("@address", SqliteType.Text);
         var error = command.Parameters.Add("@error", SqliteType.Text);
+        var clientIp = command.Parameters.Add("@clientIp", SqliteType.Text);
 
         foreach (var entry in batch)
         {
@@ -518,6 +668,7 @@ public sealed class SqliteRequestLogStore
             destination.Value = entry.DestinationId is null ? DBNull.Value : entry.DestinationId;
             address.Value = entry.DestinationAddress is null ? DBNull.Value : entry.DestinationAddress;
             error.Value = entry.Error is null ? DBNull.Value : entry.Error;
+            clientIp.Value = entry.ClientIp is null ? DBNull.Value : entry.ClientIp;
             await command.ExecuteNonQueryAsync(cancellationToken);
         }
 
