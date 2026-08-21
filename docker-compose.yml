@@ -1,34 +1,33 @@
 # YARP UI — template compose file (community edition).
 #
-#   docker compose up -d --build     →  http://localhost:8090  (default sign-in: admin / yarp-admin)
+#   podman compose up -d    →  http://localhost:8090  (default sign-in: admin / yarp-admin)
 #
-# Prebuilt image (no local build needed):
-#   docker run -d -p 8090:8080 -v yarp-ui-data:/app/data amrfswalha/yarp-ui:latest
+# The image is pulled from Docker Hub (no local build needed):
+#   docker.io/amrfswalha/yarp-ui:latest
 #
-# All mutable configuration lives in ./docker-data and survives `docker compose down`:
-#   docker-data/appsettings.json     — credentials (YarpUi:Auth) + the seed ReverseProxy config;
-#                                      edit it on the host; changes apply on next start.
-#   docker-data/yarp-ui.routes.json  — written automatically whenever you save from the UI.
-#
-# NOTE for Linux hosts: the container runs as the non-root `app` user (uid 1654), so the
-# bind mount may need permissions once:  sudo chown -R 1654:1654 docker-data
+# Data lives in the external volume `yarp-ui-config` and survives `podman compose down`.
+# Create it once if it does not exist yet:  podman volume create yarp-ui-config
+#   /var/lib/containers/storage/volumes/yarp-ui-config/_data/appsettings.json
+#                                      — credentials (YarpUi:Auth) + the seed ReverseProxy config.
+#   .../yarp-ui.routes.json            — written automatically whenever you save from the UI.
 
 services:
   yarp-ui:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: yarp-ui:0.1.1
+    image: docker.io/amrfswalha/yarp-ui:latest
     container_name: yarp-ui
+    # The published image's ENTRYPOINT references YARPUI.dll, but the app
+    # assembly in /app is YARPUI.Host.dll — override until the image is fixed.
+    entrypoint: ["dotnet", "YARPUI.Host.dll"]
     ports:
       - "8090:8080"
     volumes:
-      - ./docker-data:/app/data
+      # - ./docker-data:/app/data
       # Named-volume alternative (data survives even if the folder is deleted):
-      # - yarp-ui-config:/app/data
+      - yarp-ui-config:/app/data
     environment:
       ASPNETCORE_ENVIRONMENT: Production
     restart: unless-stopped
 
-# volumes:
-#   yarp-ui-config:
+volumes:
+    yarp-ui-config:
+      external: true
