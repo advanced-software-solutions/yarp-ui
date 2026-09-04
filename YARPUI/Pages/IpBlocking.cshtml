@@ -1,0 +1,75 @@
+@page
+@model YARPUI.Pages.IpBlockingModel
+@{
+    ViewData["Title"] = L["ipblocking.title"];
+    ViewData["BodyId"] = "ipblocking";
+}
+<div class="ipblocking-page">
+    <div class="ipblocking-head">
+        <div>
+            <h1 class="panel-title">@L["ipblocking.heading"]</h1>
+            <p class="muted small ipblocking-lede">@L["ipblocking.description"]</p>
+        </div>
+        <span id="block-count" class="pill"></span>
+    </div>
+
+    <div class="ipblocking-grid">
+        <section class="form-card">
+            <div class="form-head"><h2 class="form-title">@L["ipblocking.addTitle"]</h2></div>
+            <div class="field">
+                <label for="block-value">@L["ipblocking.valueLabel"]</label>
+                <input id="block-value" class="input mono" placeholder="@L["ipblocking.valuePlaceholder"]" autocomplete="off" spellcheck="false" />
+                <div class="field-hint">@L["ipblocking.valueHint"]</div>
+            </div>
+            <div class="field">
+                <label for="block-note">@L["ipblocking.noteLabel"]</label>
+                <input id="block-note" class="input" placeholder="@L["ipblocking.notePlaceholder"]" autocomplete="off" />
+            </div>
+            <button type="button" id="block-add" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                    <circle cx="12" cy="12" r="9" /><path d="M5.5 5.5l13 13" />
+                </svg>
+                @L["ipblocking.add"]
+            </button>
+        </section>
+
+        <section class="form-card">
+            <div class="form-head"><h2 class="form-title">@L["ipblocking.settings"]</h2></div>
+            <label class="toggle">
+                <input type="checkbox" id="block-xff" />
+                <span class="toggle-track"><span class="toggle-dot"></span></span>
+                <span class="toggle-label">@L["ipblocking.trustForwardedFor"]</span>
+            </label>
+            <div class="field-hint ipblocking-xff-hint">@L["ipblocking.trustForwardedForHint"]</div>
+        </section>
+
+        <section class="form-card">
+            <div class="form-head"><h2 class="form-title">@L["ipblocking.checkTitle"]</h2></div>
+            <div class="ipblocking-check">
+                <input id="block-check-ip" class="input mono" placeholder="@L["ipblocking.checkPlaceholder"]" autocomplete="off" spellcheck="false" />
+                <button type="button" id="block-check" class="btn btn-ghost">@L["ipblocking.check"]</button>
+            </div>
+            <div id="block-check-result" class="field-hint"></div>
+        </section>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>@L["ipblocking.colValue"]</th>
+                    <th class="col-kind">@L["ipblocking.colKind"]</th>
+                    <th>@L["ipblocking.colNote"]</th>
+                    <th class="col-created">@L["ipblocking.colCreated"]</th>
+                    <th class="col-actions"></th>
+                </tr>
+            </thead>
+            <tbody id="block-rows"></tbody>
+        </table>
+        <div id="block-empty" class="empty-inline">@L["ipblocking.empty"]</div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/_content/YARPUI/js/ipblocking.js" asp-append-version="true"></script>
+}

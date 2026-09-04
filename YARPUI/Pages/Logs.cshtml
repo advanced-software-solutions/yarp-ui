@@ -127,6 +127,19 @@
             <span id="log-empty-filtered" class="hidden">@L["logs.emptyFiltered"]</span>
         </div>
     </div>
+    <div class="logs-pager" id="log-pager">
+        <button type="button" id="log-prev" class="btn btn-ghost btn-sm" title="@L["logs.prevPage"]" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+            </svg>
+        </button>
+        <span id="log-page-label" class="muted small"></span>
+        <button type="button" id="log-next" class="btn btn-ghost btn-sm" title="@L["logs.nextPage"]" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18l6-6-6-6" />
+            </svg>
+        </button>
+    </div>
 </div>
 
 @section Scripts {

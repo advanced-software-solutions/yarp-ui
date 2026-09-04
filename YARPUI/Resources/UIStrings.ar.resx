@@ -12,6 +12,7 @@
   <data name="nav.map" xml:space="preserve"><value>الخريطة</value></data>
   <data name="nav.editor" xml:space="preserve"><value>المحرّر</value></data>
   <data name="nav.logs" xml:space="preserve"><value>السجلات</value></data>
+  <data name="nav.ipBlocking" xml:space="preserve"><value>حظر عناوين IP</value></data>
   <data name="layout.signedIn" xml:space="preserve"><value>تم تسجيل الدخول</value></data>
   <data name="layout.signOut" xml:space="preserve"><value>تسجيل الخروج</value></data>
   <data name="layout.languageTitle" xml:space="preserve"><value>اللغة</value></data>
@@ -257,9 +258,10 @@
   <data name="logs.emptyFiltered" xml:space="preserve"><value>لا طلبات تطابق المرشحات الحالية — جرّب توسيع الإطار الزمني أو إزالة مرشّح المسار أو المجموعة أو الوجهة.</value></data>
 
   <!-- logs page: client-side rendering -->
-  <data name="logs.countLive" xml:space="preserve"><value>{0} معروضة · {1} في الذاكرة</value></data>
-  <data name="logs.countFiltered" xml:space="preserve"><value>{0} معروضة · {1} من {2} مطابقة</value></data>
-  <data name="logs.countAll" xml:space="preserve"><value>{0} معروضة · {1} مطابقة</value></data>
+  <data name="logs.countPage" xml:space="preserve"><value>عرض {0}–{1} من {2}</value></data>
+  <data name="logs.pageLabel" xml:space="preserve"><value>صفحة {0} من {1}</value></data>
+  <data name="logs.prevPage" xml:space="preserve"><value>الصفحة السابقة</value></data>
+  <data name="logs.nextPage" xml:space="preserve"><value>الصفحة التالية</value></data>
   <data name="logs.fmtSeconds" xml:space="preserve"><value>{0} ث</value></data>
   <data name="logs.fmtMs" xml:space="preserve"><value>{0} م‌ث</value></data>
   <data name="logs.chartFailed" xml:space="preserve"><value>فاشلة</value></data>
@@ -285,6 +287,54 @@
   <data name="logs.retentionSaveFailed" xml:space="preserve"><value>تعذّر حفظ سياسة الاحتفاظ: {0}</value></data>
   <data name="logs.cleared" xml:space="preserve"><value>حُذفت سجلات الطلبات المخزّنة.</value></data>
   <data name="logs.clearFailed" xml:space="preserve"><value>فشل المسح: {0}</value></data>
+  <data name="logs.blockIpTitle" xml:space="preserve"><value>حظر هذا الـ IP</value></data>
+  <data name="logs.blockIpConfirm" xml:space="preserve"><value>حظر {0}؟ ستُرفض الطلبات القادمة من هذا العنوان برمز 403.</value></data>
+  <data name="logs.blockIpDone" xml:space="preserve"><value>أصبح {0} محظورًا.</value></data>
+  <data name="logs.blockIpFailed" xml:space="preserve"><value>تعذّر حظر {0}: {1}</value></data>
+
+  <!-- ip blocking page -->
+  <data name="ipblocking.title" xml:space="preserve"><value>حظر عناوين IP — YARP UI</value></data>
+  <data name="ipblocking.heading" xml:space="preserve"><value>حظر عناوين IP</value></data>
+  <data name="ipblocking.description" xml:space="preserve"><value>تُرفض الطلبات القادمة من العملاء المحظورين برمز 403 قبل وصولها إلى الوكيل. تبقى واجهة الإدارة متاحة دائمًا، فيمكن إزالة أي قاعدة من هنا في أي وقت.</value></data>
+  <data name="ipblocking.count.zero" xml:space="preserve"><value>لا قواعد</value></data>
+  <data name="ipblocking.count.one" xml:space="preserve"><value>قاعدة واحدة</value></data>
+  <data name="ipblocking.count.two" xml:space="preserve"><value>قاعدتان</value></data>
+  <data name="ipblocking.count.few" xml:space="preserve"><value>{0} قواعد</value></data>
+  <data name="ipblocking.count.many" xml:space="preserve"><value>{0} قاعدة</value></data>
+  <data name="ipblocking.count.other" xml:space="preserve"><value>{0} قاعدة</value></data>
+  <data name="ipblocking.addTitle" xml:space="preserve"><value>حظر عنوان</value></data>
+  <data name="ipblocking.valueLabel" xml:space="preserve"><value>عنوان IP أو شبكة CIDR أو نطاق</value></data>
+  <data name="ipblocking.valuePlaceholder" xml:space="preserve"><value>203.0.113.7 · 203.0.113.0/24 · 203.0.113.5-203.0.113.99</value></data>
+  <data name="ipblocking.valueHint" xml:space="preserve"><value>عنوان مفرد، أو شبكة CIDR (يجب أن تكون بتات المضيف صفرًا)، أو نطاق من–إلى شامل.</value></data>
+  <data name="ipblocking.noteLabel" xml:space="preserve"><value>ملاحظة</value></data>
+  <data name="ipblocking.notePlaceholder" xml:space="preserve"><value>اختياري</value></data>
+  <data name="ipblocking.add" xml:space="preserve"><value>حظر</value></data>
+  <data name="ipblocking.kindSingle" xml:space="preserve"><value>مفرد</value></data>
+  <data name="ipblocking.kindCidr" xml:space="preserve"><value>CIDR</value></data>
+  <data name="ipblocking.kindRange" xml:space="preserve"><value>نطاق</value></data>
+  <data name="ipblocking.colValue" xml:space="preserve"><value>العنوان</value></data>
+  <data name="ipblocking.colKind" xml:space="preserve"><value>النوع</value></data>
+  <data name="ipblocking.colNote" xml:space="preserve"><value>ملاحظة</value></data>
+  <data name="ipblocking.colCreated" xml:space="preserve"><value>أُضيف في</value></data>
+  <data name="ipblocking.deleteTitle" xml:space="preserve"><value>إزالة هذه القاعدة</value></data>
+  <data name="ipblocking.confirmDelete" xml:space="preserve"><value>إيقاف حظر {0}؟</value></data>
+  <data name="ipblocking.empty" xml:space="preserve"><value>لا عناوين محظورة — أضف قاعدة أعلاه.</value></data>
+  <data name="ipblocking.added" xml:space="preserve"><value>أصبح {0} محظورًا.</value></data>
+  <data name="ipblocking.addFailed" xml:space="preserve"><value>تعذّرت إضافة القاعدة: {0}</value></data>
+  <data name="ipblocking.removed" xml:space="preserve"><value>أُزيلت القاعدة.</value></data>
+  <data name="ipblocking.removeFailed" xml:space="preserve"><value>تعذّرت إزالة القاعدة: {0}</value></data>
+  <data name="ipblocking.settings" xml:space="preserve"><value>الإعدادات</value></data>
+  <data name="ipblocking.trustForwardedFor" xml:space="preserve"><value>اعتماد X-Forwarded-For</value></data>
+  <data name="ipblocking.trustForwardedForHint" xml:space="preserve"><value>مطابقة العنوان من ترويسة X-Forwarded-For بدلًا من الاتصال المباشر. فعّلها خلف وسيط أو موزّع أحمال موثوق فقط — يمكن للعملاء المباشرين تزوير الترويسة.</value></data>
+  <data name="ipblocking.settingsSaved" xml:space="preserve"><value>حُفظت الإعدادات.</value></data>
+  <data name="ipblocking.settingsSaveFailed" xml:space="preserve"><value>تعذّر حفظ الإعدادات: {0}</value></data>
+  <data name="ipblocking.checkTitle" xml:space="preserve"><value>اختبار عنوان</value></data>
+  <data name="ipblocking.checkPlaceholder" xml:space="preserve"><value>مثل 203.0.113.77</value></data>
+  <data name="ipblocking.check" xml:space="preserve"><value>تحقّق</value></data>
+  <data name="ipblocking.checkBlocked" xml:space="preserve"><value>{0} سيُحظر بموجب {1}.</value></data>
+  <data name="ipblocking.checkAllowed" xml:space="preserve"><value>{0} غير محظور.</value></data>
+  <data name="ipblocking.checkFailed" xml:space="preserve"><value>فشل التحقّق.</value></data>
+  <data name="ipblocking.fromLogs" xml:space="preserve"><value>من سجلات الطلبات</value></data>
 
   <!-- error page -->
   <data name="error.title" xml:space="preserve"><value>خطأ — YARP UI</value></data>
@@ -297,6 +347,8 @@
   <data name="validation.bodyEmpty" xml:space="preserve"><value>متن الطلب فارغ.</value></data>
   <data name="validation.sortField" xml:space="preserve"><value>يجب أن يكون sort أحد القيم: {0}.</value></data>
   <data name="validation.limitRange" xml:space="preserve"><value>يجب أن يكون limit بين 1 و{0}.</value></data>
+  <data name="validation.offsetRange" xml:space="preserve"><value>يجب أن يكون offset أكبر من أو يساوي 0.</value></data>
+  <data name="validation.statusRange" xml:space="preserve"><value>يجب أن يكون status فئة حالة: 2 أو 3 أو 4 أو 5.</value></data>
   <data name="validation.retentionRange" xml:space="preserve"><value>يجب أن يكون retentionDays يساوي 0 (احتفاظ دائم) أو بين 1 و{0}.</value></data>
   <data name="validation.duplicateRouteId" xml:space="preserve"><value>معرّف المسار '{0}' مكرَّر.</value></data>
   <data name="validation.duplicateClusterId" xml:space="preserve"><value>معرّف المجموعة '{0}' مكرَّر.</value></data>
@@ -308,4 +360,12 @@
   <data name="validation.duplicateDestination" xml:space="preserve"><value>المجموعة '{0}' فيها وجهة مكرَّرة '{1}'.</value></data>
   <data name="validation.routeInvalid" xml:space="preserve"><value>المسار '{0}': {1}</value></data>
   <data name="validation.clusterInvalid" xml:space="preserve"><value>المجموعة '{0}': {1}</value></data>
+  <data name="validation.ipRequired" xml:space="preserve"><value>أدخل عنوان IP أو شبكة CIDR أو نطاقًا.</value></data>
+  <data name="validation.ipInvalid" xml:space="preserve"><value>'{0}' ليس عنوان IP أو شبكة CIDR أو نطاقًا صالحًا.</value></data>
+  <data name="validation.ipHostBits" xml:space="preserve"><value>'{0}' فيه بتات مضيف غير صفرية — استخدم عنوان الشبكة {1}.</value></data>
+  <data name="validation.ipRangeOrder" xml:space="preserve"><value>'{0}' بترتيب معكوس — ضع العنوان الأدنى أولًا.</value></data>
+  <data name="validation.ipRangeFamily" xml:space="preserve"><value>'{0}' يخلط عناوين IPv4 وIPv6.</value></data>
+  <data name="validation.ipDuplicate" xml:space="preserve"><value>'{0}' محظور بالفعل.</value></data>
+  <data name="validation.ipRuleLimit" xml:space="preserve"><value>قائمة الحظر محدودة بـ {0} قاعدة.</value></data>
+  <data name="validation.trustForwardedForRequired" xml:space="preserve"><value>يجب أن يكون trustForwardedFor إما true أو false.</value></data>
 </root>

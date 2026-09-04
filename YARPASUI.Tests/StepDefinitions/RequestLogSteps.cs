@@ -165,6 +165,24 @@ internal sealed class RequestLogSteps(RequestLogTestContext ctx)
         RunQuery(new RequestLogQuery { Limit = limit });
     }
 
+    [When("the entries are queried with limit {int} and offset {int}")]
+    public void WhenQueriedWithLimitAndOffset(int limit, int offset)
+    {
+        RunQuery(new RequestLogQuery { Limit = limit, Offset = offset });
+    }
+
+    [When("the entries are queried matching {string}")]
+    public void WhenQueriedMatching(string search)
+    {
+        RunQuery(new RequestLogQuery { Search = search });
+    }
+
+    [When("the entries are queried with status class {int}")]
+    public void WhenQueriedWithStatusClass(int statusClass)
+    {
+        RunQuery(new RequestLogQuery { StatusClass = statusClass });
+    }
+
     private void RunQuery(RequestLogQuery query)
     {
         var result = ctx.Store!.Query(query);

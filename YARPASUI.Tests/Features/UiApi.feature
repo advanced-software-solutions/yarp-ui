@@ -252,12 +252,52 @@ Feature: Management API
       | /c   |
       | /b   |
 
+  Scenario: Searched logs are paged with limit and offset
+    Given the proxy has logged these requests
+      | Method | Path   | Status | DurationMs | RouteId |
+      | GET    | /one   | 200    | 10         | api     |
+      | GET    | /two   | 200    | 10         | api     |
+      | GET    | /three | 200    | 10         | api     |
+    When I GET "/api/yarp/logs?limit=1&offset=1"
+    Then the response status is 200
+    And the response json entries are
+      | Path   |
+      | /two   |
+    And the response json total is 3
+
+  Scenario: Logs can be filtered by free text
+    Given the proxy has logged these requests
+      | Method | Path   | Status | DurationMs | RouteId |
+      | GET    | /api/a | 200    | 10         | api     |
+      | GET    | /web/b | 200    | 10         | api     |
+    When I GET "/api/yarp/logs?q=web"
+    Then the response status is 200
+    And the response json entries are
+      | Path   |
+      | /web/b |
+    And the response json total is 1
+
+  Scenario: Logs can be filtered by status class
+    Given the proxy has logged these requests
+      | Method | Path   | Status | DurationMs | RouteId |
+      | GET    | /ok    | 200    | 10         | api     |
+      | GET    | /boom  | 500    | 10         | api     |
+    When I GET "/api/yarp/logs?status=5"
+    Then the response status is 200
+    And the response json entries are
+      | Path  |
+      | /boom |
+    And the response json total is 1
+
   Scenario Outline: Invalid log query parameters are rejected
     When I GET "<url>"
     Then the response status is 400
 
     Examples:
-      | case       | url                          |
-      | bad sort   | /api/yarp/logs?sort=bogus    |
-      | zero limit | /api/yarp/logs?limit=0       |
-      | big limit  | /api/yarp/logs?limit=5000    |
+      | case       | url                            |
+      | bad sort   | /api/yarp/logs?sort=bogus      |
+      | zero limit | /api/yarp/logs?limit=0         |
+      | big limit  | /api/yarp/logs?limit=5000      |
+      | neg offset | /api/yarp/logs?offset=-1       |
+      | bad status | /api/yarp/logs?status=6        |
+      | low status | /api/yarp/logs?status=1        |

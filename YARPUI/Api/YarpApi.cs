@@ -3,6 +3,7 @@ using Microsoft.Extensions.Localization;
 using Yarp.ReverseProxy.Configuration;
 using YARPUI.Resources;
 using YARPUI.Services;
+using YARPUI.Services.IpBlocking;
 
 namespace YARPUI.Api;
 
@@ -21,6 +22,14 @@ public sealed class ConfigUpdateRequest
 }
 
 public sealed record LogSettingsUpdateRequest(int? RetentionDays);
+
+public sealed record IpBlockRuleRequest(string? Value, string? Note);
+
+public sealed record IpBlockSettingsRequest(bool? TrustForwardedFor);
+
+public sealed record IpBlockCheckRequest(string? Ip);
+
+public sealed record IpBlockRuleResponse(string Id, string Kind, string Value, string? Note, DateTime CreatedAtUtc);
 
 public static class YarpApi
 {
@@ -76,9 +85,9 @@ public static class YarpApi
             return Results.Json(ToResponse(configService), ConfigJsonOptions);
         });
 
-        // Live tailing (only `after`) streams new entries oldest-first, as the Logs page polls it.
-        // Any search parameter switches to a history query: newest first by default, filterable by
-        // time range and route/cluster/destination.
+        // Live tailing (only `after`) streams new entries oldest-first. Any search parameter
+        // switches to a paged history query: newest first by default, filterable by time range,
+        // route/cluster/destination, free text and status class, paged with limit + offset.
         group.MapGet("/logs", (
             SqliteRequestLogStore store,
             IStringLocalizer<UIStrings> L,
@@ -88,14 +97,18 @@ public static class YarpApi
             string? routeId,
             string? clusterId,
             string? destinationId,
+            string? q,
+            int? status,
             string? sort,
             bool? desc,
-            int? limit) =>
+            int? limit,
+            int? offset) =>
         {
             var search =
                 from is not null || to is not null
                 || !string.IsNullOrEmpty(routeId) || !string.IsNullOrEmpty(clusterId) || !string.IsNullOrEmpty(destinationId)
-                || sort is not null || desc is not null || limit is not null;
+                || !string.IsNullOrEmpty(q) || status is not null
+                || sort is not null || desc is not null || limit is not null || offset is not null;
             if (!search)
             {
                 return Results.Json(new { entries = store.GetAfter(after ?? 0) });
@@ -111,6 +124,16 @@ public static class YarpApi
                 return Results.BadRequest(new { errors = new[] { L["validation.limitRange", SqliteRequestLogStore.MaxQueryLimit].Value } });
             }
 
+            if (offset is < 0)
+            {
+                return Results.BadRequest(new { errors = new[] { L["validation.offsetRange"].Value } });
+            }
+
+            if (status is < 2 or > 5)
+            {
+                return Results.BadRequest(new { errors = new[] { L["validation.statusRange"].Value } });
+            }
+
             var result = store.Query(new RequestLogQuery
             {
                 FromMs = from,
@@ -118,9 +141,12 @@ public static class YarpApi
                 RouteId = routeId,
                 ClusterId = clusterId,
                 DestinationId = destinationId,
+                Search = q,
+                StatusClass = status,
                 Sort = sort ?? "timestamp",
                 Descending = desc ?? true,
                 Limit = limit ?? 500,
+                Offset = offset ?? 0,
             });
             return Results.Json(new { entries = result.Entries, total = result.Total });
         });
@@ -171,8 +197,101 @@ public static class YarpApi
             return Results.Json(new { retentionDays = request.RetentionDays.Value });
         });
 
+        // ---- IP blocking (camelCase payloads like the log endpoints) ----
+
+        group.MapGet("/ipblocking", (IpBlockListService blockList) =>
+        {
+            return Results.Json(new
+            {
+                rules = blockList.Rules.Select(ToIpBlockRuleResponse).ToList(),
+                settings = new { trustForwardedFor = blockList.TrustForwardedFor },
+            });
+        });
+
+        group.MapPost("/ipblocking/rules", async (HttpContext http, IpBlockListService blockList, IStringLocalizer<UIStrings> L) =>
+        {
+            IpBlockRuleRequest? request;
+            try
+            {
+                request = await http.Request.ReadFromJsonAsync<IpBlockRuleRequest>();
+            }
+            catch (JsonException)
+            {
+                return Results.BadRequest(new { errors = new[] { L["validation.bodyNotJson"].Value } });
+            }
+
+            if (request is null)
+            {
+                return Results.BadRequest(new { errors = new[] { L["validation.bodyEmpty"].Value } });
+            }
+
+            var result = blockList.AddRule(request.Value, request.Note);
+            if (!result.Success)
+            {
+                return Results.BadRequest(new { errors = result.Errors });
+            }
+
+            return Results.Json(new { rule = ToIpBlockRuleResponse(result.Rule!) });
+        });
+
+        group.MapDelete("/ipblocking/rules/{id}", (string id, IpBlockListService blockList) =>
+        {
+            return blockList.RemoveRule(id) ? Results.NoContent() : Results.NotFound();
+        });
+
+        group.MapPut("/ipblocking/settings", async (HttpContext http, IpBlockListService blockList, IStringLocalizer<UIStrings> L) =>
+        {
+            IpBlockSettingsRequest? request;
+            try
+            {
+                request = await http.Request.ReadFromJsonAsync<IpBlockSettingsRequest>();
+            }
+            catch (JsonException)
+            {
+                return Results.BadRequest(new { errors = new[] { L["validation.bodyNotJson"].Value } });
+            }
+
+            if (request?.TrustForwardedFor is null)
+            {
+                return Results.BadRequest(new { errors = new[] { L["validation.trustForwardedForRequired"].Value } });
+            }
+
+            blockList.SetTrustForwardedFor(request.TrustForwardedFor.Value);
+            return Results.Json(new { trustForwardedFor = request.TrustForwardedFor.Value });
+        });
+
+        // Which rule (if any) a plain address would hit — powers the page's "test an address" box.
+        group.MapPost("/ipblocking/check", async (HttpContext http, IpBlockListService blockList, IStringLocalizer<UIStrings> L) =>
+        {
+            IpBlockCheckRequest? request;
+            try
+            {
+                request = await http.Request.ReadFromJsonAsync<IpBlockCheckRequest>();
+            }
+            catch (JsonException)
+            {
+                return Results.BadRequest(new { errors = new[] { L["validation.bodyNotJson"].Value } });
+            }
+
+            if (request is null)
+            {
+                return Results.BadRequest(new { errors = new[] { L["validation.bodyEmpty"].Value } });
+            }
+
+            var result = blockList.CheckAddress(request.Ip);
+            if (!result.Valid)
+            {
+                return Results.BadRequest(new { errors = new[] { result.Error } });
+            }
+
+            return Results.Json(new { blocked = result.Blocked, value = result.Rule?.Value });
+        });
+
         return app;
     }
+
+    private static IpBlockRuleResponse ToIpBlockRuleResponse(IpBlockRule rule) =>
+        new(rule.Id, rule.Kind.ToString().ToLowerInvariant(), rule.Value, rule.Note, rule.CreatedAtUtc);
 
     private static ConfigResponse ToResponse(ProxyConfigService configService)
     {

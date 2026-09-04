@@ -28,9 +28,17 @@ public sealed record RequestLogQuery
     public string? RouteId { get; init; }
     public string? ClusterId { get; init; }
     public string? DestinationId { get; init; }
+
+    /// <summary>Free-text match over path, method, route/cluster/destination ids and client IP.</summary>
+    public string? Search { get; init; }
+
+    /// <summary>Status class filter (2–5 → 2xx–5xx).</summary>
+    public int? StatusClass { get; init; }
+
     public string Sort { get; init; } = "timestamp";
     public bool Descending { get; init; } = true;
     public int Limit { get; init; } = 500;
+    public int Offset { get; init; }
 }
 
 public sealed record RequestLogQueryResult(IReadOnlyList<RequestLogEntry> Entries, long Total);
@@ -218,8 +226,9 @@ public sealed class SqliteRequestLogStore
     public static string SortFields => string.Join(", ", SortColumns.Keys);
 
     /// <summary>
-    /// History search over stored entries (time range, route/cluster/destination filters, sort).
-    /// Newest first by default; <see cref="RequestLogQueryResult.Total"/> counts every matching row.
+    /// History search over stored entries (time range, route/cluster/destination filters, free-text
+    /// search, status class, sort, limit/offset paging). Newest first by default;
+    /// <see cref="RequestLogQueryResult.Total"/> counts every matching row.
     /// </summary>
     public RequestLogQueryResult Query(RequestLogQuery query)
     {
@@ -249,10 +258,32 @@ public sealed class SqliteRequestLogStore
         {
             conditions.Add(("destination_id = @destination", "@destination", query.DestinationId));
         }
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            // Substring match with the LIKE wildcards escaped so user input is matched literally.
+            var pattern = "%" + query.Search.Replace(@"\", @"\\").Replace("%", @"\%").Replace("_", @"\_") + "%";
+            var searchCondition =
+                "(path LIKE @search ESCAPE '\\' " +
+                "OR method LIKE @search ESCAPE '\\' " +
+                "OR route_id LIKE @search ESCAPE '\\' " +
+                "OR cluster_id LIKE @search ESCAPE '\\' " +
+                "OR destination_id LIKE @search ESCAPE '\\' " +
+                "OR client_ip LIKE @search ESCAPE '\\')";
+            conditions.Add((searchCondition, "@search", pattern));
+        }
+        if (query.StatusClass is { } statusClass)
+        {
+            conditions.Add(("status_code >= @statusFrom AND status_code < @statusTo", "@statusFrom", statusClass * 100));
+            conditions.Add(("", "@statusTo", statusClass * 100 + 100)); // parameter only — no SQL fragment
+        }
 
-        var whereSql = conditions.Count == 0 ? "" : " WHERE " + string.Join(" AND ", conditions.Select(c => c.Sql));
+        // Entries with an empty Sql carry a bound parameter for a multi-parameter condition.
+        var whereSql = conditions.Count == 0
+            ? ""
+            : " WHERE " + string.Join(" AND ", conditions.Where(c => !string.IsNullOrEmpty(c.Sql)).Select(c => c.Sql));
         var direction = query.Descending ? "DESC" : "ASC";
         var limit = Math.Clamp(query.Limit, 1, MaxQueryLimit);
+        var offset = Math.Max(0, query.Offset);
 
         using var connection = OpenConnection();
 
@@ -262,7 +293,10 @@ public sealed class SqliteRequestLogStore
             count.CommandText = "SELECT COUNT(*) FROM request_logs" + whereSql;
             foreach (var (_, name, value) in conditions)
             {
-                count.Parameters.AddWithValue(name, value);
+                if (name is not null)
+                {
+                    count.Parameters.AddWithValue(name, value);
+                }
             }
             total = (long)(count.ExecuteScalar() ?? 0L);
         }
@@ -273,13 +307,17 @@ public sealed class SqliteRequestLogStore
                    route_id, cluster_id, destination_id, destination_address, error, client_ip
             FROM request_logs{whereSql}
             ORDER BY {sortColumn} {direction}, seq {direction}
-            LIMIT @limit
+            LIMIT @limit OFFSET @offset
             """;
         foreach (var (_, name, value) in conditions)
         {
-            command.Parameters.AddWithValue(name, value);
+            if (name is not null)
+            {
+                command.Parameters.AddWithValue(name, value);
+            }
         }
         command.Parameters.AddWithValue("@limit", limit);
+        command.Parameters.AddWithValue("@offset", offset);
 
         var entries = new List<RequestLogEntry>();
         using var reader = command.ExecuteReader();

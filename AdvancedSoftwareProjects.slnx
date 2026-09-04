@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="YARPASUI.LoadTests/YARPASUI.LoadTests.csproj" Id="b7f44de5-f7c1-4b29-af4c-99ba173f9d93" />
   <Project Path="YARPASUI.Tests/YARPASUI.Tests.csproj" Id="795bb311-7a6a-41e4-919d-51ab96f73f1a" />
   <Project Path="YARPUI.Host/YARPUI.Host.csproj" />
   <Project Path="YARPUI/YARPASUI.csproj" />

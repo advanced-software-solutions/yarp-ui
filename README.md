@@ -162,6 +162,38 @@ The Logs page shows entries **newest first** and every column is sortable. The r
 
 A **retention policy** deletes logs automatically once they pass a certain age: a background task runs at startup and then every hour. The policy is managed from the Logs page toolbar (*Keep logs: forever / 1 / 7 / 30 / 90 / 365 days*) and changing it applies immediately; the initial default comes from `YarpUi:Logs:RetentionDays` in configuration (30 days if unset). The policy you set in the UI is stored in the database itself and wins over the configuration value.
 
+## Performance
+
+Load-tested with [NBomber](https://nbomber.com) in [`YARPASUI.LoadTests`](YARPASUI.LoadTests): the harness boots the **real app** — the exact standalone-host pipeline (`AddYarpUi` + `UseYarpUiRequestLogging` + `MapYarpUi` + `MapReverseProxy`), so proxying, request logging and the SQLite log writer are all in the hot path — on in-process Kestrel, and drives it against a local [`traefik/whoami`](https://hub.docker.com/r/traefik/whoami) upstream started via Testcontainers (no WAN latency in the way).
+
+Test constraints: at most **50 concurrent sessions** (closed load model — NBomber `KeepConstant`, stepped 10 → 25 → 50) with a target of **10,000 req/s aggregate**.
+
+![Sustained throughput by concurrency](docs/load-tests/throughput.png)
+
+![Proxy GET latency by concurrency](docs/load-tests/latency.png)
+
+| Scenario | 10 sessions | 25 sessions | 50 sessions |
+| --- | --- | --- | --- |
+| Direct GET (no proxy) | 13,316 req/s · p95 1.1 ms | 16,291 req/s · p95 3.3 ms | 16,113 req/s · p95 8.9 ms |
+| **GET via YARP UI** | 10,109 req/s · p95 1.4 ms | 12,640 req/s · p95 3.9 ms | **13,363 req/s · p95 10.2 ms** |
+| Direct POST (no proxy) | 12,920 req/s · p95 1.2 ms | 15,592 req/s · p95 3.7 ms | 15,811 req/s · p95 9.7 ms |
+| POST via YARP UI | 205 req/s · p95 48.1 ms | 507 req/s · p95 48.2 ms | 1,006 req/s · p95 48.3 ms |
+
+How to read this:
+
+- The proxy **clears the 10,000 req/s target well within the 50-session cap** — 13,363 req/s at 50 sessions — with **zero failed requests across the ~9 million requests** the run generated. Full percentiles, environment and interactive report: [`docs/load-tests/RESULTS.md`](docs/load-tests/RESULTS.md) and [`docs/load-tests/report.html`](docs/load-tests/report.html).
+- Load client, proxy and upstream all ran on one machine (16 logical CPUs, podman upstream in WSL2), so the direct-vs-proxy gap overstates real proxy overhead. Your numbers will depend on hardware, payload sizes and upstream latency.
+- The flat ~44 ms latency on proxied POSTs is an artifact of that rig, not a proxy speed limit: the same small-body POST straight to the upstream is fast (p95 1.2 ms), but YARP streams request bodies and the Windows→WSL2 hop stalls on the second small segment (classic delayed-ACK). GETs don't hit it; if POST latency matters in your topology, measure it there.
+
+Reproduce (requires a container engine — podman or Docker; the harness skips itself without one):
+
+```bash
+dotnet build YARPASUI.LoadTests/YARPASUI.LoadTests.csproj -c Release
+YARP_LOADTEST_PROFILE=full YARPASUI.LoadTests/bin/Release/net10.0/YARPASUI.LoadTests.exe   # full run, ~18 min
+```
+
+A plain run of the same executable is a ~40 s smoke profile; `YARP_LOADTEST_UPSTREAM=local` swaps the container for an in-process upstream, and `YARP_LOADTEST_RENDER_FROM=<results.json>` re-renders the charts from a saved run.
+
 ## Offline / no network
 
 All JavaScript libraries (Cytoscape.js, dagre, cytoscape-dagre, Chart.js) are vendored under `wwwroot/lib/`. No CDN is used at runtime; the UI works fully offline.

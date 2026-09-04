@@ -33,6 +33,12 @@ jobs:
       - name: Build
         run: dotnet build YARPASUI.Tests/YARPASUI.Tests.csproj --configuration Release --no-restore
 
+      # The load-test harness is only built (never run) in CI: throughput numbers
+      # from shared runners are meaningless — run it on real hardware instead
+      # (YARP_LOADTEST_PROFILE=full dotnet test YARPASUI.LoadTests/...).
+      - name: Build load tests
+        run: dotnet build YARPASUI.LoadTests/YARPASUI.LoadTests.csproj --configuration Release
+
       # Scenarios tagged @windows (NTFS ACL simulation) skip themselves on Linux.
       - name: Test
         id: tests

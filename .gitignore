@@ -365,3 +365,6 @@ FodyWeavers.xsd
 *.feature.cs
 /YARPUI.Host/yarp-ui-logs.db-shm
 /YARPUI.Host/yarp-ui-logs.db-wal
+
+# Raw NBomber load-test reports (curated charts/results live in docs/load-tests)
+/YARPASUI.LoadTests/reports/
