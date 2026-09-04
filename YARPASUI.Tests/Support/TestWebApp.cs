@@ -23,9 +23,13 @@ internal sealed partial class TestWebApp : IDisposable
     public static async Task<TestWebApp> CreateAsync(
         Action<TestWebApp>? seed = null,
         Action<WebApplicationBuilder>? configureBuilder = null,
-        TempDir? root = null)
+        TempDir? root = null,
+        Action<WebApplication>? configureApp = null)
     {
         var app = new TestWebApp(seed, configureBuilder, root);
+        // Extra pipeline pieces scenarios opt into (the proxy itself, request logging) —
+        // applied after MapYarpUi, before start.
+        configureApp?.Invoke(app.App);
         await app.App.StartAsync();
         app.Client = app.App.GetTestServer().CreateClient();
         return app;

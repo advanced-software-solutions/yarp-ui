@@ -65,4 +65,26 @@ public sealed class RequestClientIpTests
 
         Assert.Null(RequestClientIp.Resolve(context));
     }
+
+    [Fact]
+    public void TheResolvedAddressWinsOnceForwardedHeadersRan()
+    {
+        // The forwarded-headers middleware resolved RemoteIpAddress from the trusted header;
+        // the caller-controlled X-Forwarded-For chain must not override it.
+        var context = new DefaultHttpContext();
+        context.Connection.RemoteIpAddress = IPAddress.Parse("203.0.113.9");
+        context.Request.Headers["X-Forwarded-For"] = "198.51.100.99";
+        context.Items[RequestClientIp.ForwardedResolvedItemKey] = true;
+
+        Assert.Equal("203.0.113.9", RequestClientIp.Resolve(context));
+    }
+
+    [Fact]
+    public void TheResolvedAddressMayBeUnknown()
+    {
+        var context = new DefaultHttpContext();
+        context.Items[RequestClientIp.ForwardedResolvedItemKey] = true;
+
+        Assert.Null(RequestClientIp.Resolve(context));
+    }
 }

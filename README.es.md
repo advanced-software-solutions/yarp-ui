@@ -121,7 +121,7 @@ La interfaz se sirve entonces en **http://localhost:8090**. Toda la configuraci�
 | `docker-data/yarp-ui.routes.json` | Se escribe automáticamente en cada guardado desde el editor de la interfaz |
 | `docker-data/yarp-ui-logs.db` | Base de datos del registro de solicitudes (SQLite) — sobrevive a los reinicios y se depura según la política de retención |
 
-Bajo el capó, el contenedor define `YarpUi__DataDirectory=/app/data` y monta el volumen allí; un `appsettings.json` en ese directorio prevalece sobre el incluido en la imagen (esto también funciona sin Docker — apunta `YarpUi:DataDirectory` a donde quieras). Para construir la imagen manualmente: `docker build -t yarp-ui:0.4.0 .` desde la raíz de la solución.
+Bajo el capó, el contenedor define `YarpUi__DataDirectory=/app/data` y monta el volumen allí; un `appsettings.json` en ese directorio prevalece sobre el incluido en la imagen (esto también funciona sin Docker — apunta `YarpUi:DataDirectory` a donde quieras). Para construir la imagen manualmente: `docker build -t yarp-ui:0.4.1 .` desde la raíz de la solución.
 
 ## IIS
 
@@ -156,11 +156,52 @@ appsettings.json ("ReverseProxy" section)   ← hand-written seed
 
 Solo se registran las solicitudes **proxificadas** (las solicitudes de la interfaz/API quedan excluidas). Las entradas se almacenan en una base de datos SQLite (`yarp-ui-logs.db` en el directorio de datos, junto a `yarp-ui.routes.json`) y sobreviven a los reinicios. Cada entrada captura el método, la ruta de acceso, el código de estado, la duración, la ruta/clúster/destino que YARP seleccionó y la IP del cliente. Las bases de datos creadas por versiones anteriores se migran en el sitio en el primer arranque.
 
-La **IP del cliente** es la entrada más a la izquierda de `X-Forwarded-For` cuando la proporcionó un proxy frontal; de lo contrario, la dirección de conexión directa. La interfaz no instala por sí misma el middleware ForwardedHeaders — si toda la aplicación está detrás de un balanceador de carga, el encabezado refleja lo que ese proxy reenvió. Dado que `X-Forwarded-For` es controlable por quien llama, trata las IP registradas como informativas y no como autenticadas.
+La **IP del cliente** es la entrada más a la izquierda de `X-Forwarded-For` cuando la proporcionó un proxy frontal; de lo contrario, la dirección de conexión directa; con `YarpUi:ForwardedHeaders` habilitado se registra en su lugar la dirección resuelta de la cabecera del frontal de confianza (ver [Encabezados reenviados](#encabezados-reenviados-la-ip-real-del-cliente-detrás-de-un-proxy)). Dado que `X-Forwarded-For` es controlable por quien llama, trata las IP registradas como informativas y no como autenticadas, salvo que los encabezados reenviados estén habilitados desde un frontal que los clientes no puedan evitar.
 
 La página de Registros muestra las entradas **más recientes primero** y todas las columnas son ordenables. Los filtros de ruta / clúster / destino y el selector de intervalo de tiempo (últimos 15 min … 7 días, un rango personalizado o todo el historial) ejecutan una **búsqueda del lado del servidor sobre todo el historial retenido** mediante `GET /api/yarp/logs` con `from`/`to` (milisegundos Unix), `routeId`, `clusterId`, `destinationId`, `sort`, `desc` y `limit` (máx. 1000 por consulta). Sin parámetros de búsqueda, el endpoint mantiene su contrato de seguimiento en vivo: `after=<seq>` transmite las entradas nuevas de la más antigua a la más reciente. El filtrado de texto libre y por clase de estado se aplica sobre lo que esté cargado.
 
 Una **política de retención** elimina registros automáticamente al superar cierta antigüedad: una tarea en segundo plano se ejecuta al arrancar y luego cada hora. La política se gestiona desde la barra de herramientas de la página de Registros (*Conservar registros: para siempre / 1 / 7 / 30 / 90 / 365 días*) y los cambios se aplican de inmediato; el valor predeterminado inicial proviene de `YarpUi:Logs:RetentionDays` en la configuración (30 días si no se establece). La política que definas en la interfaz se almacena en la propia base de datos y prevalece sobre el valor de configuración.
+
+## Encabezados reenviados (la IP real del cliente detrás de un proxy)
+
+Cuando toda la aplicación está detrás de un frontal de confianza — un túnel de Cloudflare, nginx, otro balanceador — la dirección de conexión directa de cada petición es la del frontal, no la del visitante: el bloqueo de IP ve una sola dirección para todo el tráfico y el registro de solicitudes muestra la IP del proxy. La sección opcional `YarpUi:ForwardedHeaders` habilita el middleware de encabezados reenviados de ASP.NET Core en todos los modos de hospedaje, sin código en el host:
+
+```json
+"YarpUi": {
+  "ForwardedHeaders": {
+    "Enabled": true,
+    "ForwardedForHeaderName": "CF-Connecting-IP"
+  }
+}
+```
+
+| Ajuste | Predeterminado | Significado |
+| --- | --- | --- |
+| `Enabled` | `false` | Instala el middleware; nada cambia hasta que sea `true`. |
+| `ForwardedForHeaderName` | `X-Forwarded-For` | Cabecera en la que el frontal transporta la IP del cliente cuando no es la estándar — `CF-Connecting-IP` (Cloudflare), `True-Client-IP` (Akamai). Déjala sin establecer para frontales que usan `X-Forwarded-For`. |
+| `KnownProxies` | *(solo loopback)* | Direcciones IP del par adicionales cuyos valores reenviados son de confianza. |
+| `KnownNetworks` | *(solo loopback)* | Redes del par adicionales de confianza en notación CIDR (`172.18.0.0/16`), p. ej. la red docker de la que conecta un frontal en contenedor. |
+| `TrustAllProxies` | `false` | Elimina por completo la comprobación de proxies conocidos — solo para despliegues donde los clientes no pueden alcanzar la aplicación salvo a través del frontal (el despliegue de túnel normal: sin puertos de entrada abiertos). |
+
+Qué hace:
+
+- `Connection.RemoteIpAddress` pasa a ser la dirección del visitante, resuelta desde la cabecera configurada; `X-Forwarded-Proto` también se respeta, de modo que los frontales que terminan TLS producen el esquema correcto.
+- El **bloqueo de IP** coincide entonces con el visitante real con sus ajustes predeterminados — sin necesidad del interruptor *Honor X-Forwarded-For*, que lee la cadena estándar falsificable.
+- El **registro de solicitudes** guarda la dirección resuelta, que prevalece sobre la entrada más a la izquierda de `X-Forwarded-For` — el visitante puede falsificar esa cadena enviando su propia cabecera, pero no la cabecera del frontal.
+- Loopback es de confianza por defecto: un proceso de túnel (p. ej. cloudflared) en la misma máquina solo necesita `Enabled` y el nombre de la cabecera; un frontal que conecte desde una red de contenedores necesita además su rango en `KnownNetworks` (o `TrustAllProxies` cuando la aplicación no es accesible salvo a través del frontal).
+- Un valor no interpretable en `KnownProxies`/`KnownNetworks` hace fallar el arranque con un error que lo nombra — un rango de confianza mal escrito debe ser ruidoso, no ignorarse en silencio.
+- Si el host ya instala su propio middleware de encabezados reenviados (`UseForwardedHeaders`), deja esta sección deshabilitada.
+
+**Reenviar la IP del cliente a tus destinos**: las cabeceras del frontal (incluida `CF-Connecting-IP`) ya pasan a los destinos sin cambios. Para enviar además la IP resuelta del visitante como `X-Forwarded-For` estándar, añade transforms a la ruta — en el cuadro *Transforms* del editor:
+
+```json
+[
+  { "X-ForwardedFor": "Set" },
+  { "X-ForwardedProto": "Set" }
+]
+```
+
+`Set` escribe un único valor limpio (la IP resuelta del cliente); `Append` conserva la cadena entrante.
 
 ## Localización
 

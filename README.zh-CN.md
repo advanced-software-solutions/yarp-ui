@@ -121,7 +121,7 @@ docker compose up -d --build
 | `docker-data/yarp-ui.routes.json` | 每次从界面编辑器保存时自动写入 |
 | `docker-data/yarp-ui-logs.db` | 请求日志数据库（SQLite）— 重启后保留，并按保留策略清理 |
 
-在底层，容器会设置 `YarpUi__DataDirectory=/app/data` 并将卷挂载到那里；该目录中的 `appsettings.json` 会覆盖打包进镜像的那份（不用 Docker 时也一样 — 把 `YarpUi:DataDirectory` 指向任意位置即可）。手动构建镜像：在解决方案根目录执行 `docker build -t yarp-ui:0.4.0 .`。
+在底层，容器会设置 `YarpUi__DataDirectory=/app/data` 并将卷挂载到那里；该目录中的 `appsettings.json` 会覆盖打包进镜像的那份（不用 Docker 时也一样 — 把 `YarpUi:DataDirectory` 指向任意位置即可）。手动构建镜像：在解决方案根目录执行 `docker build -t yarp-ui:0.4.1 .`。
 
 ## IIS
 
@@ -156,11 +156,52 @@ appsettings.json ("ReverseProxy" section)   ← hand-written seed
 
 只记录**已代理**的请求（界面/API 请求除外）。条目存储在 SQLite 数据库中（数据目录中的 `yarp-ui-logs.db`，与 `yarp-ui.routes.json` 相邻），并在重启后保留。每个条目记录方法、路径、状态码、耗时、YARP 选择的路由/集群/目标以及客户端 IP。旧版本创建的数据库会在首次启动时原地迁移。
 
-**客户端 IP** 是前置代理提供 `X-Forwarded-For` 时其中最左边的条目，否则为直接连接地址。界面本身不安装 ForwardedHeaders 中间件 — 如果整个应用位于负载均衡器之后，该标头反映的是那个代理转发的内容。由于 `X-Forwarded-For` 可由调用方控制，请将记录的 IP 视为参考信息而非已验证的信息。
+**客户端 IP** 是前置代理提供 `X-Forwarded-For` 时其中最左边的条目，否则为直接连接地址；启用 `YarpUi:ForwardedHeaders` 后，改为记录从受信任前置代理的标头解析出的地址（见[转发标头](#转发标头代理后面的真实客户端-ip)）。由于 `X-Forwarded-For` 可由调用方控制，除非转发的标头来自客户端无法绕过的前置代理，否则请将记录的 IP 视为参考信息而非已验证的信息。
 
 日志页面按**最新在前**显示条目，每一列都可排序。路由/集群/目标筛选器和时间范围选择器（最近 15 分钟 … 7 天、自定义范围或全部时间）通过 `GET /api/yarp/logs` 对**整个保留历史执行服务端搜索**，支持 `from`/`to`（Unix 毫秒）、`routeId`、`clusterId`、`destinationId`、`sort`、`desc` 和 `limit`（每次查询最多 1000 条）。不带搜索参数时，该端点保持其实时跟踪契约：`after=<seq>` 以从旧到新的顺序流出新条目。自由文本和状态类别筛选在已加载内容之上应用。
 
 **保留策略**会在日志超过一定时间后自动删除它们：后台任务在启动时以及之后每小时运行。策略从日志页面工具栏管理（*保留日志：永久 / 1 / 7 / 30 / 90 / 365 天*），更改立即生效；初始默认值来自配置中的 `YarpUi:Logs:RetentionDays`（未设置时为 30 天）。你在界面中设置的策略存储在数据库本身中，并优先于配置值。
+
+## 转发标头（代理后面的真实客户端 IP）
+
+当整个应用位于受信任的前置代理 —— Cloudflare 隧道、nginx 或其他负载均衡器 —— 后面时，每个请求的直接连接地址都是前置代理的而不是访客的：IP 封禁看到的所有流量都来自同一个地址，请求日志显示的也是代理的 IP。可选的 `YarpUi:ForwardedHeaders` 配置节会为你启用 ASP.NET Core 的转发标头中间件 —— 在所有托管模式下生效，无需宿主代码：
+
+```json
+"YarpUi": {
+  "ForwardedHeaders": {
+    "Enabled": true,
+    "ForwardedForHeaderName": "CF-Connecting-IP"
+  }
+}
+```
+
+| 设置 | 默认值 | 含义 |
+| --- | --- | --- |
+| `Enabled` | `false` | 启用该中间件；在此之前不会有任何变化。 |
+| `ForwardedForHeaderName` | `X-Forwarded-For` | 前置代理承载客户端 IP 的标头（当它不是标准标头时）—— `CF-Connecting-IP`（Cloudflare）、`True-Client-IP`（Akamai）。使用标准 `X-Forwarded-For` 的前置代理无需设置。 |
+| `KnownProxies` | *（仅环回）* | 额外信任其对端 IP 地址。 |
+| `KnownNetworks` | *（仅环回）* | 额外信任的对端网段，CIDR 记法（`172.18.0.0/16`），例如容器化前置代理所连接的 docker 网络。 |
+| `TrustAllProxies` | `false` | 完全清除已知代理检查 —— 仅适用于客户端只能经由该前置代理访问应用的部署（典型的隧道部署：不开放任何入站端口）。 |
+
+作用：
+
+- `Connection.RemoteIpAddress` 变为从配置标头解析出的访客地址；同时尊重 `X-Forwarded-Proto`，因此终止 TLS 的前置代理能产生正确的协议。
+- **IP 封禁**随即按默认设置匹配真实访客 —— 无需开启 *Honor X-Forwarded-For* 开关（它读取的是可伪造的标准链）。
+- **请求日志**记录解析出的地址，它优先于 `X-Forwarded-For` 最左边的条目 —— 访客可以伪造该链，但无法伪造前置代理设置的标头。
+- 环回地址默认受信任：与隧道进程（如 cloudflared）同机部署时只需 `Enabled` 加标头名称；从容器网络连接的前置代理还需在 `KnownNetworks` 中加入其网段（或在该应用只能经前置代理访问时使用 `TrustAllProxies`）。
+- `KnownProxies`/`KnownNetworks` 中无法解析的值会让启动失败并指明该值 —— 写错的信任网段应当报错，而不是被静默忽略。
+- 如果宿主已自行安装转发标头中间件（`UseForwardedHeaders`），请保持此配置节关闭。
+
+**将客户端 IP 转发给后端目标**：前置代理的标头（包括 `CF-Connecting-IP`）本就会原样透传到目标。若还要把解析出的访客 IP 作为标准 `X-Forwarded-For` 发送，请在路由上添加转换 —— 在编辑器的 *Transforms* 输入框中：
+
+```json
+[
+  { "X-ForwardedFor": "Set" },
+  { "X-ForwardedProto": "Set" }
+]
+```
+
+`Set` 写入单一干净的值（解析出的客户端 IP）；`Append` 则保留传入的链。
 
 ## 本地化
 

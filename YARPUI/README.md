@@ -22,7 +22,7 @@ cd YARPUI.Host && dotnet run      # → http://localhost:5080
 **2. Embedded in your own app** — add the package and wire it up (see `samples/EmbeddedHost`):
 
 ```xml
-<PackageReference Include="YA-RP-UI" Version="0.2.0" />
+<PackageReference Include="YA-RP-UI" Version="0.4.1" />
 ```
 
 ```csharp
@@ -99,7 +99,7 @@ The UI is then served on **http://localhost:8090**. All mutable configuration is
 | `docker-data/yarp-ui-ipblocklist.json` | IP block list (rules + settings) — written on every change from the IP Blocking page |
 | `docker-data/yarp-ui-logs.db` | Request log database (SQLite) — survives restarts, purged by the retention policy |
 
-Under the hood the container sets `YarpUi__DataDirectory=/app/data` and mounts the volume there; an `appsettings.json` in that directory overrides the one baked into the image (this also works without Docker — point `YarpUi:DataDirectory` anywhere you like). To build the image manually: `docker build -t yarp-ui:0.4.0 .` from the solution root.
+Under the hood the container sets `YarpUi__DataDirectory=/app/data` and mounts the volume there; an `appsettings.json` in that directory overrides the one baked into the image (this also works without Docker — point `YarpUi:DataDirectory` anywhere you like). To build the image manually: `docker build -t yarp-ui:0.4.1 .` from the solution root.
 
 ## IIS
 
@@ -134,7 +134,7 @@ appsettings.json ("ReverseProxy" section)   ← hand-written seed
 
 Only **proxied** requests are recorded (UI/API requests are excluded). Entries are stored in a SQLite database (`yarp-ui-logs.db` in the data directory, next to `yarp-ui.routes.json`) and survive restarts. Each entry captures the method, path, status code, duration, the route/cluster/destination YARP selected, and the client IP. Databases created by older versions are migrated in place on first start.
 
-The **client IP** is the leftmost `X-Forwarded-For` entry when a fronting proxy supplied one, otherwise the direct connection address. The UI does not install the ForwardedHeaders middleware itself — if the whole app sits behind a load balancer, the header reflects what that proxy forwarded. Since `X-Forwarded-For` is caller-controlled, treat logged IPs as informational rather than authenticated.
+The **client IP** is the leftmost `X-Forwarded-For` entry when a fronting proxy supplied one, otherwise the direct connection address; when `YarpUi:ForwardedHeaders` is enabled, the address resolved from the trusted front's header is logged instead (see [Forwarded headers](#forwarded-headers-the-real-client-ip-behind-a-proxy)). Since `X-Forwarded-For` is caller-controlled, treat logged IPs as informational rather than authenticated, unless forwarded headers are enabled from a front clients cannot bypass.
 
 The Logs page loads **only the latest page of entries** (10 rows, newest first) and pages through the rest on demand, so opening it stays fast no matter how much history is retained. All filtering and sorting run **server-side over the entire retained history** via `GET /api/yarp/logs` with `from`/`to` (Unix milliseconds), `routeId`, `clusterId`, `destinationId`, `q` (free text over path, method, route/cluster/destination and client IP), `status` (status class 2–5), `sort`, `desc`, `limit` (max 1000 per query) and `offset` for paging; the response reports the total match count. Without search parameters the endpoint keeps its live-tailing contract: `after=<seq>` streams new entries oldest-first. The page keeps the first page fresh live (new entries appear at the top while Live is on); deeper pages stay stable while you browse them.
 
@@ -155,11 +155,52 @@ Rules accept three notations and apply to both IPv4 and IPv6:
 Behavior details:
 
 - **What gets blocked**: every request **except the management UI itself** — its pages, `/api/yarp/*` and its static assets stay reachable no matter what, so an admin can never lock themselves out; a too-wide rule is always removable from the UI (or by deleting `yarp-ui-ipblocklist.json` in the data directory). In attach mode the block also covers the host application's own routes, since the check runs before routing.
-- **Which address is matched**: the direct connection address (`Connection.RemoteIpAddress`), which is unspoofable and correct when YARP UI is the edge proxy. If the whole app sits behind another trusted proxy or load balancer, enable **Honor X-Forwarded-For** on the page to match the leftmost `X-Forwarded-For` entry instead. That header is caller-controlled: only enable the toggle when direct clients cannot reach the app, otherwise an attacker can spoof the header to evade (or trigger) blocks.
+- **Which address is matched**: the direct connection address (`Connection.RemoteIpAddress`), which is unspoofable and correct when YARP UI is the edge proxy. If the whole app sits behind another trusted proxy or load balancer, enable **Honor X-Forwarded-For** on the page to match the leftmost `X-Forwarded-For` entry instead. That header is caller-controlled: only enable the toggle when direct clients cannot reach the app, otherwise an attacker can spoof the header to evade (or trigger) blocks. With `YarpUi:ForwardedHeaders` enabled, `Connection.RemoteIpAddress` is already the visitor's resolved address, so rules match the real client with the toggle off — see [Forwarded headers](#forwarded-headers-the-real-client-ip-behind-a-proxy).
 - **Persistence**: rules and the toggle live in `yarp-ui-ipblocklist.json` in the data directory (next to `yarp-ui.routes.json`), written atomically on every change and reloaded on restart. A corrupt file never takes the app down — it falls back to an empty list with a warning; individual rules that no longer parse are skipped.
 - **Visibility**: every blocked request is written to the request log (status 403, the matching rule named in the error field, the client IP), so blocks are searchable on the Logs page like any other traffic. The Logs page also has a one-click **block** button on each row's client IP.
 - **API**: `GET /api/yarp/ipblocking`, `POST /api/yarp/ipblocking/rules`, `DELETE /api/yarp/ipblocking/rules/{id}`, `PUT /api/yarp/ipblocking/settings`, and `POST /api/yarp/ipblocking/check` (reports which rule an address would hit — the page's *Test an address* box).
 - The list is capped at 1000 rules; overlapping ranges are merged internally (the request is blocked either way, the log names one of the matching rules).
+
+## Forwarded headers (the real client IP behind a proxy)
+
+When the whole app sits behind a trusted front — a Cloudflare tunnel, nginx, another load balancer — every request's direct connection address is the front's, not the visitor's: IP blocking sees one address for all traffic and the request log shows the proxy's IP. The opt-in `YarpUi:ForwardedHeaders` section enables ASP.NET Core's forwarded-headers middleware for you, in every hosting mode, with no host code:
+
+```json
+"YarpUi": {
+  "ForwardedHeaders": {
+    "Enabled": true,
+    "ForwardedForHeaderName": "CF-Connecting-IP"
+  }
+}
+```
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `Enabled` | `false` | Installs the middleware; nothing changes until this is `true`. |
+| `ForwardedForHeaderName` | `X-Forwarded-For` | The header your front carries the client IP in when it isn't the standard one — `CF-Connecting-IP` (Cloudflare), `True-Client-IP` (Akamai). Leave unset for fronts that speak `X-Forwarded-For`. |
+| `KnownProxies` | *(loopback only)* | Extra peer IP addresses whose forwarded values are trusted. |
+| `KnownNetworks` | *(loopback only)* | Extra trusted peer networks in CIDR notation (`172.18.0.0/16`), e.g. the docker network a containerized front connects from. |
+| `TrustAllProxies` | `false` | Clears the known-proxy check entirely — only for setups where clients cannot reach the app except through the front (the normal tunnel deployment: no inbound ports open). |
+
+What it does:
+
+- `Connection.RemoteIpAddress` becomes the visitor's address, resolved from the configured header; `X-Forwarded-Proto` is honored too, so TLS-terminated fronts produce the right scheme.
+- **IP blocking** then matches the real visitor with its default settings — no need for the *Honor X-Forwarded-For* toggle, which reads the spoofable standard chain.
+- The **request log** records the resolved address, which wins over the leftmost `X-Forwarded-For` entry — a visitor can spoof that chain by sending their own header, but not the front's header.
+- Loopback is trusted out of the box, so a tunnel process (e.g. cloudflared) on the same machine needs only `Enabled` plus the header name; a front connecting from a container network additionally needs its range in `KnownNetworks` (or `TrustAllProxies` when the app is unreachable except through the front).
+- An unparseable `KnownProxies`/`KnownNetworks` value fails startup with an error naming it — a typo'd trust range should be loud, not silently ignored.
+- If the host already installs its own forwarded-headers middleware (`UseForwardedHeaders`), leave this section off.
+
+**Forwarding the client IP to your destinations**: headers from the front (including `CF-Connecting-IP`) already pass through to destinations unchanged. To also send the resolved visitor IP as the standard `X-Forwarded-For`, add transforms on the route — in the editor's *Transforms* box:
+
+```json
+[
+  { "X-ForwardedFor": "Set" },
+  { "X-ForwardedProto": "Set" }
+]
+```
+
+`Set` writes a single clean value (the resolved client IP); `Append` keeps the incoming chain instead.
 
 ## Localization
 

@@ -161,6 +161,11 @@ public static class YarpUiServiceCollectionExtensions
         IServiceCollection services, IConfiguration configuration, string dataDirectory, bool attachMode)
     {
         services.AddRazorPages();
+
+        // Forwarded headers (opt-in via YarpUi:ForwardedHeaders): registered before the other UI
+        // startup filters so the middleware resolves Connection.RemoteIpAddress ahead of the IP
+        // blocking check further down. A no-op unless the section enables it.
+        YarpUiForwardedHeaders.AddYarpUiForwardedHeaders(services, configuration);
         YarpUiLocalization.AddYarpUiLocalization(services, configuration);
 
         services.AddSingleton(sp => new ProxyConfigService(
