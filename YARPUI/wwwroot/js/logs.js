@@ -67,9 +67,22 @@
         return code >= 500 ? '5xx' : code >= 400 ? '4xx' : code >= 300 ? '3xx' : code >= 200 ? '2xx' : 'failed';
     }
 
+    function datePart(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+
+    function clockPart(d) {
+        return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + '.' + pad(Math.floor(d.getMilliseconds() / 10));
+    }
+
+    // Full "yyyy-MM-dd HH:mm:ss.SS" — chart tooltips span windows where the day matters.
     function formatTime(iso) {
         var d = new Date(iso);
-        return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + '.' + pad(Math.floor(d.getMilliseconds() / 10));
+        return datePart(d) + ' ' + clockPart(d);
+    }
+
+    // Table cell: the date is dimmed so the time stays the prominent part.
+    function formatTimeCell(iso) {
+        var d = new Date(iso);
+        return '<span class="cell-dim">' + datePart(d) + '</span> ' + clockPart(d);
     }
 
     function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -149,7 +162,7 @@
                 var status = e.statusCode == null ? '—' : e.statusCode;
                 var title = e.error ? ' title="' + esc(e.error) + '"' : '';
                 return '<tr class="' + statusClass(e.statusCode) + '"' + title + '>' +
-                    '<td class="col-time mono">' + formatTime(e.timestampUtc) + '</td>' +
+                    '<td class="col-time mono">' + formatTimeCell(e.timestampUtc) + '</td>' +
                     '<td class="col-method"><span class="method-pill m-' + esc((e.method || '').toLowerCase()) + '">' + esc(e.method) + '</span></td>' +
                     '<td class="mono cell-path" title="' + esc(e.path) + '">' + esc(e.path) + '</td>' +
                     '<td class="col-status"><span class="status-pill ' + statusClass(e.statusCode) + '">' + status + '</span></td>' +

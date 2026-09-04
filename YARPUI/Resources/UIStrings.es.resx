@@ -230,7 +230,7 @@
   <data name="logs.chartTitle" xml:space="preserve"><value>Duración por petición — coloreada por clase de estado, línea discontinua = P95</value></data>
   <data name="logs.slowestRoutes" xml:space="preserve"><value>Rutas más lentas (P95)</value></data>
   <data name="logs.noRequestsYet" xml:space="preserve"><value>Aún no hay peticiones en esta ventana.</value></data>
-  <data name="logs.colTime" xml:space="preserve"><value>Hora</value></data>
+  <data name="logs.colTime" xml:space="preserve"><value>Fecha / hora</value></data>
   <data name="logs.colMethod" xml:space="preserve"><value>Método</value></data>
   <data name="logs.colPath" xml:space="preserve"><value>Path</value></data>
   <data name="logs.colStatus" xml:space="preserve"><value>Estado</value></data>

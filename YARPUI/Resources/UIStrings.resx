@@ -233,7 +233,7 @@
   <data name="logs.chartTitle" xml:space="preserve"><value>Per-request duration — colored by status class, dashed line = P95</value></data>
   <data name="logs.slowestRoutes" xml:space="preserve"><value>Slowest routes (P95)</value></data>
   <data name="logs.noRequestsYet" xml:space="preserve"><value>No requests in this window yet.</value></data>
-  <data name="logs.colTime" xml:space="preserve"><value>Time</value></data>
+  <data name="logs.colTime" xml:space="preserve"><value>Date / Time</value></data>
   <data name="logs.colMethod" xml:space="preserve"><value>Method</value></data>
   <data name="logs.colPath" xml:space="preserve"><value>Path</value></data>
   <data name="logs.colStatus" xml:space="preserve"><value>Status</value></data>

@@ -224,7 +224,7 @@
   <data name="logs.chartTitle" xml:space="preserve"><value>单请求耗时 — 按状态类别着色，虚线 = P95</value></data>
   <data name="logs.slowestRoutes" xml:space="preserve"><value>最慢的路由（P95）</value></data>
   <data name="logs.noRequestsYet" xml:space="preserve"><value>该时间窗内还没有请求。</value></data>
-  <data name="logs.colTime" xml:space="preserve"><value>时间</value></data>
+  <data name="logs.colTime" xml:space="preserve"><value>日期 / 时间</value></data>
   <data name="logs.colMethod" xml:space="preserve"><value>方法</value></data>
   <data name="logs.colPath" xml:space="preserve"><value>路径</value></data>
   <data name="logs.colStatus" xml:space="preserve"><value>状态</value></data>
