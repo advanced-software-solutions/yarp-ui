@@ -121,7 +121,7 @@ docker compose up -d --build
 | `docker-data/yarp-ui.routes.json` | يُكتَب تلقائيًا عند كل حفظ من محرّر الواجهة |
 | `docker-data/yarp-ui-logs.db` | قاعدة بيانات سجل الطلبات (SQLite) — تنجو من إعادة التشغيل وتُنقَّح وفق سياسة الاحتفاظ |
 
-تحت الغلاف، يضبط الحاوية `YarpUi__DataDirectory=/app/data` ويوصل وحدة التخزين هناك؛ وملف `appsettings.json` في ذلك الدليل يغلب المدمج في الصورة (يعمل هذا دون Docker أيضًا — وجّه `YarpUi:DataDirectory` إلى أي مكان تريده). لبناء الصورة يدويًا: `docker build -t yarp-ui:0.2.1 .` من جذر الحل.
+تحت الغلاف، يضبط الحاوية `YarpUi__DataDirectory=/app/data` ويوصل وحدة التخزين هناك؛ وملف `appsettings.json` في ذلك الدليل يغلب المدمج في الصورة (يعمل هذا دون Docker أيضًا — وجّه `YarpUi:DataDirectory` إلى أي مكان تريده). لبناء الصورة يدويًا: `docker build -t yarp-ui:0.4.0 .` من جذر الحل.
 
 ## IIS
 

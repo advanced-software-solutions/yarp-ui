@@ -121,7 +121,7 @@ La interfaz se sirve entonces en **http://localhost:8090**. Toda la configuraci�
 | `docker-data/yarp-ui.routes.json` | Se escribe automáticamente en cada guardado desde el editor de la interfaz |
 | `docker-data/yarp-ui-logs.db` | Base de datos del registro de solicitudes (SQLite) — sobrevive a los reinicios y se depura según la política de retención |
 
-Bajo el capó, el contenedor define `YarpUi__DataDirectory=/app/data` y monta el volumen allí; un `appsettings.json` en ese directorio prevalece sobre el incluido en la imagen (esto también funciona sin Docker — apunta `YarpUi:DataDirectory` a donde quieras). Para construir la imagen manualmente: `docker build -t yarp-ui:0.2.1 .` desde la raíz de la solución.
+Bajo el capó, el contenedor define `YarpUi__DataDirectory=/app/data` y monta el volumen allí; un `appsettings.json` en ese directorio prevalece sobre el incluido en la imagen (esto también funciona sin Docker — apunta `YarpUi:DataDirectory` a donde quieras). Para construir la imagen manualmente: `docker build -t yarp-ui:0.4.0 .` desde la raíz de la solución.
 
 ## IIS
 

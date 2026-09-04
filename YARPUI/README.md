@@ -99,7 +99,7 @@ The UI is then served on **http://localhost:8090**. All mutable configuration is
 | `docker-data/yarp-ui-ipblocklist.json` | IP block list (rules + settings) — written on every change from the IP Blocking page |
 | `docker-data/yarp-ui-logs.db` | Request log database (SQLite) — survives restarts, purged by the retention policy |
 
-Under the hood the container sets `YarpUi__DataDirectory=/app/data` and mounts the volume there; an `appsettings.json` in that directory overrides the one baked into the image (this also works without Docker — point `YarpUi:DataDirectory` anywhere you like). To build the image manually: `docker build -t yarp-ui:0.2.0 .` from the solution root.
+Under the hood the container sets `YarpUi__DataDirectory=/app/data` and mounts the volume there; an `appsettings.json` in that directory overrides the one baked into the image (this also works without Docker — point `YarpUi:DataDirectory` anywhere you like). To build the image manually: `docker build -t yarp-ui:0.4.0 .` from the solution root.
 
 ## IIS
 

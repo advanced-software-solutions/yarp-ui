@@ -121,7 +121,7 @@ docker compose up -d --build
 | `docker-data/yarp-ui.routes.json` | 每次从界面编辑器保存时自动写入 |
 | `docker-data/yarp-ui-logs.db` | 请求日志数据库（SQLite）— 重启后保留，并按保留策略清理 |
 
-在底层，容器会设置 `YarpUi__DataDirectory=/app/data` 并将卷挂载到那里；该目录中的 `appsettings.json` 会覆盖打包进镜像的那份（不用 Docker 时也一样 — 把 `YarpUi:DataDirectory` 指向任意位置即可）。手动构建镜像：在解决方案根目录执行 `docker build -t yarp-ui:0.2.1 .`。
+在底层，容器会设置 `YarpUi__DataDirectory=/app/data` 并将卷挂载到那里；该目录中的 `appsettings.json` 会覆盖打包进镜像的那份（不用 Docker 时也一样 — 把 `YarpUi:DataDirectory` 指向任意位置即可）。手动构建镜像：在解决方案根目录执行 `docker build -t yarp-ui:0.4.0 .`。
 
 ## IIS
 
