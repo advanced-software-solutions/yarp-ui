@@ -224,6 +224,57 @@ Feature: Request log persistence and performance stats
     Then the returned entries count is 2
     And the query total is 4
 
+  Scenario: The query pages through results with an offset
+    Given these proxied requests were captured
+      | Method | Path | Status | DurationMs | RouteId |
+      | GET    | /a   | 200    | 10         | api     |
+      | GET    | /b   | 200    | 10         | api     |
+      | GET    | /c   | 200    | 10         | api     |
+      | GET    | /d   | 200    | 10         | api     |
+    When the pending entries are flushed
+    And the entries are queried with limit 2 and offset 2
+    Then the returned entries are
+      | Path |
+      | /b   |
+      | /a   |
+    And the query total is 4
+
+  Scenario: The query matches free text across request fields
+    Given these proxied requests were captured
+      | Method | Path   | Status | DurationMs | RouteId | ClientIp    |
+      | GET    | /api/a | 200    | 10         | api     | -           |
+      | GET    | /web/b | 200    | 10         | web     | 203.0.113.9 |
+      | POST   | /api/c | 200    | 10         | api     | -           |
+    When the pending entries are flushed
+    And the entries are queried matching "web"
+    Then the returned entries count is 1
+    And the returned entries are
+      | Path   |
+      | /web/b |
+    When the entries are queried matching "203.0.113"
+    Then the returned entries count is 1
+    When the entries are queried matching "POST"
+    Then the returned entries count is 1
+
+  Scenario: The query filters by status class
+    Given these proxied requests were captured
+      | Method | Path    | Status | DurationMs | RouteId |
+      | GET    | /ok     | 200    | 10         | api     |
+      | GET    | /moved  | 302    | 10         | api     |
+      | GET    | /denied | 403    | 10         | api     |
+      | GET    | /boom   | 500    | 10         | api     |
+    When the pending entries are flushed
+    And the entries are queried with status class 4
+    Then the returned entries count is 1
+    And the returned entries are
+      | Path    |
+      | /denied |
+    When the entries are queried with status class 5
+    Then the returned entries count is 1
+    And the returned entries are
+      | Path  |
+      | /boom |
+
   Scenario: The client IP is persisted with each entry
     Given these proxied requests were captured
       | Method | Path    | Status | DurationMs | RouteId | ClientIp    |

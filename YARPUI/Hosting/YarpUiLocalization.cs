@@ -93,35 +93,7 @@ internal sealed class YarpUiRequestLocalizationStartupFilter : IStartupFilter
     {
         return builder => next(
             builder.UseWhen(
-                context => IsYarpUiRequest(context.Request.Path),
+                context => YarpUiPaths.IsYarpUiRequest(context.Request.Path),
                 branch => branch.UseRequestLocalization()));
     }
-
-    private static bool IsYarpUiRequest(PathString path)
-    {
-        var value = path.HasValue ? path.Value!.TrimEnd('/') : "/";
-        if (value.Length == 0)
-        {
-            return true; // "/"
-        }
-
-        foreach (var candidate in UiPaths)
-        {
-            if (string.Equals(value, candidate, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-
-        return path.StartsWithSegments("/api/yarp", StringComparison.OrdinalIgnoreCase);
-    }
-
-    // Razor Pages routes mapped by MapYarpUi plus the auth endpoints. Static assets
-    // (~/_content/YARPUI/...) are culture-neutral — their text comes from the per-request
-    // inline strings script — so they are deliberately excluded, as is everything else
-    // the host itself serves.
-    private static readonly string[] UiPaths =
-    [
-        "/Index", "/Editor", "/Logs", "/Login", "/logout", "/Error",
-    ];
 }

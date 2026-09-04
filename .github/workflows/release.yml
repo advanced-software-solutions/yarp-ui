@@ -51,7 +51,8 @@ jobs:
       # Exchanges the GitHub OIDC token for a temp API key valid for 1 hour,
       # so this step must run right before the push.
       - name: NuGet login (OIDC to temp API key)
-        uses: NuGet/login@v1
+        # Pinned to a full commit SHA (tag in comment) so a compromised tag cannot run code in CI.
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1
         id: login
         with:
           user: amr.swalha # nuget.org profile name, not an email address

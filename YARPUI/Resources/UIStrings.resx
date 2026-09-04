@@ -15,6 +15,7 @@
   <data name="nav.map" xml:space="preserve"><value>Map</value></data>
   <data name="nav.editor" xml:space="preserve"><value>Editor</value></data>
   <data name="nav.logs" xml:space="preserve"><value>Logs</value></data>
+  <data name="nav.ipBlocking" xml:space="preserve"><value>IP Blocking</value></data>
   <data name="layout.signedIn" xml:space="preserve"><value>Signed in</value></data>
   <data name="layout.signOut" xml:space="preserve"><value>Sign out</value></data>
   <data name="layout.languageTitle" xml:space="preserve"><value>Language</value></data>
@@ -32,6 +33,7 @@
   <!-- route map page -->
   <data name="index.title" xml:space="preserve"><value>Route Map — YARP UI</value></data>
   <data name="index.searchPlaceholder" xml:space="preserve"><value>Search routes, clusters, destinations…</value></data>
+  <data name="index.searchLabel" xml:space="preserve"><value>Search</value></data>
   <data name="index.zoomOut" xml:space="preserve"><value>Zoom out</value></data>
   <data name="index.zoomIn" xml:space="preserve"><value>Zoom in</value></data>
   <data name="index.fit" xml:space="preserve"><value>Fit to screen</value></data>
@@ -176,7 +178,9 @@
   <!-- logs page -->
   <data name="logs.title" xml:space="preserve"><value>Request Logs — YARP UI</value></data>
   <data name="logs.searchPlaceholder" xml:space="preserve"><value>Filter by path, route, cluster, destination…</value></data>
+  <data name="logs.searchLabel" xml:space="preserve"><value>Search logs</value></data>
   <data name="logs.filterStatusTitle" xml:space="preserve"><value>Filter by status class</value></data>
+  <data name="logs.filterStatusLabel" xml:space="preserve"><value>Status class</value></data>
   <data name="logs.allStatuses" xml:space="preserve"><value>All statuses</value></data>
   <data name="logs.status2" xml:space="preserve"><value>2xx — success</value></data>
   <data name="logs.status3" xml:space="preserve"><value>3xx — redirect</value></data>
@@ -185,6 +189,7 @@
   <data name="logs.liveTitle" xml:space="preserve"><value>Refresh every 2 seconds</value></data>
   <data name="logs.live" xml:space="preserve"><value>Live</value></data>
   <data name="logs.retentionTitle" xml:space="preserve"><value>Automatically delete request logs older than this</value></data>
+  <data name="logs.retentionLabel" xml:space="preserve"><value>Retention</value></data>
   <data name="logs.keepForever" xml:space="preserve"><value>Keep logs: forever</value></data>
   <data name="logs.keepOneDay" xml:space="preserve"><value>Keep logs: 1 day</value></data>
   <data name="logs.keepDays" xml:space="preserve"><value>Keep logs: {0} days</value></data>
@@ -195,9 +200,13 @@
   <data name="logs.allClusters" xml:space="preserve"><value>All clusters</value></data>
   <data name="logs.allDestinations" xml:space="preserve"><value>All destinations</value></data>
   <data name="logs.filterRouteTitle" xml:space="preserve"><value>Show only requests handled by this route</value></data>
+  <data name="logs.filterRouteLabel" xml:space="preserve"><value>Route</value></data>
   <data name="logs.filterClusterTitle" xml:space="preserve"><value>Show only requests handled by this cluster</value></data>
+  <data name="logs.filterClusterLabel" xml:space="preserve"><value>Cluster</value></data>
   <data name="logs.filterDestinationTitle" xml:space="preserve"><value>Show only requests sent to this destination</value></data>
+  <data name="logs.filterDestinationLabel" xml:space="preserve"><value>Destination</value></data>
   <data name="logs.rangeTitle" xml:space="preserve"><value>Restrict results to a time frame</value></data>
+  <data name="logs.rangeLabel" xml:space="preserve"><value>Time range</value></data>
   <data name="logs.rangeLive" xml:space="preserve"><value>Live (latest)</value></data>
   <data name="logs.last5" xml:space="preserve"><value>Last 5 min</value></data>
   <data name="logs.last15" xml:space="preserve"><value>Last 15 min</value></data>
@@ -238,9 +247,10 @@
   <data name="logs.emptyFiltered" xml:space="preserve"><value>No requests match the current filters — try widening the time frame or clearing the route, cluster or destination filter.</value></data>
 
   <!-- logs page: client-side rendering -->
-  <data name="logs.countLive" xml:space="preserve"><value>{0} shown · {1} buffered</value></data>
-  <data name="logs.countFiltered" xml:space="preserve"><value>{0} shown · {1} of {2} matching</value></data>
-  <data name="logs.countAll" xml:space="preserve"><value>{0} shown · {1} matching</value></data>
+  <data name="logs.countPage" xml:space="preserve"><value>Showing {0}–{1} of {2}</value></data>
+  <data name="logs.pageLabel" xml:space="preserve"><value>Page {0} of {1}</value></data>
+  <data name="logs.prevPage" xml:space="preserve"><value>Previous page</value></data>
+  <data name="logs.nextPage" xml:space="preserve"><value>Next page</value></data>
   <data name="logs.fmtSeconds" xml:space="preserve"><value>{0} s</value></data>
   <data name="logs.fmtMs" xml:space="preserve"><value>{0} ms</value></data>
   <data name="logs.chartFailed" xml:space="preserve"><value>failed</value></data>
@@ -259,6 +269,51 @@
   <data name="logs.retentionSaveFailed" xml:space="preserve"><value>Could not save the retention policy: {0}</value></data>
   <data name="logs.cleared" xml:space="preserve"><value>Stored request logs deleted.</value></data>
   <data name="logs.clearFailed" xml:space="preserve"><value>Clear failed: {0}</value></data>
+  <data name="logs.blockIpTitle" xml:space="preserve"><value>Block this IP</value></data>
+  <data name="logs.blockIpConfirm" xml:space="preserve"><value>Block {0}? Requests from this address will be rejected with 403.</value></data>
+  <data name="logs.blockIpDone" xml:space="preserve"><value>{0} is now blocked.</value></data>
+  <data name="logs.blockIpFailed" xml:space="preserve"><value>Could not block {0}: {1}</value></data>
+
+  <!-- ip blocking page -->
+  <data name="ipblocking.title" xml:space="preserve"><value>IP Blocking — YARP UI</value></data>
+  <data name="ipblocking.heading" xml:space="preserve"><value>IP blocking</value></data>
+  <data name="ipblocking.description" xml:space="preserve"><value>Requests from blocked clients are rejected with 403 before they reach the proxy. The management UI always stays reachable, so a rule can be removed here at any time.</value></data>
+  <data name="ipblocking.count.one" xml:space="preserve"><value>{0} rule</value></data>
+  <data name="ipblocking.count.other" xml:space="preserve"><value>{0} rules</value></data>
+  <data name="ipblocking.addTitle" xml:space="preserve"><value>Block an address</value></data>
+  <data name="ipblocking.valueLabel" xml:space="preserve"><value>IP address, CIDR network or range</value></data>
+  <data name="ipblocking.valuePlaceholder" xml:space="preserve"><value>203.0.113.7 · 203.0.113.0/24 · 203.0.113.5-203.0.113.99</value></data>
+  <data name="ipblocking.valueHint" xml:space="preserve"><value>A single address, a CIDR network (host bits must be zero) or an inclusive from–to range.</value></data>
+  <data name="ipblocking.noteLabel" xml:space="preserve"><value>Note</value></data>
+  <data name="ipblocking.notePlaceholder" xml:space="preserve"><value>optional</value></data>
+  <data name="ipblocking.add" xml:space="preserve"><value>Block</value></data>
+  <data name="ipblocking.kindSingle" xml:space="preserve"><value>single</value></data>
+  <data name="ipblocking.kindCidr" xml:space="preserve"><value>CIDR</value></data>
+  <data name="ipblocking.kindRange" xml:space="preserve"><value>range</value></data>
+  <data name="ipblocking.colValue" xml:space="preserve"><value>Address</value></data>
+  <data name="ipblocking.colKind" xml:space="preserve"><value>Type</value></data>
+  <data name="ipblocking.colNote" xml:space="preserve"><value>Note</value></data>
+  <data name="ipblocking.colCreated" xml:space="preserve"><value>Added</value></data>
+  <data name="ipblocking.deleteTitle" xml:space="preserve"><value>Remove this rule</value></data>
+  <data name="ipblocking.confirmDelete" xml:space="preserve"><value>Stop blocking {0}?</value></data>
+  <data name="ipblocking.empty" xml:space="preserve"><value>No blocked addresses — add a rule above.</value></data>
+  <data name="ipblocking.added" xml:space="preserve"><value>{0} is now blocked.</value></data>
+  <data name="ipblocking.addFailed" xml:space="preserve"><value>Could not add the rule: {0}</value></data>
+  <data name="ipblocking.removed" xml:space="preserve"><value>Rule removed.</value></data>
+  <data name="ipblocking.removeFailed" xml:space="preserve"><value>Could not remove the rule: {0}</value></data>
+  <data name="ipblocking.settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="ipblocking.trustForwardedFor" xml:space="preserve"><value>Honor X-Forwarded-For</value></data>
+  <data name="ipblocking.trustForwardedForHint" xml:space="preserve"><value>Match the address from the X-Forwarded-For header instead of the direct connection. Enable only behind a trusted proxy or load balancer — direct clients can spoof the header.</value></data>
+  <data name="ipblocking.settingsSaved" xml:space="preserve"><value>Settings saved.</value></data>
+  <data name="ipblocking.settingsSaveFailed" xml:space="preserve"><value>Could not save the settings: {0}</value></data>
+  <data name="ipblocking.checkTitle" xml:space="preserve"><value>Test an address</value></data>
+  <data name="ipblocking.checkPlaceholder" xml:space="preserve"><value>e.g. 203.0.113.77</value></data>
+  <data name="ipblocking.checkLabel" xml:space="preserve"><value>Address to test</value></data>
+  <data name="ipblocking.check" xml:space="preserve"><value>Check</value></data>
+  <data name="ipblocking.checkBlocked" xml:space="preserve"><value>{0} would be blocked by {1}.</value></data>
+  <data name="ipblocking.checkAllowed" xml:space="preserve"><value>{0} is not blocked.</value></data>
+  <data name="ipblocking.checkFailed" xml:space="preserve"><value>The check failed.</value></data>
+  <data name="ipblocking.fromLogs" xml:space="preserve"><value>From the request logs</value></data>
 
   <!-- error page -->
   <data name="error.title" xml:space="preserve"><value>Error — YARP UI</value></data>
@@ -271,6 +326,8 @@
   <data name="validation.bodyEmpty" xml:space="preserve"><value>The request body is empty.</value></data>
   <data name="validation.sortField" xml:space="preserve"><value>sort must be one of: {0}.</value></data>
   <data name="validation.limitRange" xml:space="preserve"><value>limit must be between 1 and {0}.</value></data>
+  <data name="validation.offsetRange" xml:space="preserve"><value>offset must be 0 or greater.</value></data>
+  <data name="validation.statusRange" xml:space="preserve"><value>status must be a status class: 2, 3, 4 or 5.</value></data>
   <data name="validation.retentionRange" xml:space="preserve"><value>retentionDays must be 0 (keep forever) or between 1 and {0}.</value></data>
   <data name="validation.duplicateRouteId" xml:space="preserve"><value>Duplicate route id '{0}'.</value></data>
   <data name="validation.duplicateClusterId" xml:space="preserve"><value>Duplicate cluster id '{0}'.</value></data>
@@ -282,4 +339,12 @@
   <data name="validation.duplicateDestination" xml:space="preserve"><value>Cluster '{0}' has duplicate destination '{1}'.</value></data>
   <data name="validation.routeInvalid" xml:space="preserve"><value>Route '{0}': {1}</value></data>
   <data name="validation.clusterInvalid" xml:space="preserve"><value>Cluster '{0}': {1}</value></data>
+  <data name="validation.ipRequired" xml:space="preserve"><value>Enter an IP address, CIDR network or range.</value></data>
+  <data name="validation.ipInvalid" xml:space="preserve"><value>'{0}' is not a valid IP address, CIDR network or range.</value></data>
+  <data name="validation.ipHostBits" xml:space="preserve"><value>'{0}' has host bits set — use the network address {1}.</value></data>
+  <data name="validation.ipRangeOrder" xml:space="preserve"><value>'{0}' is out of order — put the lower address first.</value></data>
+  <data name="validation.ipRangeFamily" xml:space="preserve"><value>'{0}' mixes IPv4 and IPv6 addresses.</value></data>
+  <data name="validation.ipDuplicate" xml:space="preserve"><value>'{0}' is already blocked.</value></data>
+  <data name="validation.ipRuleLimit" xml:space="preserve"><value>The block list is limited to {0} rules.</value></data>
+  <data name="validation.trustForwardedForRequired" xml:space="preserve"><value>trustForwardedFor must be true or false.</value></data>
 </root>

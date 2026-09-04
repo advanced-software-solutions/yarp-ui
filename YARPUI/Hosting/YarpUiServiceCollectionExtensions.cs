@@ -6,6 +6,7 @@ using YARPUI;
 using YARPUI.Api;
 using YARPUI.Hosting;
 using YARPUI.Services;
+using YARPUI.Services.IpBlocking;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -180,6 +181,15 @@ public static class YarpUiServiceCollectionExtensions
             sp.GetRequiredService<ILogger<SqliteRequestLogStore>>()));
         services.AddHostedService<RequestLogWriter>();
         services.AddHostedService<LogRetentionService>();
+
+        // IP blocking: UI-owned state in the data directory, enforced by a middleware the
+        // startup filter below inserts for every request outside the UI's own surface. A
+        // no-op until the first rule is added, and identical in both hosting modes.
+        services.AddSingleton(sp => new IpBlockListService(
+            dataDirectory,
+            sp.GetRequiredService<ILogger<IpBlockListService>>(),
+            sp.GetRequiredService<IStringLocalizer<YARPUI.Resources.UIStrings>>()));
+        services.AddSingleton<IStartupFilter, YarpUiIpBlockingStartupFilter>();
 
         // UI sign-in with credentials from configuration (YarpUi:Auth). The UI registers its own
         // named cookie scheme and policy — it never changes the host's default authentication

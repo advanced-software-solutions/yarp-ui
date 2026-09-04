@@ -1339,6 +1339,18 @@ pre.json {
     margin: 0 auto;
 }
 
+.logs-pager {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    min-height: 34px;
+    padding: 8px 24px 14px;
+}
+
+.logs-pager .btn { padding: 5px 8px; }
+.logs-pager #log-page-label { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
 /* --------------------------------------------------------------------------
    Logs page — performance panel
    -------------------------------------------------------------------------- */
@@ -1503,6 +1515,38 @@ pre.json {
 }
 
 .panel-title { margin: 0 0 6px; font-size: 18px; }
+
+/* --------------------------------------------------------------------------
+   IP blocking page
+   -------------------------------------------------------------------------- */
+
+.ipblocking-page { display: flex; flex-direction: column; gap: 18px; }
+
+.ipblocking-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+
+.ipblocking-lede { max-width: 640px; margin: 0; }
+
+.ipblocking-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    align-items: start;
+}
+
+.ipblocking-check { display: flex; gap: 8px; }
+
+.ipblocking-check .input { flex: 1 1 auto; }
+
+#block-check-result { min-height: 16px; margin-top: 8px; }
+#block-check-result.check-blocked { color: var(--danger); font-weight: 600; }
+
+.ipblocking-page .col-actions { text-align: inline-end; }
+
+/* One-click "block this IP" button on the Logs page client-IP cells. */
+.cell-clientip { white-space: nowrap; }
+.cell-clientip .block-ip { padding: 2px 4px; margin-inline-start: 4px; opacity: 0; vertical-align: middle; }
+.cell-clientip:hover .block-ip, .cell-clientip .block-ip:focus-visible { opacity: 1; }
+.cell-clientip .block-ip svg { width: 12px; height: 12px; }
 
 /* --------------------------------------------------------------------------
    Responsive

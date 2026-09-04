@@ -31,4 +31,4 @@ app.MapYarpUi();
 // The reverse proxy itself — intentionally public; only the UI requires sign-in.
 app.MapReverseProxy();
 
-app.Run();
+await app.RunAsync();

@@ -25,4 +25,4 @@ app.UseYarpUiRequestLogging();
 app.MapYarpUi();       // management UI pages + /api/yarp/*
 app.MapReverseProxy(); // the proxy itself
 
-app.Run();
+await app.RunAsync();

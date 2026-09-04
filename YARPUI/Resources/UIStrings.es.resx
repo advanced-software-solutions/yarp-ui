@@ -12,6 +12,7 @@
   <data name="nav.map" xml:space="preserve"><value>Mapa</value></data>
   <data name="nav.editor" xml:space="preserve"><value>Editor</value></data>
   <data name="nav.logs" xml:space="preserve"><value>Registros</value></data>
+  <data name="nav.ipBlocking" xml:space="preserve"><value>Bloqueo de IP</value></data>
   <data name="layout.signedIn" xml:space="preserve"><value>Sesión iniciada</value></data>
   <data name="layout.signOut" xml:space="preserve"><value>Cerrar sesión</value></data>
   <data name="layout.languageTitle" xml:space="preserve"><value>Idioma</value></data>
@@ -29,6 +30,7 @@
   <!-- route map page -->
   <data name="index.title" xml:space="preserve"><value>Mapa de rutas — YARP UI</value></data>
   <data name="index.searchPlaceholder" xml:space="preserve"><value>Buscar rutas, clústeres, destinos…</value></data>
+  <data name="index.searchLabel" xml:space="preserve"><value>Buscar</value></data>
   <data name="index.zoomOut" xml:space="preserve"><value>Alejar</value></data>
   <data name="index.zoomIn" xml:space="preserve"><value>Acercar</value></data>
   <data name="index.fit" xml:space="preserve"><value>Ajustar a la pantalla</value></data>
@@ -173,7 +175,9 @@
   <!-- logs page -->
   <data name="logs.title" xml:space="preserve"><value>Registros de peticiones — YARP UI</value></data>
   <data name="logs.searchPlaceholder" xml:space="preserve"><value>Filtrar por path, ruta, clúster, destino…</value></data>
+  <data name="logs.searchLabel" xml:space="preserve"><value>Buscar en registros</value></data>
   <data name="logs.filterStatusTitle" xml:space="preserve"><value>Filtrar por clase de estado</value></data>
+  <data name="logs.filterStatusLabel" xml:space="preserve"><value>Clase de estado</value></data>
   <data name="logs.allStatuses" xml:space="preserve"><value>Todos los estados</value></data>
   <data name="logs.status2" xml:space="preserve"><value>2xx — éxito</value></data>
   <data name="logs.status3" xml:space="preserve"><value>3xx — redirección</value></data>
@@ -182,6 +186,7 @@
   <data name="logs.liveTitle" xml:space="preserve"><value>Actualizar cada 2 segundos</value></data>
   <data name="logs.live" xml:space="preserve"><value>En vivo</value></data>
   <data name="logs.retentionTitle" xml:space="preserve"><value>Eliminar automáticamente los registros de peticiones anteriores a este periodo</value></data>
+  <data name="logs.retentionLabel" xml:space="preserve"><value>Retención</value></data>
   <data name="logs.keepForever" xml:space="preserve"><value>Conservar registros: para siempre</value></data>
   <data name="logs.keepOneDay" xml:space="preserve"><value>Conservar registros: 1 día</value></data>
   <data name="logs.keepDays" xml:space="preserve"><value>Conservar registros: {0} días</value></data>
@@ -192,9 +197,13 @@
   <data name="logs.allClusters" xml:space="preserve"><value>Todos los clústeres</value></data>
   <data name="logs.allDestinations" xml:space="preserve"><value>Todos los destinos</value></data>
   <data name="logs.filterRouteTitle" xml:space="preserve"><value>Mostrar solo peticiones gestionadas por esta ruta</value></data>
+  <data name="logs.filterRouteLabel" xml:space="preserve"><value>Ruta</value></data>
   <data name="logs.filterClusterTitle" xml:space="preserve"><value>Mostrar solo peticiones gestionadas por este clúster</value></data>
+  <data name="logs.filterClusterLabel" xml:space="preserve"><value>Clúster</value></data>
   <data name="logs.filterDestinationTitle" xml:space="preserve"><value>Mostrar solo peticiones enviadas a este destino</value></data>
+  <data name="logs.filterDestinationLabel" xml:space="preserve"><value>Destino</value></data>
   <data name="logs.rangeTitle" xml:space="preserve"><value>Restringir los resultados a un periodo</value></data>
+  <data name="logs.rangeLabel" xml:space="preserve"><value>Rango de tiempo</value></data>
   <data name="logs.rangeLive" xml:space="preserve"><value>En vivo (lo último)</value></data>
   <data name="logs.last5" xml:space="preserve"><value>Últimos 5 min</value></data>
   <data name="logs.last15" xml:space="preserve"><value>Últimos 15 min</value></data>
@@ -235,9 +244,10 @@
   <data name="logs.emptyFiltered" xml:space="preserve"><value>Ninguna petición coincide con los filtros actuales — pruebe a ampliar el periodo o a quitar el filtro de ruta, clúster o destino.</value></data>
 
   <!-- logs page: client-side rendering -->
-  <data name="logs.countLive" xml:space="preserve"><value>{0} mostradas · {1} en búfer</value></data>
-  <data name="logs.countFiltered" xml:space="preserve"><value>{0} mostradas · {1} de {2} coincidentes</value></data>
-  <data name="logs.countAll" xml:space="preserve"><value>{0} mostradas · {1} coincidentes</value></data>
+  <data name="logs.countPage" xml:space="preserve"><value>Mostrando {0}–{1} de {2}</value></data>
+  <data name="logs.pageLabel" xml:space="preserve"><value>Página {0} de {1}</value></data>
+  <data name="logs.prevPage" xml:space="preserve"><value>Página anterior</value></data>
+  <data name="logs.nextPage" xml:space="preserve"><value>Página siguiente</value></data>
   <data name="logs.fmtSeconds" xml:space="preserve"><value>{0} s</value></data>
   <data name="logs.fmtMs" xml:space="preserve"><value>{0} ms</value></data>
   <data name="logs.chartFailed" xml:space="preserve"><value>fallidas</value></data>
@@ -256,6 +266,51 @@
   <data name="logs.retentionSaveFailed" xml:space="preserve"><value>No se pudo guardar la política de retención: {0}</value></data>
   <data name="logs.cleared" xml:space="preserve"><value>Registros de peticiones almacenados eliminados.</value></data>
   <data name="logs.clearFailed" xml:space="preserve"><value>Error al borrar: {0}</value></data>
+  <data name="logs.blockIpTitle" xml:space="preserve"><value>Bloquear esta IP</value></data>
+  <data name="logs.blockIpConfirm" xml:space="preserve"><value>¿Bloquear {0}? Las peticiones desde esta dirección se rechazarán con 403.</value></data>
+  <data name="logs.blockIpDone" xml:space="preserve"><value>{0} ya está bloqueada.</value></data>
+  <data name="logs.blockIpFailed" xml:space="preserve"><value>No se pudo bloquear {0}: {1}</value></data>
+
+  <!-- ip blocking page -->
+  <data name="ipblocking.title" xml:space="preserve"><value>Bloqueo de IP — YARP UI</value></data>
+  <data name="ipblocking.heading" xml:space="preserve"><value>Bloqueo de IP</value></data>
+  <data name="ipblocking.description" xml:space="preserve"><value>Las peticiones de clientes bloqueados se rechazan con 403 antes de llegar al proxy. La interfaz de gestión siempre queda accesible, así que una regla puede eliminarse aquí en cualquier momento.</value></data>
+  <data name="ipblocking.count.one" xml:space="preserve"><value>{0} regla</value></data>
+  <data name="ipblocking.count.other" xml:space="preserve"><value>{0} reglas</value></data>
+  <data name="ipblocking.addTitle" xml:space="preserve"><value>Bloquear una dirección</value></data>
+  <data name="ipblocking.valueLabel" xml:space="preserve"><value>Dirección IP, red CIDR o rango</value></data>
+  <data name="ipblocking.valuePlaceholder" xml:space="preserve"><value>203.0.113.7 · 203.0.113.0/24 · 203.0.113.5-203.0.113.99</value></data>
+  <data name="ipblocking.valueHint" xml:space="preserve"><value>Una dirección suelta, una red CIDR (los bits de host deben ser cero) o un rango inclusivo desde–hasta.</value></data>
+  <data name="ipblocking.noteLabel" xml:space="preserve"><value>Nota</value></data>
+  <data name="ipblocking.notePlaceholder" xml:space="preserve"><value>opcional</value></data>
+  <data name="ipblocking.add" xml:space="preserve"><value>Bloquear</value></data>
+  <data name="ipblocking.kindSingle" xml:space="preserve"><value>suelta</value></data>
+  <data name="ipblocking.kindCidr" xml:space="preserve"><value>CIDR</value></data>
+  <data name="ipblocking.kindRange" xml:space="preserve"><value>rango</value></data>
+  <data name="ipblocking.colValue" xml:space="preserve"><value>Dirección</value></data>
+  <data name="ipblocking.colKind" xml:space="preserve"><value>Tipo</value></data>
+  <data name="ipblocking.colNote" xml:space="preserve"><value>Nota</value></data>
+  <data name="ipblocking.colCreated" xml:space="preserve"><value>Añadida</value></data>
+  <data name="ipblocking.deleteTitle" xml:space="preserve"><value>Eliminar esta regla</value></data>
+  <data name="ipblocking.confirmDelete" xml:space="preserve"><value>¿Dejar de bloquear {0}?</value></data>
+  <data name="ipblocking.empty" xml:space="preserve"><value>No hay direcciones bloqueadas — añada una regla arriba.</value></data>
+  <data name="ipblocking.added" xml:space="preserve"><value>{0} ya está bloqueada.</value></data>
+  <data name="ipblocking.addFailed" xml:space="preserve"><value>No se pudo añadir la regla: {0}</value></data>
+  <data name="ipblocking.removed" xml:space="preserve"><value>Regla eliminada.</value></data>
+  <data name="ipblocking.removeFailed" xml:space="preserve"><value>No se pudo eliminar la regla: {0}</value></data>
+  <data name="ipblocking.settings" xml:space="preserve"><value>Ajustes</value></data>
+  <data name="ipblocking.trustForwardedFor" xml:space="preserve"><value>Respetar X-Forwarded-For</value></data>
+  <data name="ipblocking.trustForwardedForHint" xml:space="preserve"><value>Comparar la dirección de la cabecera X-Forwarded-For en lugar de la conexión directa. Actívelo solo detrás de un proxy o balanceador de confianza — los clientes directos pueden falsificar la cabecera.</value></data>
+  <data name="ipblocking.settingsSaved" xml:space="preserve"><value>Ajustes guardados.</value></data>
+  <data name="ipblocking.settingsSaveFailed" xml:space="preserve"><value>No se pudieron guardar los ajustes: {0}</value></data>
+  <data name="ipblocking.checkTitle" xml:space="preserve"><value>Probar una dirección</value></data>
+  <data name="ipblocking.checkPlaceholder" xml:space="preserve"><value>p. ej. 203.0.113.77</value></data>
+  <data name="ipblocking.checkLabel" xml:space="preserve"><value>Dirección a comprobar</value></data>
+  <data name="ipblocking.check" xml:space="preserve"><value>Comprobar</value></data>
+  <data name="ipblocking.checkBlocked" xml:space="preserve"><value>{0} quedaría bloqueada por {1}.</value></data>
+  <data name="ipblocking.checkAllowed" xml:space="preserve"><value>{0} no está bloqueada.</value></data>
+  <data name="ipblocking.checkFailed" xml:space="preserve"><value>La comprobación falló.</value></data>
+  <data name="ipblocking.fromLogs" xml:space="preserve"><value>Desde los registros de peticiones</value></data>
 
   <!-- error page -->
   <data name="error.title" xml:space="preserve"><value>Error — YARP UI</value></data>
@@ -268,6 +323,8 @@
   <data name="validation.bodyEmpty" xml:space="preserve"><value>El cuerpo de la petición está vacío.</value></data>
   <data name="validation.sortField" xml:space="preserve"><value>sort debe ser uno de: {0}.</value></data>
   <data name="validation.limitRange" xml:space="preserve"><value>limit debe estar entre 1 y {0}.</value></data>
+  <data name="validation.offsetRange" xml:space="preserve"><value>offset debe ser 0 o mayor.</value></data>
+  <data name="validation.statusRange" xml:space="preserve"><value>status debe ser una clase de estado: 2, 3, 4 o 5.</value></data>
   <data name="validation.retentionRange" xml:space="preserve"><value>retentionDays debe ser 0 (conservar para siempre) o estar entre 1 y {0}.</value></data>
   <data name="validation.duplicateRouteId" xml:space="preserve"><value>Id de ruta duplicado '{0}'.</value></data>
   <data name="validation.duplicateClusterId" xml:space="preserve"><value>Id de clúster duplicado '{0}'.</value></data>
@@ -279,4 +336,12 @@
   <data name="validation.duplicateDestination" xml:space="preserve"><value>El clúster '{0}' tiene el destino duplicado '{1}'.</value></data>
   <data name="validation.routeInvalid" xml:space="preserve"><value>Ruta '{0}': {1}</value></data>
   <data name="validation.clusterInvalid" xml:space="preserve"><value>Clúster '{0}': {1}</value></data>
+  <data name="validation.ipRequired" xml:space="preserve"><value>Introduzca una dirección IP, red CIDR o rango.</value></data>
+  <data name="validation.ipInvalid" xml:space="preserve"><value>'{0}' no es una dirección IP, red CIDR o rango válidos.</value></data>
+  <data name="validation.ipHostBits" xml:space="preserve"><value>'{0}' tiene bits de host establecidos — use la dirección de red {1}.</value></data>
+  <data name="validation.ipRangeOrder" xml:space="preserve"><value>'{0}' está en orden inverso — ponga primero la dirección menor.</value></data>
+  <data name="validation.ipRangeFamily" xml:space="preserve"><value>'{0}' mezcla direcciones IPv4 e IPv6.</value></data>
+  <data name="validation.ipDuplicate" xml:space="preserve"><value>'{0}' ya está bloqueada.</value></data>
+  <data name="validation.ipRuleLimit" xml:space="preserve"><value>La lista de bloqueo está limitada a {0} reglas.</value></data>
+  <data name="validation.trustForwardedForRequired" xml:space="preserve"><value>trustForwardedFor debe ser true o false.</value></data>
 </root>

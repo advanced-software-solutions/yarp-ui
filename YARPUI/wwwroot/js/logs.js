@@ -1,9 +1,10 @@
-/* Request logs: live tailing of /api/yarp/logs (after-cursor) with client-side text/status
-   filtering and column sorting (newest first by default). When a time frame or a route/
-   cluster/destination filter is active, the page switches to a server-side history query
-   (from/to + filters + sort) that covers the whole retained window, not just the buffer.
-   The performance panel aggregates the same data: /api/yarp/logs/stats every 5s (stat
-   cards, per-route bars, P95 line) and a per-request duration scatter fed from the loaded
+/* Request logs: the table is a server-side paged query over /api/yarp/logs — the page loads
+   only the latest PAGE_SIZE entries and walks history with limit/offset. All filters (time
+   frame, route/cluster/destination, free text, status class) and column sorting run server-side
+   over the whole retained window. Live updates keep the first page fresh: a cheap after-cursor
+   poll prepends new entries (or refetches page 1 when sorted/filtered); deeper pages stay stable
+   while browsing. The performance panel aggregates server-side: /api/yarp/logs/stats every 5s
+   (stat cards, per-route bars, P95 line) and a per-request duration scatter fed from the loaded
    entries. */
 (function () {
     'use strict';
@@ -15,17 +16,19 @@
     var entries = [];
     var lastSeq = 0;
     var inFlight = false;
-    var total = null; // server-side match count while filtered; null in live mode
+    var total = 0;         // server-side match count for the current query
+    var page = 1;          // 1-based page into the server-side query
+    var requestSeq = 0;    // ignores stale query responses (out-of-order fetches)
 
     var filterText = '';
     var filterStatus = '';
     var auto = true;
 
-    // Server-side filters. range '' = live tailing; 'all' | 'custom' | minutes = history query.
+    // Server-side filters. range '' = latest page + live updates; 'all' | 'custom' | minutes = history query.
     var filters = { range: '', fromMs: null, toMs: null, routeId: '', clusterId: '', destinationId: '' };
     var sort = { field: 'timestamp', dir: 'desc' };
 
-    var MAX_CLIENT_ENTRIES = 500;
+    var PAGE_SIZE = 10;
 
     /* ---- filter dropdown sources (/api/yarp/config is PascalCase; log entries are camelCase) ---- */
 
@@ -71,6 +74,35 @@
 
     function pad(n) { return (n < 10 ? '0' : '') + n; }
 
+    /* ---- one-click IP blocking (client IP cells) ---- */
+
+    function renderClientIp(ip) {
+        if (!ip) { return '—'; }
+        return '<span>' + esc(ip) + '</span>' +
+            '<button type="button" class="btn btn-ghost btn-sm block-ip" data-ip="' + esc(ip) + '" title="' + esc(S('logs.blockIpTitle')) + '">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">' +
+            '<circle cx="12" cy="12" r="9" /><path d="M5.5 5.5l13 13" /></svg></button>';
+    }
+
+    async function blockIp(ip) {
+        if (!window.confirm(S('logs.blockIpConfirm', ip))) { return; }
+        try {
+            var res = await window.YarpUi.api('/api/yarp/ipblocking/rules', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ value: ip, note: S('ipblocking.fromLogs') })
+            });
+            if (res.ok) {
+                window.YarpUi.toast(S('logs.blockIpDone', ip), 'success');
+            } else {
+                var data = await res.json().catch(function () { return null; });
+                window.YarpUi.toast(S('logs.blockIpFailed', ip, (data && data.errors && data.errors[0]) || res.status), 'error');
+            }
+        } catch (e) {
+            window.YarpUi.toast(S('logs.blockIpFailed', ip, e.message), 'error');
+        }
+    }
+
     function fmtMs(value) {
         if (value == null || isNaN(value)) { return '—'; }
         if (value >= 1000) { return S('logs.fmtSeconds', (value / 1000).toFixed(2)); }
@@ -78,44 +110,13 @@
         return S('logs.fmtMs', value.toFixed(1));
     }
 
-    function passesFilter(entry) {
-        if (filterStatus && Math.floor((entry.statusCode || 0) / 100) !== +filterStatus) {
-            return false;
-        }
-        if (filterText) {
-            var q = filterText.toLowerCase();
-            var haystack = (entry.path || '') + ' ' + (entry.routeId || '') + ' ' + (entry.clusterId || '') + ' ' +
-                (entry.destinationId || '') + ' ' + (entry.method || '') + ' ' + (entry.clientIp || '');
-            if (haystack.toLowerCase().indexOf(q) === -1) { return false; }
-        }
-        return true;
-    }
-
     function filtersActive() {
         return filters.range !== '' || filters.routeId !== '' || filters.clusterId !== '' || filters.destinationId !== '';
     }
 
-    /* ---- sorting ---- */
-
-    function entryComparator(a, b) {
-        var result = compareBy(sort.field, a, b);
-        return sort.dir === 'asc' ? result : -result;
+    function anyFilterActive() {
+        return filtersActive() || filterText !== '' || filterStatus !== '';
     }
-
-    function compareBy(field, a, b) {
-        if (field === 'timestamp') {
-            return new Date(a.timestampUtc).getTime() - new Date(b.timestampUtc).getTime();
-        }
-        if (field === 'duration') {
-            return (a.durationMs || 0) - (b.durationMs || 0);
-        }
-        if (field === 'status') {
-            return (a.statusCode == null ? -1 : a.statusCode) - (b.statusCode == null ? -1 : b.statusCode);
-        }
-        return stringOrEmpty(a[field]).localeCompare(stringOrEmpty(b[field]));
-    }
-
-    function stringOrEmpty(value) { return value == null ? '' : String(value); }
 
     function applySortHeaders() {
         Array.prototype.forEach.call(document.querySelectorAll('.th-sortable'), function (th) {
@@ -130,19 +131,12 @@
 
     function render() {
         var rows = document.getElementById('log-rows');
-        var visible = entries.filter(passesFilter);
-        visible.sort(entryComparator);
 
         var countLabel = document.getElementById('log-count');
-        if (total === null) {
-            countLabel.textContent = S('logs.countLive', visible.length.toLocaleString(), entries.length.toLocaleString());
-        } else if (total > entries.length) {
-            countLabel.textContent = S('logs.countFiltered', visible.length.toLocaleString(), entries.length.toLocaleString(), total.toLocaleString());
-        } else {
-            countLabel.textContent = S('logs.countAll', visible.length.toLocaleString(), entries.length.toLocaleString());
-        }
+        var from = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+        countLabel.textContent = S('logs.countPage', from.toLocaleString(), ((page - 1) * PAGE_SIZE + entries.length).toLocaleString(), total.toLocaleString());
 
-        var filtered = filtersActive();
+        var filtered = anyFilterActive();
         document.getElementById('log-empty').classList.toggle('hidden', entries.length !== 0);
         document.getElementById('log-empty-live').classList.toggle('hidden', filtered);
         document.getElementById('log-empty-hint').classList.toggle('hidden', filtered);
@@ -150,37 +144,59 @@
 
         if (!entries.length) {
             rows.innerHTML = '';
-            applySortHeaders();
-            renderChart();
-            return;
+        } else {
+            rows.innerHTML = entries.map(function (e) {
+                var status = e.statusCode == null ? '—' : e.statusCode;
+                var title = e.error ? ' title="' + esc(e.error) + '"' : '';
+                return '<tr class="' + statusClass(e.statusCode) + '"' + title + '>' +
+                    '<td class="col-time mono">' + formatTime(e.timestampUtc) + '</td>' +
+                    '<td class="col-method"><span class="method-pill m-' + esc((e.method || '').toLowerCase()) + '">' + esc(e.method) + '</span></td>' +
+                    '<td class="mono cell-path" title="' + esc(e.path) + '">' + esc(e.path) + '</td>' +
+                    '<td class="col-status"><span class="status-pill ' + statusClass(e.statusCode) + '">' + status + '</span></td>' +
+                    '<td class="col-duration mono">' + (e.durationMs == null ? '—' : S('logs.fmtMs', e.durationMs.toFixed(1))) + '</td>' +
+                    '<td class="mono cell-dim cell-clientip">' + renderClientIp(e.clientIp) + '</td>' +
+                    '<td class="mono cell-dim">' + esc(e.routeId || '—') + '</td>' +
+                    '<td class="mono cell-dim">' + esc(e.clusterId || '—') + '</td>' +
+                    '<td class="mono cell-dim" title="' + esc(e.destinationAddress || '') + '">' + esc(e.destinationId || '—') + '</td>' +
+                    '</tr>';
+            }).join('');
         }
-
-        rows.innerHTML = visible.map(function (e) {
-            var status = e.statusCode == null ? '—' : e.statusCode;
-            var title = e.error ? ' title="' + esc(e.error) + '"' : '';
-            return '<tr class="' + statusClass(e.statusCode) + '"' + title + '>' +
-                '<td class="col-time mono">' + formatTime(e.timestampUtc) + '</td>' +
-                '<td class="col-method"><span class="method-pill m-' + esc((e.method || '').toLowerCase()) + '">' + esc(e.method) + '</span></td>' +
-                '<td class="mono cell-path" title="' + esc(e.path) + '">' + esc(e.path) + '</td>' +
-                '<td class="col-status"><span class="status-pill ' + statusClass(e.statusCode) + '">' + status + '</span></td>' +
-                '<td class="col-duration mono">' + (e.durationMs == null ? '—' : S('logs.fmtMs', e.durationMs.toFixed(1))) + '</td>' +
-                '<td class="mono cell-dim">' + esc(e.clientIp || '—') + '</td>' +
-                '<td class="mono cell-dim">' + esc(e.routeId || '—') + '</td>' +
-                '<td class="mono cell-dim">' + esc(e.clusterId || '—') + '</td>' +
-                '<td class="mono cell-dim" title="' + esc(e.destinationAddress || '') + '">' + esc(e.destinationId || '—') + '</td>' +
-                '</tr>';
-        }).join('');
 
         trackSeenIds();
         applySortHeaders();
+        renderPager();
         renderChart();
+    }
+
+    /* ---- pager ---- */
+
+    function pageCount() {
+        return Math.max(1, Math.ceil(total / PAGE_SIZE));
+    }
+
+    function renderPager() {
+        var pages = pageCount();
+        document.getElementById('log-page-label').textContent = S('logs.pageLabel', page.toLocaleString(), pages.toLocaleString());
+        document.getElementById('log-prev').disabled = page <= 1;
+        document.getElementById('log-next').disabled = page >= pages;
+    }
+
+    function goToPage(target) {
+        var pages = pageCount();
+        var next = Math.min(Math.max(1, target), pages);
+        if (next === page) { return; }
+        page = next;
+        queryLogs();
+        // Keep the table in view when jumping between pages of a long table.
+        var table = document.querySelector('.table-wrap');
+        if (table) { table.scrollTop = 0; }
     }
 
     async function poll() {
         if (inFlight) { return; }
         inFlight = true;
         try {
-            if (filtersActive()) {
+            if (anyFilterActive()) {
                 await queryLogs();
             } else {
                 await pollLive();
@@ -192,44 +208,52 @@
         }
     }
 
+    // Cheap delta poll (after-cursor). On the unsorted first page new entries are prepended
+    // locally; a sorted/filtered first page is refetched instead. Deeper pages stay stable so
+    // rows don't shift underneath while browsing history.
     async function pollLive() {
         var res = await window.YarpUi.api('/api/yarp/logs?after=' + lastSeq);
-        if (res.ok) {
-            var data = await res.json();
-            if (data.entries && data.entries.length) {
-                entries = entries.concat(data.entries);
-                if (entries.length > MAX_CLIENT_ENTRIES) {
-                    entries = entries.slice(entries.length - MAX_CLIENT_ENTRIES);
-                }
-                total = null;
-                trackSeq(data.entries);
-                render();
-            }
+        if (!res.ok) { return; }
+        var data = await res.json();
+        var fresh = data.entries || [];
+        if (!fresh.length) { return; }
+        trackSeq(fresh);
+        if (page !== 1) { return; }
+        if (sort.field === 'timestamp' && sort.dir === 'desc') {
+            var merged = fresh.concat(entries);
+            entries = merged.slice(Math.max(0, merged.length - PAGE_SIZE));
+            total += fresh.length;
+            render();
+        } else {
+            await queryLogs();
         }
     }
 
-    // History search over the whole retained window (server-side filters + sort). Preset ranges
-    // recompute their start on every call so a rolling "last N minutes" stays current.
+    // Paged history query (server-side filters + sort). Preset ranges recompute their start on
+    // every call so a rolling "last N minutes" stays current.
     async function queryLogs() {
         computeRange();
+        var id = ++requestSeq;
         var params = new URLSearchParams();
         params.set('sort', sort.field);
         params.set('desc', sort.dir === 'desc');
-        params.set('limit', String(MAX_CLIENT_ENTRIES));
+        params.set('limit', String(PAGE_SIZE));
+        params.set('offset', String((page - 1) * PAGE_SIZE));
         if (filters.fromMs !== null) { params.set('from', String(filters.fromMs)); }
         if (filters.toMs !== null) { params.set('to', String(filters.toMs)); }
         if (filters.routeId) { params.set('routeId', filters.routeId); }
         if (filters.clusterId) { params.set('clusterId', filters.clusterId); }
         if (filters.destinationId) { params.set('destinationId', filters.destinationId); }
+        if (filterText) { params.set('q', filterText); }
+        if (filterStatus) { params.set('status', filterStatus); }
 
         var res = await window.YarpUi.api('/api/yarp/logs?' + params.toString());
-        if (res.ok) {
-            var data = await res.json();
-            total = typeof data.total === 'number' ? data.total : null;
-            entries = data.entries || [];
-            trackSeq(entries);
-            render();
-        }
+        if (!res.ok || id !== requestSeq) { return; }
+        var data = await res.json();
+        total = typeof data.total === 'number' ? data.total : 0;
+        entries = data.entries || [];
+        trackSeq(entries);
+        render();
     }
 
     function computeRange() {
@@ -572,23 +596,27 @@
     }
 
     function applyFiltersChanged() {
-        document.getElementById('log-reset').classList.toggle('hidden', !filtersActive());
+        document.getElementById('log-reset').classList.toggle('hidden', !anyFilterActive());
         document.getElementById('log-from').classList.toggle('hidden', filters.range !== 'custom');
         document.getElementById('log-to').classList.toggle('hidden', filters.range !== 'custom');
-        poll();
+        page = 1;
+        queryLogs();
     }
 
     /* ---- wiring ---- */
 
     document.addEventListener('DOMContentLoaded', function () {
+        // Free text and status-class filters run server-side over the whole retained window.
         document.getElementById('log-search').addEventListener('input', window.YarpUi.debounce(function (e) {
             filterText = e.target.value.trim();
-            render();
-        }, 140));
+            page = 1;
+            queryLogs();
+        }, 250));
 
         document.getElementById('log-status').addEventListener('change', function (e) {
             filterStatus = e.target.value;
-            render();
+            page = 1;
+            queryLogs();
         });
 
         var autoToggle = document.getElementById('log-auto');
@@ -622,19 +650,22 @@
 
         ['log-from', 'log-to'].forEach(function (id) {
             document.getElementById(id).addEventListener('change', function () {
-                if (filters.range === 'custom') { poll(); }
+                if (filters.range === 'custom') { applyFiltersChanged(); }
             });
         });
 
         document.getElementById('log-reset').addEventListener('click', function () {
             filters = { range: '', fromMs: null, toMs: null, routeId: '', clusterId: '', destinationId: '' };
-            ['log-route', 'log-cluster', 'log-destination', 'log-range', 'log-from', 'log-to'].forEach(function (id) {
+            filterText = '';
+            filterStatus = '';
+            ['log-search', 'log-status', 'log-route', 'log-cluster', 'log-destination', 'log-range', 'log-from', 'log-to'].forEach(function (id) {
                 document.getElementById(id).value = '';
             });
             rebuildFilterOptions();
             applyFiltersChanged();
         });
 
+        // Column sorting is server-side — the current page is re-queried under the new order.
         Array.prototype.forEach.call(document.querySelectorAll('.th-sortable'), function (th) {
             th.addEventListener('click', function () {
                 var field = th.getAttribute('data-sort');
@@ -644,8 +675,17 @@
                     sort.field = field;
                     sort.dir = 'desc';
                 }
-                if (filtersActive()) { queryLogs(); } else { render(); }
+                page = 1;
+                queryLogs();
             });
+        });
+
+        document.getElementById('log-prev').addEventListener('click', function () { goToPage(page - 1); });
+        document.getElementById('log-next').addEventListener('click', function () { goToPage(page + 1); });
+
+        document.getElementById('log-rows').addEventListener('click', function (e) {
+            var button = e.target.closest ? e.target.closest('.block-ip') : null;
+            if (button) { blockIp(button.getAttribute('data-ip')); }
         });
 
         document.getElementById('stats-window').addEventListener('change', function (e) {
@@ -666,9 +706,10 @@
                 await window.YarpUi.api('/api/yarp/logs', { method: 'DELETE' });
                 entries = [];
                 lastSeq = 0;
-                total = null;
+                total = 0;
+                page = 1;
                 render();
-                poll();
+                queryLogs();
                 fetchStats();
                 window.YarpUi.toast(S('logs.cleared'), 'success');
             } catch (e) {
@@ -683,9 +724,7 @@
         initChart();
         loadRetention();
         loadFilterOptions();
-        applySortHeaders();
-        render();
-        poll();
+        queryLogs();
         fetchStats();
         window.setInterval(function () { if (auto) { poll(); } }, 2000);
         window.setInterval(function () { if (auto) { fetchStats(); } }, 5000);

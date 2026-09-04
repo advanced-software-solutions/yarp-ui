@@ -81,12 +81,25 @@ internal sealed partial class TestWebApp : IDisposable
 
     // ---- requests ----
 
-    public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, string? json = null, FormUrlEncodedContent? form = null)
+    public async Task<HttpResponseMessage> SendAsync(
+        HttpMethod method,
+        string path,
+        string? json = null,
+        FormUrlEncodedContent? form = null,
+        IEnumerable<KeyValuePair<string, string>>? headers = null)
     {
         using var request = new HttpRequestMessage(method, path);
         if (Cookies.HeaderValue.Length > 0)
         {
             request.Headers.TryAddWithoutValidation("Cookie", Cookies.HeaderValue);
+        }
+
+        if (headers is not null)
+        {
+            foreach (var header in headers)
+            {
+                request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
         }
 
         if (form is not null)

@@ -33,6 +33,12 @@ jobs:
       - name: Build
         run: dotnet build YARPASUI.Tests/YARPASUI.Tests.csproj --configuration Release --no-restore
 
+      # The load-test harness is only built (never run) in CI: throughput numbers
+      # from shared runners are meaningless — run it on real hardware instead
+      # (YARP_LOADTEST_PROFILE=full dotnet test YARPASUI.LoadTests/...).
+      - name: Build load tests
+        run: dotnet build YARPASUI.LoadTests/YARPASUI.LoadTests.csproj --configuration Release
+
       # Scenarios tagged @windows (NTFS ACL simulation) skip themselves on Linux.
       - name: Test
         id: tests
@@ -44,7 +50,8 @@ jobs:
       # Renders the per-test results (pass/fail/skip, failure messages) in the run
       # Summary and as a check run, instead of just the console summary line.
       - name: Test Report
-        uses: dorny/test-reporter@v2
+        # Pinned to a full commit SHA (tag in comment) so a compromised tag cannot run code in CI.
+        uses: dorny/test-reporter@df6247429542221bc30d46a036ee47af1102c451 # v2
         if: always() && steps.tests.outcome != 'skipped'
         with:
           name: YARPASUI.Tests results

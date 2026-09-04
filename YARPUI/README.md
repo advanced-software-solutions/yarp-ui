@@ -4,7 +4,8 @@ A management UI for [YARP](https://microsoft.github.io/reverse-proxy/) (Yet Anot
 
 - **Route Map** (`/`) — every route → cluster → destination rendered as an interactive graph. Click a node to trace its full chain and inspect its configuration; search to highlight matches.
 - **Editor** (`/editor`) — create, edit and delete routes, clusters and destinations. Saving validates the configuration, applies it to the running proxy **without a restart**, and persists it to disk.
-- **Logs** (`/logs`) — a live view of proxied requests (method, path, status, duration, client IP, route, cluster, chosen destination), newest first with sortable columns. Route/cluster/destination filters and a time-frame selector search the whole retained history, not just the live buffer. Plus a performance panel: per-request durations charted over time and colored by status class, avg/P95/max/error-rate stat cards, and per-route aggregates.
+- **Logs** (`/logs`) — proxied requests (method, path, status, duration, client IP, route, cluster, chosen destination), newest first with sortable columns. The table loads just the latest 10 entries and pages through the rest; all filters (route/cluster/destination, time frame, free text, status class) and sorting search the whole retained history server-side, not just what is loaded, and new entries stream onto the first page live. Plus a performance panel: per-request durations charted over time and colored by status class, avg/P95/max/error-rate stat cards, and per-route aggregates. Each row's client IP carries a one-click **block** action.
+- **IP Blocking** (`/ipblocking`) — block a client IP, CIDR network or from–to range. Blocked requests are rejected with **403 before they reach the proxy** (or anything else the host serves). Rules apply immediately, are persisted across restarts, and blocked hits show up in the Logs page like any other request.
 
 > **Editions** — this repository is the **community edition**, free under Apache-2.0. A separate premium edition adds commercial features on top and is distributed under a commercial license. The premium code never lives in this repository.
 
@@ -95,9 +96,10 @@ The UI is then served on **http://localhost:8090**. All mutable configuration is
 | --- | --- |
 | `docker-data/appsettings.json` | Credentials (`YarpUi:Auth`) and the seed `ReverseProxy` config — edit on the host, applies on next start |
 | `docker-data/yarp-ui.routes.json` | Written automatically on every save from the UI editor |
+| `docker-data/yarp-ui-ipblocklist.json` | IP block list (rules + settings) — written on every change from the IP Blocking page |
 | `docker-data/yarp-ui-logs.db` | Request log database (SQLite) — survives restarts, purged by the retention policy |
 
-Under the hood the container sets `YarpUi__DataDirectory=/app/data` and mounts the volume there; an `appsettings.json` in that directory overrides the one baked into the image (this also works without Docker — point `YarpUi:DataDirectory` anywhere you like). To build the image manually: `docker build -t yarp-ui:0.2.0 .` from the solution root.
+Under the hood the container sets `YarpUi__DataDirectory=/app/data` and mounts the volume there; an `appsettings.json` in that directory overrides the one baked into the image (this also works without Docker — point `YarpUi:DataDirectory` anywhere you like). To build the image manually: `docker build -t yarp-ui:0.4.0 .` from the solution root.
 
 ## IIS
 
@@ -134,9 +136,30 @@ Only **proxied** requests are recorded (UI/API requests are excluded). Entries a
 
 The **client IP** is the leftmost `X-Forwarded-For` entry when a fronting proxy supplied one, otherwise the direct connection address. The UI does not install the ForwardedHeaders middleware itself — if the whole app sits behind a load balancer, the header reflects what that proxy forwarded. Since `X-Forwarded-For` is caller-controlled, treat logged IPs as informational rather than authenticated.
 
-The Logs page shows entries **newest first** and every column is sortable. The route / cluster / destination filters and the time-frame selector (last 15 min … 7 days, a custom range, or all time) run a **server-side search over the entire retained history** via `GET /api/yarp/logs` with `from`/`to` (Unix milliseconds), `routeId`, `clusterId`, `destinationId`, `sort`, `desc` and `limit` (max 1000 per query). Without search parameters the endpoint keeps its live-tailing contract: `after=<seq>` streams new entries oldest-first. Free-text and status-class filtering apply on top of whatever is loaded.
+The Logs page loads **only the latest page of entries** (10 rows, newest first) and pages through the rest on demand, so opening it stays fast no matter how much history is retained. All filtering and sorting run **server-side over the entire retained history** via `GET /api/yarp/logs` with `from`/`to` (Unix milliseconds), `routeId`, `clusterId`, `destinationId`, `q` (free text over path, method, route/cluster/destination and client IP), `status` (status class 2–5), `sort`, `desc`, `limit` (max 1000 per query) and `offset` for paging; the response reports the total match count. Without search parameters the endpoint keeps its live-tailing contract: `after=<seq>` streams new entries oldest-first. The page keeps the first page fresh live (new entries appear at the top while Live is on); deeper pages stay stable while you browse them.
 
 A **retention policy** deletes logs automatically once they pass a certain age: a background task runs at startup and then every hour. The policy is managed from the Logs page toolbar (*Keep logs: forever / 1 / 7 / 30 / 90 / 365 days*) and changing it applies immediately; the initial default comes from `YarpUi:Logs:RetentionDays` in configuration (30 days if unset). The policy you set in the UI is stored in the database itself and wins over the configuration value.
+
+## IP blocking
+
+The **IP Blocking** page (`/ipblocking`) blocks abusive clients at the front door. YARP itself has no client-IP access control, so YARP UI adds it: a middleware that rejects blocked addresses with **403 before the request reaches routing, the proxy or anything else the host serves**. It is enabled in every hosting mode (standalone, embedded and attach) without any host code change — the package inserts it the same way it inserts its localization middleware. With an empty list it costs effectively nothing; with rules loaded, matching is a precompiled hash lookup / binary search with no locks or allocations per request, and adding or removing a rule swaps the compiled list atomically (no restart, no dropped requests).
+
+Rules accept three notations and apply to both IPv4 and IPv6:
+
+| Notation | Example |
+| --- | --- |
+| Single address | `203.0.113.7` |
+| CIDR network (host bits must be zero) | `203.0.113.0/24` |
+| Inclusive from–to range | `203.0.113.5-203.0.113.99` |
+
+Behavior details:
+
+- **What gets blocked**: every request **except the management UI itself** — its pages, `/api/yarp/*` and its static assets stay reachable no matter what, so an admin can never lock themselves out; a too-wide rule is always removable from the UI (or by deleting `yarp-ui-ipblocklist.json` in the data directory). In attach mode the block also covers the host application's own routes, since the check runs before routing.
+- **Which address is matched**: the direct connection address (`Connection.RemoteIpAddress`), which is unspoofable and correct when YARP UI is the edge proxy. If the whole app sits behind another trusted proxy or load balancer, enable **Honor X-Forwarded-For** on the page to match the leftmost `X-Forwarded-For` entry instead. That header is caller-controlled: only enable the toggle when direct clients cannot reach the app, otherwise an attacker can spoof the header to evade (or trigger) blocks.
+- **Persistence**: rules and the toggle live in `yarp-ui-ipblocklist.json` in the data directory (next to `yarp-ui.routes.json`), written atomically on every change and reloaded on restart. A corrupt file never takes the app down — it falls back to an empty list with a warning; individual rules that no longer parse are skipped.
+- **Visibility**: every blocked request is written to the request log (status 403, the matching rule named in the error field, the client IP), so blocks are searchable on the Logs page like any other traffic. The Logs page also has a one-click **block** button on each row's client IP.
+- **API**: `GET /api/yarp/ipblocking`, `POST /api/yarp/ipblocking/rules`, `DELETE /api/yarp/ipblocking/rules/{id}`, `PUT /api/yarp/ipblocking/settings`, and `POST /api/yarp/ipblocking/check` (reports which rule an address would hit — the page's *Test an address* box).
+- The list is capped at 1000 rules; overlapping ranges are merged internally (the request is blocked either way, the log names one of the matching rules).
 
 ## Localization
 
@@ -159,7 +182,7 @@ All JavaScript libraries (Cytoscape.js, dagre, cytoscape-dagre, Chart.js) are ve
 
 ## Security notes
 
-- The management UI requires sign-in (cookie auth). **The proxy routes themselves are public** — that's the point of a proxy.
+- The management UI requires sign-in (cookie auth). **The proxy routes themselves are public** — that's the point of a proxy. Use the IP Blocking page to reject abusive clients (see above); the UI surface itself is deliberately exempt from the block list.
 - Credentials sit in plain text in `appsettings.json`, which is fine for a local/internal tool. If you expose this app beyond localhost, put it behind HTTPS, use strong credentials, and consider extending the auth with hashed passwords or a real identity provider.
 - Serve over HTTP only on a trusted network; the cookie is not marked `Secure` so it also works on plain HTTP during development.
 

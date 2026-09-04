@@ -146,3 +146,14 @@ internal sealed class ApiTestContext : IDisposable
 
     public void Dispose() => App?.Dispose();
 }
+
+/// <summary>
+/// Per-scenario state for IP-blocking tests: a TempDir owned across app restarts so the
+/// block-list file can be checked to survive them.
+/// </summary>
+internal sealed class IpBlockingTestContext : IDisposable
+{
+    public TempDir? Root { get; set; }
+
+    public void Dispose() => Root?.Dispose();
+}
