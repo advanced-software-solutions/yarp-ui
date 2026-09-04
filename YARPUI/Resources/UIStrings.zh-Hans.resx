@@ -296,6 +296,7 @@
   <data name="ipblocking.settingsSaveFailed" xml:space="preserve"><value>无法保存设置：{0}</value></data>
   <data name="ipblocking.checkTitle" xml:space="preserve"><value>测试一个地址</value></data>
   <data name="ipblocking.checkPlaceholder" xml:space="preserve"><value>例如 203.0.113.77</value></data>
+  <data name="ipblocking.checkLabel" xml:space="preserve"><value>要测试的地址</value></data>
   <data name="ipblocking.check" xml:space="preserve"><value>检查</value></data>
   <data name="ipblocking.checkBlocked" xml:space="preserve"><value>{0} 会被 {1} 封禁。</value></data>
   <data name="ipblocking.checkAllowed" xml:space="preserve"><value>{0} 未被封禁。</value></data>

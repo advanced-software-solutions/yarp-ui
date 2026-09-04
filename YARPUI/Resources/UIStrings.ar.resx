@@ -338,6 +338,7 @@
   <data name="ipblocking.settingsSaveFailed" xml:space="preserve"><value>تعذّر حفظ الإعدادات: {0}</value></data>
   <data name="ipblocking.checkTitle" xml:space="preserve"><value>اختبار عنوان</value></data>
   <data name="ipblocking.checkPlaceholder" xml:space="preserve"><value>مثل 203.0.113.77</value></data>
+  <data name="ipblocking.checkLabel" xml:space="preserve"><value>العنوان المراد فحصه</value></data>
   <data name="ipblocking.check" xml:space="preserve"><value>تحقّق</value></data>
   <data name="ipblocking.checkBlocked" xml:space="preserve"><value>{0} سيُحظر بموجب {1}.</value></data>
   <data name="ipblocking.checkAllowed" xml:space="preserve"><value>{0} غير محظور.</value></data>

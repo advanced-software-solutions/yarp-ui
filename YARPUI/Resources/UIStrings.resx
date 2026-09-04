@@ -308,6 +308,7 @@
   <data name="ipblocking.settingsSaveFailed" xml:space="preserve"><value>Could not save the settings: {0}</value></data>
   <data name="ipblocking.checkTitle" xml:space="preserve"><value>Test an address</value></data>
   <data name="ipblocking.checkPlaceholder" xml:space="preserve"><value>e.g. 203.0.113.77</value></data>
+  <data name="ipblocking.checkLabel" xml:space="preserve"><value>Address to test</value></data>
   <data name="ipblocking.check" xml:space="preserve"><value>Check</value></data>
   <data name="ipblocking.checkBlocked" xml:space="preserve"><value>{0} would be blocked by {1}.</value></data>
   <data name="ipblocking.checkAllowed" xml:space="preserve"><value>{0} is not blocked.</value></data>

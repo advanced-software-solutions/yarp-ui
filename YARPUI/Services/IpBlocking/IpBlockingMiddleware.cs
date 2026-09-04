@@ -29,7 +29,7 @@ public sealed class IpBlockingMiddleware
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 context.Response.ContentType = "text/plain; charset=utf-8";
-                await context.Response.WriteAsync("Forbidden");
+                await context.Response.WriteAsync("Forbidden", context.RequestAborted);
                 logStore.Add(
                     context.Request.Method,
                     context.Request.Path + context.Request.QueryString,

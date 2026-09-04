@@ -301,7 +301,7 @@ public sealed class SqliteRequestLogStore
         long total;
         using (var count = connection.CreateCommand())
         {
-            count.CommandText = "SELECT COUNT(*) FROM request_logs" + whereClause;
+            count.CommandText = $"SELECT COUNT(*) FROM request_logs{whereClause}";
             foreach (var (name, value) in parameters)
             {
                 count.Parameters.AddWithValue(name, value);

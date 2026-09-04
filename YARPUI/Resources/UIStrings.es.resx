@@ -305,6 +305,7 @@
   <data name="ipblocking.settingsSaveFailed" xml:space="preserve"><value>No se pudieron guardar los ajustes: {0}</value></data>
   <data name="ipblocking.checkTitle" xml:space="preserve"><value>Probar una dirección</value></data>
   <data name="ipblocking.checkPlaceholder" xml:space="preserve"><value>p. ej. 203.0.113.77</value></data>
+  <data name="ipblocking.checkLabel" xml:space="preserve"><value>Dirección a comprobar</value></data>
   <data name="ipblocking.check" xml:space="preserve"><value>Comprobar</value></data>
   <data name="ipblocking.checkBlocked" xml:space="preserve"><value>{0} quedaría bloqueada por {1}.</value></data>
   <data name="ipblocking.checkAllowed" xml:space="preserve"><value>{0} no está bloqueada.</value></data>
