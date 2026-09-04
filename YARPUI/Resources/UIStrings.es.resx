@@ -30,6 +30,7 @@
   <!-- route map page -->
   <data name="index.title" xml:space="preserve"><value>Mapa de rutas — YARP UI</value></data>
   <data name="index.searchPlaceholder" xml:space="preserve"><value>Buscar rutas, clústeres, destinos…</value></data>
+  <data name="index.searchLabel" xml:space="preserve"><value>Buscar</value></data>
   <data name="index.zoomOut" xml:space="preserve"><value>Alejar</value></data>
   <data name="index.zoomIn" xml:space="preserve"><value>Acercar</value></data>
   <data name="index.fit" xml:space="preserve"><value>Ajustar a la pantalla</value></data>
@@ -174,7 +175,9 @@
   <!-- logs page -->
   <data name="logs.title" xml:space="preserve"><value>Registros de peticiones — YARP UI</value></data>
   <data name="logs.searchPlaceholder" xml:space="preserve"><value>Filtrar por path, ruta, clúster, destino…</value></data>
+  <data name="logs.searchLabel" xml:space="preserve"><value>Buscar en registros</value></data>
   <data name="logs.filterStatusTitle" xml:space="preserve"><value>Filtrar por clase de estado</value></data>
+  <data name="logs.filterStatusLabel" xml:space="preserve"><value>Clase de estado</value></data>
   <data name="logs.allStatuses" xml:space="preserve"><value>Todos los estados</value></data>
   <data name="logs.status2" xml:space="preserve"><value>2xx — éxito</value></data>
   <data name="logs.status3" xml:space="preserve"><value>3xx — redirección</value></data>
@@ -183,6 +186,7 @@
   <data name="logs.liveTitle" xml:space="preserve"><value>Actualizar cada 2 segundos</value></data>
   <data name="logs.live" xml:space="preserve"><value>En vivo</value></data>
   <data name="logs.retentionTitle" xml:space="preserve"><value>Eliminar automáticamente los registros de peticiones anteriores a este periodo</value></data>
+  <data name="logs.retentionLabel" xml:space="preserve"><value>Retención</value></data>
   <data name="logs.keepForever" xml:space="preserve"><value>Conservar registros: para siempre</value></data>
   <data name="logs.keepOneDay" xml:space="preserve"><value>Conservar registros: 1 día</value></data>
   <data name="logs.keepDays" xml:space="preserve"><value>Conservar registros: {0} días</value></data>
@@ -193,9 +197,13 @@
   <data name="logs.allClusters" xml:space="preserve"><value>Todos los clústeres</value></data>
   <data name="logs.allDestinations" xml:space="preserve"><value>Todos los destinos</value></data>
   <data name="logs.filterRouteTitle" xml:space="preserve"><value>Mostrar solo peticiones gestionadas por esta ruta</value></data>
+  <data name="logs.filterRouteLabel" xml:space="preserve"><value>Ruta</value></data>
   <data name="logs.filterClusterTitle" xml:space="preserve"><value>Mostrar solo peticiones gestionadas por este clúster</value></data>
+  <data name="logs.filterClusterLabel" xml:space="preserve"><value>Clúster</value></data>
   <data name="logs.filterDestinationTitle" xml:space="preserve"><value>Mostrar solo peticiones enviadas a este destino</value></data>
+  <data name="logs.filterDestinationLabel" xml:space="preserve"><value>Destino</value></data>
   <data name="logs.rangeTitle" xml:space="preserve"><value>Restringir los resultados a un periodo</value></data>
+  <data name="logs.rangeLabel" xml:space="preserve"><value>Rango de tiempo</value></data>
   <data name="logs.rangeLive" xml:space="preserve"><value>En vivo (lo último)</value></data>
   <data name="logs.last5" xml:space="preserve"><value>Últimos 5 min</value></data>
   <data name="logs.last15" xml:space="preserve"><value>Últimos 15 min</value></data>

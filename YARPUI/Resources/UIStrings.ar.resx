@@ -30,6 +30,7 @@
   <!-- route map page -->
   <data name="index.title" xml:space="preserve"><value>خريطة المسارات — YARP UI</value></data>
   <data name="index.searchPlaceholder" xml:space="preserve"><value>ابحث في المسارات والمجموعات والوجهات…</value></data>
+  <data name="index.searchLabel" xml:space="preserve"><value>بحث</value></data>
   <data name="index.zoomOut" xml:space="preserve"><value>تصغير</value></data>
   <data name="index.zoomIn" xml:space="preserve"><value>تكبير</value></data>
   <data name="index.fit" xml:space="preserve"><value>ملاءمة الشاشة</value></data>
@@ -196,7 +197,9 @@
   <!-- logs page -->
   <data name="logs.title" xml:space="preserve"><value>سجلات الطلبات — YARP UI</value></data>
   <data name="logs.searchPlaceholder" xml:space="preserve"><value>تصفية حسب المسار (Path) أو المسار (Route) أو المجموعة أو الوجهة…</value></data>
+  <data name="logs.searchLabel" xml:space="preserve"><value>بحث في السجلات</value></data>
   <data name="logs.filterStatusTitle" xml:space="preserve"><value>تصفية حسب فئة الحالة</value></data>
+  <data name="logs.filterStatusLabel" xml:space="preserve"><value>فئة الحالة</value></data>
   <data name="logs.allStatuses" xml:space="preserve"><value>كل الحالات</value></data>
   <data name="logs.status2" xml:space="preserve"><value>2xx — نجاح</value></data>
   <data name="logs.status3" xml:space="preserve"><value>3xx — إعادة توجيه</value></data>
@@ -205,6 +208,7 @@
   <data name="logs.liveTitle" xml:space="preserve"><value>تحديث كل ثانيتين</value></data>
   <data name="logs.live" xml:space="preserve"><value>مباشر</value></data>
   <data name="logs.retentionTitle" xml:space="preserve"><value>حذف سجلات الطلبات الأقدم من هذه المدة تلقائيًا</value></data>
+  <data name="logs.retentionLabel" xml:space="preserve"><value>مدة الاحتفاظ</value></data>
   <data name="logs.keepForever" xml:space="preserve"><value>الاحتفاظ بالسجلات: للأبد</value></data>
   <data name="logs.keepOneDay" xml:space="preserve"><value>الاحتفاظ بالسجلات: يوم واحد</value></data>
   <data name="logs.keepDays" xml:space="preserve"><value>الاحتفاظ بالسجلات: {0} أيام</value></data>
@@ -215,9 +219,13 @@
   <data name="logs.allClusters" xml:space="preserve"><value>كل المجموعات</value></data>
   <data name="logs.allDestinations" xml:space="preserve"><value>كل الوجهات</value></data>
   <data name="logs.filterRouteTitle" xml:space="preserve"><value>إظهار الطلبات التي تعامل معها هذا المسار فقط</value></data>
+  <data name="logs.filterRouteLabel" xml:space="preserve"><value>المسار (Route)</value></data>
   <data name="logs.filterClusterTitle" xml:space="preserve"><value>إظهار الطلبات التي تعامل معها هذه المجموعة فقط</value></data>
+  <data name="logs.filterClusterLabel" xml:space="preserve"><value>المجموعة</value></data>
   <data name="logs.filterDestinationTitle" xml:space="preserve"><value>إظهار الطلبات المُرسلة إلى هذه الوجهة فقط</value></data>
+  <data name="logs.filterDestinationLabel" xml:space="preserve"><value>الوجهة</value></data>
   <data name="logs.rangeTitle" xml:space="preserve"><value>حصر النتائج في إطار زمني</value></data>
+  <data name="logs.rangeLabel" xml:space="preserve"><value>النطاق الزمني</value></data>
   <data name="logs.rangeLive" xml:space="preserve"><value>مباشر (الأحدث)</value></data>
   <data name="logs.last5" xml:space="preserve"><value>آخر 5 دقائق</value></data>
   <data name="logs.last15" xml:space="preserve"><value>آخر 15 دقيقة</value></data>

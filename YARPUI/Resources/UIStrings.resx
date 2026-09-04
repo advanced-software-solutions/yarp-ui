@@ -33,6 +33,7 @@
   <!-- route map page -->
   <data name="index.title" xml:space="preserve"><value>Route Map — YARP UI</value></data>
   <data name="index.searchPlaceholder" xml:space="preserve"><value>Search routes, clusters, destinations…</value></data>
+  <data name="index.searchLabel" xml:space="preserve"><value>Search</value></data>
   <data name="index.zoomOut" xml:space="preserve"><value>Zoom out</value></data>
   <data name="index.zoomIn" xml:space="preserve"><value>Zoom in</value></data>
   <data name="index.fit" xml:space="preserve"><value>Fit to screen</value></data>
@@ -177,7 +178,9 @@
   <!-- logs page -->
   <data name="logs.title" xml:space="preserve"><value>Request Logs — YARP UI</value></data>
   <data name="logs.searchPlaceholder" xml:space="preserve"><value>Filter by path, route, cluster, destination…</value></data>
+  <data name="logs.searchLabel" xml:space="preserve"><value>Search logs</value></data>
   <data name="logs.filterStatusTitle" xml:space="preserve"><value>Filter by status class</value></data>
+  <data name="logs.filterStatusLabel" xml:space="preserve"><value>Status class</value></data>
   <data name="logs.allStatuses" xml:space="preserve"><value>All statuses</value></data>
   <data name="logs.status2" xml:space="preserve"><value>2xx — success</value></data>
   <data name="logs.status3" xml:space="preserve"><value>3xx — redirect</value></data>
@@ -186,6 +189,7 @@
   <data name="logs.liveTitle" xml:space="preserve"><value>Refresh every 2 seconds</value></data>
   <data name="logs.live" xml:space="preserve"><value>Live</value></data>
   <data name="logs.retentionTitle" xml:space="preserve"><value>Automatically delete request logs older than this</value></data>
+  <data name="logs.retentionLabel" xml:space="preserve"><value>Retention</value></data>
   <data name="logs.keepForever" xml:space="preserve"><value>Keep logs: forever</value></data>
   <data name="logs.keepOneDay" xml:space="preserve"><value>Keep logs: 1 day</value></data>
   <data name="logs.keepDays" xml:space="preserve"><value>Keep logs: {0} days</value></data>
@@ -196,9 +200,13 @@
   <data name="logs.allClusters" xml:space="preserve"><value>All clusters</value></data>
   <data name="logs.allDestinations" xml:space="preserve"><value>All destinations</value></data>
   <data name="logs.filterRouteTitle" xml:space="preserve"><value>Show only requests handled by this route</value></data>
+  <data name="logs.filterRouteLabel" xml:space="preserve"><value>Route</value></data>
   <data name="logs.filterClusterTitle" xml:space="preserve"><value>Show only requests handled by this cluster</value></data>
+  <data name="logs.filterClusterLabel" xml:space="preserve"><value>Cluster</value></data>
   <data name="logs.filterDestinationTitle" xml:space="preserve"><value>Show only requests sent to this destination</value></data>
+  <data name="logs.filterDestinationLabel" xml:space="preserve"><value>Destination</value></data>
   <data name="logs.rangeTitle" xml:space="preserve"><value>Restrict results to a time frame</value></data>
+  <data name="logs.rangeLabel" xml:space="preserve"><value>Time range</value></data>
   <data name="logs.rangeLive" xml:space="preserve"><value>Live (latest)</value></data>
   <data name="logs.last5" xml:space="preserve"><value>Last 5 min</value></data>
   <data name="logs.last15" xml:space="preserve"><value>Last 15 min</value></data>

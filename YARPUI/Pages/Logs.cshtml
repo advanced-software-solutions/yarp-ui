@@ -10,9 +10,9 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                 <circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" />
             </svg>
-            <input id="log-search" type="search" placeholder="@L["logs.searchPlaceholder"]" autocomplete="off" spellcheck="false" />
+            <input id="log-search" type="search" placeholder="@L["logs.searchPlaceholder"]" aria-label="@L["logs.searchLabel"]" autocomplete="off" spellcheck="false" />
         </div>
-        <select id="log-status" class="select" title="@L["logs.filterStatusTitle"]">
+        <select id="log-status" class="select" title="@L["logs.filterStatusTitle"]" aria-label="@L["logs.filterStatusLabel"]">
             <option value="">@L["logs.allStatuses"]</option>
             <option value="2">@L["logs.status2"]</option>
             <option value="3">@L["logs.status3"]</option>
@@ -24,7 +24,7 @@
             <span class="toggle-track"><span class="toggle-dot"></span></span>
             <span class="toggle-label">@L["logs.live"] <span class="live-dot" id="live-dot"></span></span>
         </label>
-        <select id="log-retention" class="select" title="@L["logs.retentionTitle"]">
+        <select id="log-retention" class="select" title="@L["logs.retentionTitle"]" aria-label="@L["logs.retentionLabel"]">
             <option value="0">@L["logs.keepForever"]</option>
             <option value="1">@L["logs.keepOneDay"]</option>
             <option value="7">@string.Format(L["logs.keepDays"], 7)</option>
@@ -42,16 +42,16 @@
         </button>
     </div>
     <div class="logs-filters">
-        <select id="log-route" class="select select-sm" title="@L["logs.filterRouteTitle"]">
+        <select id="log-route" class="select select-sm" title="@L["logs.filterRouteTitle"]" aria-label="@L["logs.filterRouteLabel"]">
             <option value="">@L["logs.allRoutes"]</option>
         </select>
-        <select id="log-cluster" class="select select-sm" title="@L["logs.filterClusterTitle"]">
+        <select id="log-cluster" class="select select-sm" title="@L["logs.filterClusterTitle"]" aria-label="@L["logs.filterClusterLabel"]">
             <option value="">@L["logs.allClusters"]</option>
         </select>
-        <select id="log-destination" class="select select-sm" title="@L["logs.filterDestinationTitle"]">
+        <select id="log-destination" class="select select-sm" title="@L["logs.filterDestinationTitle"]" aria-label="@L["logs.filterDestinationLabel"]">
             <option value="">@L["logs.allDestinations"]</option>
         </select>
-        <select id="log-range" class="select select-sm" title="@L["logs.rangeTitle"]">
+        <select id="log-range" class="select select-sm" title="@L["logs.rangeTitle"]" aria-label="@L["logs.rangeLabel"]">
             <option value="">@L["logs.rangeLive"]</option>
             <option value="15">@L["logs.last15"]</option>
             <option value="60">@L["logs.lastHour"]</option>

@@ -206,24 +206,29 @@ public sealed class SqliteRequestLogStore
         return entries;
     }
 
-    // Whitelisted sort fields for Query — the values are the only SQL fragments built from user input.
-    private static readonly Dictionary<string, string> SortColumns = new(StringComparer.OrdinalIgnoreCase)
+    // Whitelisted sort fields for Query. The sort key is the only user input that shapes
+    // SQL text, and only by selecting one of these fixed column names.
+    private static readonly string[] SortKeys =
+        ["timestamp", "duration", "status", "method", "path", "route", "cluster", "destination", "clientIp"];
+
+    private static string SortColumn(string? sort) => (sort ?? "").ToLowerInvariant() switch
     {
-        ["timestamp"] = "timestamp_ms",
-        ["duration"] = "duration_ms",
-        ["status"] = "status_code",
-        ["method"] = "method",
-        ["path"] = "path",
-        ["route"] = "route_id",
-        ["cluster"] = "cluster_id",
-        ["destination"] = "destination_id",
-        ["clientIp"] = "client_ip",
+        "timestamp" => "timestamp_ms",
+        "duration" => "duration_ms",
+        "status" => "status_code",
+        "method" => "method",
+        "path" => "path",
+        "route" => "route_id",
+        "cluster" => "cluster_id",
+        "destination" => "destination_id",
+        "clientIp" => "client_ip",
+        _ => throw new ArgumentException($"Unknown sort field '{sort}'.", nameof(sort)),
     };
 
     public static bool IsValidSortField(string? sort)
-        => sort is not null && SortColumns.ContainsKey(sort);
+        => sort is not null && SortKeys.Contains(sort.ToLowerInvariant());
 
-    public static string SortFields => string.Join(", ", SortColumns.Keys);
+    public static string SortFields => string.Join(", ", SortKeys);
 
     /// <summary>
     /// History search over stored entries (time range, route/cluster/destination filters, free-text
@@ -232,31 +237,36 @@ public sealed class SqliteRequestLogStore
     /// </summary>
     public RequestLogQueryResult Query(RequestLogQuery query)
     {
-        if (!SortColumns.TryGetValue(query.Sort ?? "", out var sortColumn))
-        {
-            throw new ArgumentException($"Unknown sort field '{query.Sort}'.", nameof(query));
-        }
+        var sortColumn = SortColumn(query.Sort);
 
-        var conditions = new List<(string Sql, string Name, object Value)>();
+        // WHERE fragments are hard-coded literals picked by the branches below; every
+        // user value binds as a SQLite parameter and never becomes SQL text.
+        var whereSql = new List<string>();
+        var parameters = new List<(string Name, object Value)>();
         if (query.FromMs is { } from)
         {
-            conditions.Add(("timestamp_ms >= @from", "@from", from));
+            whereSql.Add("timestamp_ms >= @from");
+            parameters.Add(("@from", from));
         }
         if (query.ToMs is { } to)
         {
-            conditions.Add(("timestamp_ms <= @to", "@to", to));
+            whereSql.Add("timestamp_ms <= @to");
+            parameters.Add(("@to", to));
         }
         if (!string.IsNullOrWhiteSpace(query.RouteId))
         {
-            conditions.Add(("route_id = @route", "@route", query.RouteId));
+            whereSql.Add("route_id = @route");
+            parameters.Add(("@route", query.RouteId));
         }
         if (!string.IsNullOrWhiteSpace(query.ClusterId))
         {
-            conditions.Add(("cluster_id = @cluster", "@cluster", query.ClusterId));
+            whereSql.Add("cluster_id = @cluster");
+            parameters.Add(("@cluster", query.ClusterId));
         }
         if (!string.IsNullOrWhiteSpace(query.DestinationId))
         {
-            conditions.Add(("destination_id = @destination", "@destination", query.DestinationId));
+            whereSql.Add("destination_id = @destination");
+            parameters.Add(("@destination", query.DestinationId));
         }
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
@@ -269,18 +279,19 @@ public sealed class SqliteRequestLogStore
                 "OR cluster_id LIKE @search ESCAPE '\\' " +
                 "OR destination_id LIKE @search ESCAPE '\\' " +
                 "OR client_ip LIKE @search ESCAPE '\\')";
-            conditions.Add((searchCondition, "@search", pattern));
+            whereSql.Add(searchCondition);
+            parameters.Add(("@search", pattern));
         }
         if (query.StatusClass is { } statusClass)
         {
-            conditions.Add(("status_code >= @statusFrom AND status_code < @statusTo", "@statusFrom", statusClass * 100));
-            conditions.Add(("", "@statusTo", statusClass * 100 + 100)); // parameter only — no SQL fragment
+            whereSql.Add("status_code >= @statusFrom AND status_code < @statusTo");
+            parameters.Add(("@statusFrom", statusClass * 100));
+            parameters.Add(("@statusTo", statusClass * 100 + 100));
         }
 
-        // Entries with an empty Sql carry a bound parameter for a multi-parameter condition.
-        var whereSql = conditions.Count == 0
+        var whereClause = whereSql.Count == 0
             ? ""
-            : " WHERE " + string.Join(" AND ", conditions.Where(c => !string.IsNullOrEmpty(c.Sql)).Select(c => c.Sql));
+            : " WHERE " + string.Join(" AND ", whereSql);
         var direction = query.Descending ? "DESC" : "ASC";
         var limit = Math.Clamp(query.Limit, 1, MaxQueryLimit);
         var offset = Math.Max(0, query.Offset);
@@ -290,13 +301,10 @@ public sealed class SqliteRequestLogStore
         long total;
         using (var count = connection.CreateCommand())
         {
-            count.CommandText = "SELECT COUNT(*) FROM request_logs" + whereSql;
-            foreach (var (_, name, value) in conditions)
+            count.CommandText = "SELECT COUNT(*) FROM request_logs" + whereClause;
+            foreach (var (name, value) in parameters)
             {
-                if (name is not null)
-                {
-                    count.Parameters.AddWithValue(name, value);
-                }
+                count.Parameters.AddWithValue(name, value);
             }
             total = (long)(count.ExecuteScalar() ?? 0L);
         }
@@ -305,16 +313,13 @@ public sealed class SqliteRequestLogStore
         command.CommandText = $"""
             SELECT seq, timestamp_ms, method, path, status_code, duration_ms,
                    route_id, cluster_id, destination_id, destination_address, error, client_ip
-            FROM request_logs{whereSql}
+            FROM request_logs{whereClause}
             ORDER BY {sortColumn} {direction}, seq {direction}
             LIMIT @limit OFFSET @offset
             """;
-        foreach (var (_, name, value) in conditions)
+        foreach (var (name, value) in parameters)
         {
-            if (name is not null)
-            {
-                command.Parameters.AddWithValue(name, value);
-            }
+            command.Parameters.AddWithValue(name, value);
         }
         command.Parameters.AddWithValue("@limit", limit);
         command.Parameters.AddWithValue("@offset", offset);
@@ -673,9 +678,9 @@ public sealed class SqliteRequestLogStore
     private async Task InsertBatchAsync(IReadOnlyList<RequestLogEntry> batch, CancellationToken cancellationToken)
     {
         using var connection = OpenConnection();
-        using var transaction = connection.BeginTransaction();
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
         using var command = connection.CreateCommand();
-        command.Transaction = transaction;
+        command.Transaction = (SqliteTransaction)transaction;
         command.CommandText = """
             INSERT INTO request_logs (timestamp_ms, method, path, status_code, duration_ms,
                                       route_id, cluster_id, destination_id, destination_address, error, client_ip)

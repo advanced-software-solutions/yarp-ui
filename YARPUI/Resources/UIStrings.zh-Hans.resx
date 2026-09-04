@@ -30,6 +30,7 @@
   <!-- route map page -->
   <data name="index.title" xml:space="preserve"><value>路由地图 — YARP UI</value></data>
   <data name="index.searchPlaceholder" xml:space="preserve"><value>搜索路由、群集、目标…</value></data>
+  <data name="index.searchLabel" xml:space="preserve"><value>搜索</value></data>
   <data name="index.zoomOut" xml:space="preserve"><value>缩小</value></data>
   <data name="index.zoomIn" xml:space="preserve"><value>放大</value></data>
   <data name="index.fit" xml:space="preserve"><value>适应屏幕</value></data>
@@ -168,7 +169,9 @@
   <!-- logs page -->
   <data name="logs.title" xml:space="preserve"><value>请求日志 — YARP UI</value></data>
   <data name="logs.searchPlaceholder" xml:space="preserve"><value>按路径、路由、群集、目标筛选…</value></data>
+  <data name="logs.searchLabel" xml:space="preserve"><value>搜索日志</value></data>
   <data name="logs.filterStatusTitle" xml:space="preserve"><value>按状态类别筛选</value></data>
+  <data name="logs.filterStatusLabel" xml:space="preserve"><value>状态类别</value></data>
   <data name="logs.allStatuses" xml:space="preserve"><value>所有状态</value></data>
   <data name="logs.status2" xml:space="preserve"><value>2xx — 成功</value></data>
   <data name="logs.status3" xml:space="preserve"><value>3xx — 重定向</value></data>
@@ -177,6 +180,7 @@
   <data name="logs.liveTitle" xml:space="preserve"><value>每 2 秒刷新</value></data>
   <data name="logs.live" xml:space="preserve"><value>实时</value></data>
   <data name="logs.retentionTitle" xml:space="preserve"><value>自动删除早于该时长的请求日志</value></data>
+  <data name="logs.retentionLabel" xml:space="preserve"><value>保留时长</value></data>
   <data name="logs.keepForever" xml:space="preserve"><value>保留日志：永久</value></data>
   <data name="logs.keepOneDay" xml:space="preserve"><value>保留日志：1 天</value></data>
   <data name="logs.keepDays" xml:space="preserve"><value>保留日志：{0} 天</value></data>
@@ -187,9 +191,13 @@
   <data name="logs.allClusters" xml:space="preserve"><value>所有群集</value></data>
   <data name="logs.allDestinations" xml:space="preserve"><value>所有目标</value></data>
   <data name="logs.filterRouteTitle" xml:space="preserve"><value>仅显示由该路由处理的请求</value></data>
+  <data name="logs.filterRouteLabel" xml:space="preserve"><value>路由</value></data>
   <data name="logs.filterClusterTitle" xml:space="preserve"><value>仅显示由该群集处理的请求</value></data>
+  <data name="logs.filterClusterLabel" xml:space="preserve"><value>群集</value></data>
   <data name="logs.filterDestinationTitle" xml:space="preserve"><value>仅显示发送到该目标的请求</value></data>
+  <data name="logs.filterDestinationLabel" xml:space="preserve"><value>目标</value></data>
   <data name="logs.rangeTitle" xml:space="preserve"><value>将结果限制在某个时间范围</value></data>
+  <data name="logs.rangeLabel" xml:space="preserve"><value>时间范围</value></data>
   <data name="logs.rangeLive" xml:space="preserve"><value>实时（最新）</value></data>
   <data name="logs.last5" xml:space="preserve"><value>最近 5 分钟</value></data>
   <data name="logs.last15" xml:space="preserve"><value>最近 15 分钟</value></data>

@@ -50,7 +50,8 @@ jobs:
       # Renders the per-test results (pass/fail/skip, failure messages) in the run
       # Summary and as a check run, instead of just the console summary line.
       - name: Test Report
-        uses: dorny/test-reporter@v2
+        # Pinned to a full commit SHA (tag in comment) so a compromised tag cannot run code in CI.
+        uses: dorny/test-reporter@df6247429542221bc30d46a036ee47af1102c451 # v2
         if: always() && steps.tests.outcome != 'skipped'
         with:
           name: YARPASUI.Tests results
