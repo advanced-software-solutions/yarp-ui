@@ -238,71 +238,50 @@ public sealed class SqliteRequestLogStore
     public RequestLogQueryResult Query(RequestLogQuery query)
     {
         var sortColumn = SortColumn(query.Sort);
-
-        // WHERE fragments are hard-coded literals picked by the branches below; every
-        // user value binds as a SQLite parameter and never becomes SQL text.
-        var whereSql = new List<string>();
-        var parameters = new List<(string Name, object Value)>();
-        if (query.FromMs is { } from)
-        {
-            whereSql.Add("timestamp_ms >= @from");
-            parameters.Add(("@from", from));
-        }
-        if (query.ToMs is { } to)
-        {
-            whereSql.Add("timestamp_ms <= @to");
-            parameters.Add(("@to", to));
-        }
-        if (!string.IsNullOrWhiteSpace(query.RouteId))
-        {
-            whereSql.Add("route_id = @route");
-            parameters.Add(("@route", query.RouteId));
-        }
-        if (!string.IsNullOrWhiteSpace(query.ClusterId))
-        {
-            whereSql.Add("cluster_id = @cluster");
-            parameters.Add(("@cluster", query.ClusterId));
-        }
-        if (!string.IsNullOrWhiteSpace(query.DestinationId))
-        {
-            whereSql.Add("destination_id = @destination");
-            parameters.Add(("@destination", query.DestinationId));
-        }
-        if (!string.IsNullOrWhiteSpace(query.Search))
-        {
-            // Substring match with the LIKE wildcards escaped so user input is matched literally.
-            var pattern = "%" + query.Search.Replace(@"\", @"\\").Replace("%", @"\%").Replace("_", @"\_") + "%";
-            var searchCondition =
-                "(path LIKE @search ESCAPE '\\' " +
-                "OR method LIKE @search ESCAPE '\\' " +
-                "OR route_id LIKE @search ESCAPE '\\' " +
-                "OR cluster_id LIKE @search ESCAPE '\\' " +
-                "OR destination_id LIKE @search ESCAPE '\\' " +
-                "OR client_ip LIKE @search ESCAPE '\\')";
-            whereSql.Add(searchCondition);
-            parameters.Add(("@search", pattern));
-        }
-        if (query.StatusClass is { } statusClass)
-        {
-            whereSql.Add("status_code >= @statusFrom AND status_code < @statusTo");
-            parameters.Add(("@statusFrom", statusClass * 100));
-            parameters.Add(("@statusTo", statusClass * 100 + 100));
-        }
-
-        var whereClause = whereSql.Count == 0
-            ? ""
-            : " WHERE " + string.Join(" AND ", whereSql);
         var direction = query.Descending ? "DESC" : "ASC";
         var limit = Math.Clamp(query.Limit, 1, MaxQueryLimit);
         var offset = Math.Max(0, query.Offset);
+
+        // Fixed query text: every filter is a "parameter-or-NULL" branch, so an absent
+        // filter binds DBNull and no user value ever becomes part of the SQL text.
+        const string filterSql = """
+            WHERE (@from IS NULL OR timestamp_ms >= @from)
+              AND (@to IS NULL OR timestamp_ms <= @to)
+              AND (@route IS NULL OR route_id = @route)
+              AND (@cluster IS NULL OR cluster_id = @cluster)
+              AND (@destination IS NULL OR destination_id = @destination)
+              AND (@search IS NULL OR (path LIKE @search ESCAPE '\'
+                      OR method LIKE @search ESCAPE '\'
+                      OR route_id LIKE @search ESCAPE '\'
+                      OR cluster_id LIKE @search ESCAPE '\'
+                      OR destination_id LIKE @search ESCAPE '\'
+                      OR client_ip LIKE @search ESCAPE '\'))
+              AND (@statusFrom IS NULL OR (status_code >= @statusFrom AND status_code < @statusTo))
+            """;
+
+        // LIKE wildcards escaped so the search term is matched literally.
+        object search = string.IsNullOrWhiteSpace(query.Search)
+            ? DBNull.Value
+            : "%" + query.Search.Replace(@"\", @"\\").Replace("%", @"\%").Replace("_", @"\_") + "%";
+        var filterParameters = new (string Name, object Value)[]
+        {
+            ("@from", query.FromMs is { } from ? from : DBNull.Value),
+            ("@to", query.ToMs is { } to ? to : DBNull.Value),
+            ("@route", string.IsNullOrWhiteSpace(query.RouteId) ? DBNull.Value : query.RouteId),
+            ("@cluster", string.IsNullOrWhiteSpace(query.ClusterId) ? DBNull.Value : query.ClusterId),
+            ("@destination", string.IsNullOrWhiteSpace(query.DestinationId) ? DBNull.Value : query.DestinationId),
+            ("@search", search),
+            ("@statusFrom", query.StatusClass is { } statusFrom ? statusFrom * 100 : DBNull.Value),
+            ("@statusTo", query.StatusClass is { } statusTo ? statusTo * 100 + 100 : DBNull.Value),
+        };
 
         using var connection = OpenConnection();
 
         long total;
         using (var count = connection.CreateCommand())
         {
-            count.CommandText = $"SELECT COUNT(*) FROM request_logs{whereClause}";
-            foreach (var (name, value) in parameters)
+            count.CommandText = "SELECT COUNT(*) FROM request_logs " + filterSql;
+            foreach (var (name, value) in filterParameters)
             {
                 count.Parameters.AddWithValue(name, value);
             }
@@ -313,11 +292,12 @@ public sealed class SqliteRequestLogStore
         command.CommandText = $"""
             SELECT seq, timestamp_ms, method, path, status_code, duration_ms,
                    route_id, cluster_id, destination_id, destination_address, error, client_ip
-            FROM request_logs{whereClause}
+            FROM request_logs
+            {filterSql}
             ORDER BY {sortColumn} {direction}, seq {direction}
             LIMIT @limit OFFSET @offset
             """;
-        foreach (var (name, value) in parameters)
+        foreach (var (name, value) in filterParameters)
         {
             command.Parameters.AddWithValue(name, value);
         }
