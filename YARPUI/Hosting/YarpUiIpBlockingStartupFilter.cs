@@ -9,8 +9,10 @@ namespace YARPUI.Hosting;
 /// any code change, and attach-mode apps only ever notice it once a rule exists. Runs as an
 /// IStartupFilter like the localization wiring so it wraps the pipeline wherever
 /// AddYarpUi/AttachYarpUi was called from. The check runs before any host middleware, so
-/// Connection.RemoteIpAddress is always the direct TCP peer; deployments chained behind a
-/// trusted proxy can honor X-Forwarded-For via the block list settings instead.
+/// Connection.RemoteIpAddress is the direct TCP peer — or the client address resolved by the
+/// forwarded-headers middleware when YarpUi:ForwardedHeaders is enabled, since that filter
+/// registers ahead of this one. Deployments chained behind an unconfigured trusted proxy can
+/// honor X-Forwarded-For via the block list settings instead.
 /// </summary>
 internal sealed class YarpUiIpBlockingStartupFilter : IStartupFilter
 {

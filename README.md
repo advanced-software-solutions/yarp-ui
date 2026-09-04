@@ -121,7 +121,7 @@ The UI is then served on **http://localhost:8090**. All mutable configuration is
 | `docker-data/yarp-ui.routes.json` | Written automatically on every save from the UI editor |
 | `docker-data/yarp-ui-logs.db` | Request log database (SQLite) — survives restarts, purged by the retention policy |
 
-Under the hood the container sets `YarpUi__DataDirectory=/app/data` and mounts the volume there; an `appsettings.json` in that directory overrides the one baked into the image (this also works without Docker — point `YarpUi:DataDirectory` anywhere you like). To build the image manually: `docker build -t yarp-ui:0.4.0 .` from the solution root.
+Under the hood the container sets `YarpUi__DataDirectory=/app/data` and mounts the volume there; an `appsettings.json` in that directory overrides the one baked into the image (this also works without Docker — point `YarpUi:DataDirectory` anywhere you like). To build the image manually: `docker build -t yarp-ui:0.4.1 .` from the solution root.
 
 ## IIS
 
@@ -156,11 +156,52 @@ appsettings.json ("ReverseProxy" section)   ← hand-written seed
 
 Only **proxied** requests are recorded (UI/API requests are excluded). Entries are stored in a SQLite database (`yarp-ui-logs.db` in the data directory, next to `yarp-ui.routes.json`) and survive restarts. Each entry captures the method, path, status code, duration, the route/cluster/destination YARP selected, and the client IP. Databases created by older versions are migrated in place on first start.
 
-The **client IP** is the leftmost `X-Forwarded-For` entry when a fronting proxy supplied one, otherwise the direct connection address. The UI does not install the ForwardedHeaders middleware itself — if the whole app sits behind a load balancer, the header reflects what that proxy forwarded. Since `X-Forwarded-For` is caller-controlled, treat logged IPs as informational rather than authenticated.
+The **client IP** is the leftmost `X-Forwarded-For` entry when a fronting proxy supplied one, otherwise the direct connection address; when `YarpUi:ForwardedHeaders` is enabled, the address resolved from the trusted front's header is logged instead (see [Forwarded headers](#forwarded-headers-the-real-client-ip-behind-a-proxy)). Since `X-Forwarded-For` is caller-controlled, treat logged IPs as informational rather than authenticated, unless forwarded headers are enabled from a front clients cannot bypass.
 
 The Logs page shows entries **newest first** and every column is sortable. The route / cluster / destination filters and the time-frame selector (last 15 min … 7 days, a custom range, or all time) run a **server-side search over the entire retained history** via `GET /api/yarp/logs` with `from`/`to` (Unix milliseconds), `routeId`, `clusterId`, `destinationId`, `sort`, `desc` and `limit` (max 1000 per query). Without search parameters the endpoint keeps its live-tailing contract: `after=<seq>` streams new entries oldest-first. Free-text and status-class filtering apply on top of whatever is loaded.
 
 A **retention policy** deletes logs automatically once they pass a certain age: a background task runs at startup and then every hour. The policy is managed from the Logs page toolbar (*Keep logs: forever / 1 / 7 / 30 / 90 / 365 days*) and changing it applies immediately; the initial default comes from `YarpUi:Logs:RetentionDays` in configuration (30 days if unset). The policy you set in the UI is stored in the database itself and wins over the configuration value.
+
+## Forwarded headers (the real client IP behind a proxy)
+
+When the whole app sits behind a trusted front — a Cloudflare tunnel, nginx, another load balancer — every request's direct connection address is the front's, not the visitor's: IP blocking sees one address for all traffic and the request log shows the proxy's IP. The opt-in `YarpUi:ForwardedHeaders` section enables ASP.NET Core's forwarded-headers middleware for you, in every hosting mode, with no host code:
+
+```json
+"YarpUi": {
+  "ForwardedHeaders": {
+    "Enabled": true,
+    "ForwardedForHeaderName": "CF-Connecting-IP"
+  }
+}
+```
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `Enabled` | `false` | Installs the middleware; nothing changes until this is `true`. |
+| `ForwardedForHeaderName` | `X-Forwarded-For` | The header your front carries the client IP in when it isn't the standard one — `CF-Connecting-IP` (Cloudflare), `True-Client-IP` (Akamai). Leave unset for fronts that speak `X-Forwarded-For`. |
+| `KnownProxies` | *(loopback only)* | Extra peer IP addresses whose forwarded values are trusted. |
+| `KnownNetworks` | *(loopback only)* | Extra trusted peer networks in CIDR notation (`172.18.0.0/16`), e.g. the docker network a containerized front connects from. |
+| `TrustAllProxies` | `false` | Clears the known-proxy check entirely — only for setups where clients cannot reach the app except through the front (the normal tunnel deployment: no inbound ports open). |
+
+What it does:
+
+- `Connection.RemoteIpAddress` becomes the visitor's address, resolved from the configured header; `X-Forwarded-Proto` is honored too, so TLS-terminated fronts produce the right scheme.
+- **IP blocking** then matches the real visitor with its default settings — no need for the *Honor X-Forwarded-For* toggle, which reads the spoofable standard chain.
+- The **request log** records the resolved address, which wins over the leftmost `X-Forwarded-For` entry — a visitor can spoof that chain by sending their own header, but not the front's header.
+- Loopback is trusted out of the box, so a tunnel process (e.g. cloudflared) on the same machine needs only `Enabled` plus the header name; a front connecting from a container network additionally needs its range in `KnownNetworks` (or `TrustAllProxies` when the app is unreachable except through the front).
+- An unparseable `KnownProxies`/`KnownNetworks` value fails startup with an error naming it — a typo'd trust range should be loud, not silently ignored.
+- If the host already installs its own forwarded-headers middleware (`UseForwardedHeaders`), leave this section off.
+
+**Forwarding the client IP to your destinations**: headers from the front (including `CF-Connecting-IP`) already pass through to destinations unchanged. To also send the resolved visitor IP as the standard `X-Forwarded-For`, add transforms on the route — in the editor's *Transforms* box:
+
+```json
+[
+  { "X-ForwardedFor": "Set" },
+  { "X-ForwardedProto": "Set" }
+]
+```
+
+`Set` writes a single clean value (the resolved client IP); `Append` keeps the incoming chain instead.
 
 ## Performance
 

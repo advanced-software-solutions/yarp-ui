@@ -252,7 +252,7 @@
   <data name="logs.chartTitle" xml:space="preserve"><value>مدة كل طلب — ملوّنة حسب فئة الحالة، والخط المتقطع = P95</value></data>
   <data name="logs.slowestRoutes" xml:space="preserve"><value>أبطأ المسارات (P95)</value></data>
   <data name="logs.noRequestsYet" xml:space="preserve"><value>لا توجد طلبات في هذه النافذة الزمنية بعد.</value></data>
-  <data name="logs.colTime" xml:space="preserve"><value>الوقت</value></data>
+  <data name="logs.colTime" xml:space="preserve"><value>التاريخ / الوقت</value></data>
   <data name="logs.colMethod" xml:space="preserve"><value>الطريقة</value></data>
   <data name="logs.colPath" xml:space="preserve"><value>المسار</value></data>
   <data name="logs.colStatus" xml:space="preserve"><value>الحالة</value></data>

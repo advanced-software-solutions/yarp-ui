@@ -1268,7 +1268,7 @@ pre.json {
 .table tbody tr { transition: background 0.12s ease; }
 .table tbody tr:hover { background: rgba(148, 163, 184, 0.06); }
 
-.col-time { width: 110px; }
+.col-time { width: 205px; }
 .col-method { width: 84px; }
 .col-status { width: 80px; }
 .col-duration { width: 100px; }
